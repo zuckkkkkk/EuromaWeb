@@ -1,0 +1,9 @@
+﻿//Attiva migrations
+Enable-Migrations -ContextTypeName ApplicationDbContext -MigrationsDirectory IdentityMigrations
+Enable-Migrations -ContextTypeName EuromaAPI -MigrationsDirectory EuromaMigrations
+//Aggiungi migrations
+Add-Migration Init -ConfigurationTypeName EuromaAPI.IdentityMigrations.Configuration
+Add-Migration Init -ConfigurationTypeName EuromaAPI.EuromaMigrations.Configuration
+//Aggiorna DB con migrations
+Update-Database -ConfigurationTypeName EuromaAPI.IdentityMigrations.Configuration
+Update-Database -ConfigurationTypeName EuromaAPI.EuromaMigrations.Configuration

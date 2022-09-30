@@ -1,0 +1,41 @@
+﻿
+/*Font del sito*/
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@font-face {
+    font-family: 'Cera';
+    src: url("/Content/font/CeraProMedium.otf") format("opentype");
+}
+* {
+    font-family: 'Cera', sans-serif;
+}
+body {
+    padding-top: 50px;
+    padding-bottom: 20px;
+}
+
+/* Set padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Override the default bootstrap behavior where horizontal description lists 
+   will truncate terms that are too long to fit in the left column 
+*/
+.dl-horizontal dt {
+    white-space: normal;
+}
+
+/* Set width on the form input elements since they're 100% wide by default */
+input,
+select,
+textarea {
+    max-width: 280px;
+}
+
+/*.dt-buttons {
+    border: 0 !important;
+    background: #8b8b8b !important;
+    color: white !important;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+}*/

@@ -1,0 +1,1534 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{1D9DB4FB-DFE0-4B9C-AAE8-D72DBCAFD5A1}</ProjectGuid>
+    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <RootNamespace>EuromaWeb</RootNamespace>
+    <AssemblyName>EuromaWeb</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <OptionExplicit>On</OptionExplicit>
+    <OptionCompare>Binary</OptionCompare>
+    <OptionStrict>Off</OptionStrict>
+    <OptionInfer>On</OptionInfer>
+    <MvcBuildViews>false</MvcBuildViews>
+    <UseIISExpress>true</UseIISExpress>
+    <Use64BitIISExpress />
+    <IISExpressSSLPort>44306</IISExpressSSLPort>
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
+    <UseGlobalApplicationHostFile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\</OutputPath>
+    <DocumentationFile>EuromaWeb.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DocumentationFile>EuromaWeb.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Azure.Core, Version=1.16.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
+      <HintPath>..\packages\Azure.Core.1.16.0\lib\net461\Azure.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Azure.Identity, Version=1.3.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
+      <HintPath>..\packages\Azure.Identity.1.3.0\lib\netstandard2.0\Azure.Identity.dll</HintPath>
+    </Reference>
+    <Reference Include="BouncyCastle.Crypto, Version=1.8.9.0, Culture=neutral, PublicKeyToken=0e99375e54769942, processorArchitecture=MSIL">
+      <HintPath>..\packages\Portable.BouncyCastle.1.8.9\lib\net40\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Hangfire.AspNet, Version=0.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Hangfire.AspNet.0.2.0\lib\net45\Hangfire.AspNet.dll</HintPath>
+    </Reference>
+    <Reference Include="Hangfire.Core, Version=1.7.30.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Hangfire.Core.1.7.30\lib\net46\Hangfire.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Hangfire.SqlServer, Version=1.7.30.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Hangfire.SqlServer.1.7.30\lib\net45\Hangfire.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=1.3.2.10, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpZipLib.1.3.2\lib\net45\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.AWT.WinForms, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.AWT.WinForms.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Beans, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Beans.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Charsets, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Charsets.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Cldrdata, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Cldrdata.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Corba, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Corba.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Core, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Jdbc, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Jdbc.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Localedata, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Localedata.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Management, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Management.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Media, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Media.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Misc, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Misc.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Naming, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Naming.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Nashorn, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Nashorn.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Remoting, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Remoting.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Security, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.SwingAWT, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.SwingAWT.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Text, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Text.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Tools, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Tools.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Util, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.Util.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.XML.API, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.XML.API.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.XML.Bind, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.XML.Bind.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.XML.Crypto, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.XML.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.XML.Parse, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.XML.Parse.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.XML.Transform, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.XML.Transform.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.XML.WebServices, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.XML.WebServices.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.XML.XPath, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.OpenJDK.XML.XPath.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.Runtime, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.Runtime.JNI, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.Runtime.JNI.dll</HintPath>
+    </Reference>
+    <Reference Include="itextsharp, Version=5.5.13.3, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
+      <HintPath>..\packages\iTextSharp.5.5.13.3\lib\itextsharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.OData, Version=7.5.12.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.OData.7.5.12\lib\net45\Microsoft.AspNet.OData.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Cryptography.Internal, Version=6.0.4.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Cryptography.Internal.6.0.4\lib\net461\Microsoft.AspNetCore.Cryptography.Internal.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation, Version=6.0.4.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNetCore.Cryptography.KeyDerivation.6.0.4\lib\net461\Microsoft.AspNetCore.Cryptography.KeyDerivation.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.6.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=2.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Data.SqlClient, Version=3.0.0.0, Culture=neutral, PublicKeyToken=23ec7fc2d6eaa4a5, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Data.SqlClient.3.0.0\lib\net461\Microsoft.Data.SqlClient.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.Tools.Schema.Sql, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.SqlServer.DacFx.160.5400.1\lib\net462\Microsoft.Data.Tools.Schema.Sql.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.Tools.Schema.Tasks.Sql, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.SqlServer.DacFx.160.5400.1\lib\net462\Microsoft.Data.Tools.Schema.Tasks.Sql.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.Tools.Utilities, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.SqlServer.DacFx.160.5400.1\lib\net462\Microsoft.Data.Tools.Utilities.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Exchange.WebServices, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Exchange.WebServices.2.2\lib\40\Microsoft.Exchange.WebServices.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Exchange.WebServices.Auth, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Exchange.WebServices.2.2\lib\40\Microsoft.Exchange.WebServices.Auth.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.DependencyInjection, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.6.0.0\lib\net461\Microsoft.Extensions.DependencyInjection.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.6.0.0\lib\net461\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Identity.Core, Version=6.0.4.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Identity.Core.6.0.4\lib\net461\Microsoft.Extensions.Identity.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Logging, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Logging.6.0.0\lib\net461\Microsoft.Extensions.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.0\lib\net461\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Options, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Options.6.0.0\lib\net461\Microsoft.Extensions.Options.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Primitives, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Primitives.6.0.0\lib\net461\Microsoft.Extensions.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Identity.Client, Version=4.33.0.0, Culture=neutral, PublicKeyToken=0a613f4dd989e8ae, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Identity.Client.4.33.0\lib\net461\Microsoft.Identity.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Identity.Client.Extensions.Msal, Version=2.16.5.0, Culture=neutral, PublicKeyToken=0a613f4dd989e8ae, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Identity.Client.Extensions.Msal.2.16.5\lib\net45\Microsoft.Identity.Client.Extensions.Msal.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.JsonWebTokens, Version=6.8.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.JsonWebTokens.6.8.0\lib\net461\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Logging, Version=6.8.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Logging.6.8.0\lib\net461\Microsoft.IdentityModel.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Protocols, Version=6.8.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Protocols.6.8.0\lib\net461\Microsoft.IdentityModel.Protocols.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect, Version=6.8.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Protocols.OpenIdConnect.6.8.0\lib\net461\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Tokens, Version=6.8.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Tokens.6.8.0\lib\net461\Microsoft.IdentityModel.Tokens.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.OData.Core, Version=7.9.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.OData.Core.7.9.0\lib\net45\Microsoft.OData.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.OData.Edm, Version=7.9.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.OData.Edm.7.9.0\lib\net45\Microsoft.OData.Edm.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin, Version=4.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Owin.4.0.1\lib\net45\Microsoft.Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Host.SystemWeb, Version=4.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Owin.Host.SystemWeb.4.0.1\lib\net45\Microsoft.Owin.Host.SystemWeb.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security, Version=4.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Owin.Security.4.0.1\lib\net45\Microsoft.Owin.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.Cookies, Version=4.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Owin.Security.Cookies.4.0.1\lib\net45\Microsoft.Owin.Security.Cookies.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.Facebook, Version=4.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Owin.Security.Facebook.4.0.1\lib\net45\Microsoft.Owin.Security.Facebook.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.Google, Version=4.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Owin.Security.Google.4.0.1\lib\net45\Microsoft.Owin.Security.Google.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.MicrosoftAccount, Version=4.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Owin.Security.MicrosoftAccount.4.0.1\lib\net45\Microsoft.Owin.Security.MicrosoftAccount.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.OAuth, Version=4.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Owin.Security.OAuth.4.0.1\lib\net45\Microsoft.Owin.Security.OAuth.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.Twitter, Version=4.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Owin.Security.Twitter.4.0.1\lib\net45\Microsoft.Owin.Security.Twitter.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Spatial, Version=7.9.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Spatial.7.9.0\lib\net45\Microsoft.Spatial.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Dac, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.SqlServer.DacFx.160.5400.1\lib\net462\Microsoft.SqlServer.Dac.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Dac.Extensions, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.SqlServer.DacFx.160.5400.1\lib\net462\Microsoft.SqlServer.Dac.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.TransactSql.ScriptDom, Version=16.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.SqlServer.DacFx.160.5400.1\lib\net462\Microsoft.SqlServer.TransactSql.ScriptDom.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Types, Version=16.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.SqlServer.DacFx.160.5400.1\lib\net462\Microsoft.SqlServer.Types.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI, Version=2.5.5.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>..\packages\NPOI.2.5.5\lib\net45\NPOI.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OOXML, Version=2.5.5.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>..\packages\NPOI.2.5.5\lib\net45\NPOI.OOXML.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OpenXml4Net, Version=2.5.5.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>..\packages\NPOI.2.5.5\lib\net45\NPOI.OpenXml4Net.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OpenXmlFormats, Version=2.5.5.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <HintPath>..\packages\NPOI.2.5.5\lib\net45\NPOI.OpenXmlFormats.dll</HintPath>
+    </Reference>
+    <Reference Include="PdfSharp, Version=1.50.5147.0, Culture=neutral, PublicKeyToken=f94615aa0424f9eb, processorArchitecture=MSIL">
+      <HintPath>..\packages\PDFsharp.1.50.5147\lib\net20\PdfSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="PdfSharp.Charting, Version=1.50.5147.0, Culture=neutral, PublicKeyToken=f94615aa0424f9eb, processorArchitecture=MSIL">
+      <HintPath>..\packages\PDFsharp.1.50.5147\lib\net20\PdfSharp.Charting.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.Annotations, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ComponentModel.Annotations.5.0.0\lib\net461\System.ComponentModel.Annotations.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Configuration.ConfigurationManager, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Configuration.ConfigurationManager.4.7.0\lib\net461\System.Configuration.ConfigurationManager.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data.OracleClient" />
+    <Reference Include="System.Diagnostics.DiagnosticSource, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Diagnostics.DiagnosticSource.6.0.0\lib\net461\System.Diagnostics.DiagnosticSource.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IdentityModel" />
+    <Reference Include="System.IdentityModel.Tokens.Jwt, Version=6.8.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.6.8.0\lib\net461\System.IdentityModel.Tokens.Jwt.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Memory.Data, Version=1.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.Data.1.0.2\lib\net461\System.Memory.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net" />
+    <Reference Include="System.Net.Http.Formatting, Version=5.2.7.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.7\lib\net45\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security" />
+    <Reference Include="System.Security.AccessControl, Version=4.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.AccessControl.4.7.0\lib\net461\System.Security.AccessControl.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.ProtectedData, Version=4.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.ProtectedData.4.5.0\lib\net461\System.Security.Cryptography.ProtectedData.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Permissions, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Permissions.4.7.0\lib\net461\System.Security.Permissions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Principal.Windows, Version=4.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Principal.Windows.4.7.0\lib\net461\System.Security.Principal.Windows.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Text.Encodings.Web, Version=4.0.5.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encodings.Web.4.7.2\lib\net461\System.Text.Encodings.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.Json, Version=4.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Json.4.6.0\lib\net461\System.Text.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.DynamicData" />
+    <Reference Include="System.Web.Entity" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Http, Version=5.2.7.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Core.5.2.7\lib\net45\System.Web.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Abstractions" />
+    <Reference Include="System.Web.Routing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http">
+    </Reference>
+    <Reference Include="System.Net.Http.WebRequest">
+    </Reference>
+    <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.7\lib\net45\System.Web.Helpers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Mvc, Version=5.2.7.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.Mvc.5.2.7\lib\net45\System.Web.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Optimization">
+      <HintPath>..\packages\Microsoft.AspNet.Web.Optimization.1.1.3\lib\net40\System.Web.Optimization.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.Razor.3.2.7\lib\net45\System.Web.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.7\lib\net45\System.Web.WebPages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Deployment, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.7\lib\net45\System.Web.WebPages.Deployment.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.7\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="TikaOnDotNet, Version=1.17.1.0, Culture=neutral, PublicKeyToken=fd70f0f601f583f3, processorArchitecture=MSIL">
+      <HintPath>..\packages\TikaOnDotnet.TextExtractor.1.17.1\lib\TikaOnDotNet.dll</HintPath>
+    </Reference>
+    <Reference Include="TikaOnDotNet.TextExtraction, Version=1.17.1.0, Culture=neutral, PublicKeyToken=fd70f0f601f583f3, processorArchitecture=MSIL">
+      <HintPath>..\packages\TikaOnDotnet.TextExtractor.1.17.1\lib\TikaOnDotNet.TextExtraction.dll</HintPath>
+    </Reference>
+    <Reference Include="WebGrease">
+      <Private>True</Private>
+      <HintPath>..\packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
+    </Reference>
+    <Reference Include="Antlr3.Runtime">
+      <Private>True</Private>
+      <HintPath>..\packages\Antlr.3.5.0.2\lib\Antlr3.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.AspNet.Identity.Core">
+      <HintPath>..\packages\Microsoft.AspNet.Identity.Core.2.2.3\lib\net45\Microsoft.AspNet.Identity.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.Identity.Owin">
+      <HintPath>..\packages\Microsoft.AspNet.Identity.Owin.2.2.3\lib\net45\Microsoft.AspNet.Identity.Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.Identity.EntityFramework">
+      <HintPath>..\packages\Microsoft.AspNet.Identity.EntityFramework.2.2.3\lib\net45\Microsoft.AspNet.Identity.EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Owin">
+      <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security.Cookies">
+      <HintPath>..\packages\Microsoft.Owin.Security.Cookies.4.0.1\lib\net45\Microsoft.Owin.Security.Cookies.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.Data" />
+    <Import Include="System.Linq" />
+    <Import Include="System.Xml.Linq" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.Collections.Specialized" />
+    <Import Include="System.Configuration" />
+    <Import Include="System.Text" />
+    <Import Include="System.Text.RegularExpressions" />
+    <Import Include="System.Web" />
+    <Import Include="System.Web.Caching" />
+    <Import Include="System.Web.Mvc" />
+    <Import Include="System.Web.Mvc.Ajax" />
+    <Import Include="System.Web.Mvc.Html" />
+    <Import Include="System.Web.Routing" />
+    <Import Include="System.Web.SessionState" />
+    <Import Include="System.Web.Security" />
+    <Import Include="System.Web.Profile" />
+    <Import Include="System.Web.UI" />
+    <Import Include="System.Web.UI.WebControls" />
+    <Import Include="System.Web.UI.WebControls.WebParts" />
+    <Import Include="System.Web.UI.HtmlControls" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App_Start\BundleConfig.vb" />
+    <Compile Include="App_Start\FilterConfig.vb" />
+    <Compile Include="App_Start\IdentityConfig.vb" />
+    <Compile Include="App_Start\RouteConfig.vb" />
+    <Compile Include="App_Start\Startup.Auth.vb" />
+    <Compile Include="App_Start\WebApiConfig.vb" />
+    <Compile Include="Controllers\AccettazioneUCController.vb" />
+    <Compile Include="Controllers\AccountController.vb" />
+    <Compile Include="Controllers\AcquistiController.vb" />
+    <Compile Include="Controllers\ChangeLogController.vb" />
+    <Compile Include="Controllers\ClientiController.vb" />
+    <Compile Include="Controllers\HelpDesksController.vb" />
+    <Compile Include="Controllers\LicenzeController.vb" />
+    <Compile Include="Controllers\OrdinesController.vb" />
+    <Compile Include="Controllers\OrdiniController.vb" />
+    <Compile Include="Controllers\OverviewsController.vb" />
+    <Compile Include="Controllers\PezziController.vb" />
+    <Compile Include="Controllers\CommesseController.vb" />
+    <Compile Include="Controllers\CostiController.vb" />
+    <Compile Include="Controllers\ManageController.vb" />
+    <Compile Include="Controllers\ProgettiController.vb" />
+    <Compile Include="Controllers\ProgettiProdController.vb" />
+    <Compile Include="Controllers\ProgettiUTController.vb" />
+    <Compile Include="Costanti.vb" />
+    <Compile Include="EuromaMigrations\202112171439482_Init.Designer.vb">
+      <DependentUpon>202112171439482_Init.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202112171439482_Init.vb" />
+    <Compile Include="EuromaMigrations\202112171441012_Init1.Designer.vb">
+      <DependentUpon>202112171441012_Init1.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202112171441012_Init1.vb" />
+    <Compile Include="EuromaMigrations\202201031002061_Storico.Designer.vb">
+      <DependentUpon>202201031002061_Storico.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202201031002061_Storico.vb" />
+    <Compile Include="EuromaMigrations\202201031003013_Storico1.Designer.vb">
+      <DependentUpon>202201031003013_Storico1.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202201031003013_Storico1.vb" />
+    <Compile Include="EuromaMigrations\202201280925247_Overview.Designer.vb">
+      <DependentUpon>202201280925247_Overview.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202201280925247_Overview.vb" />
+    <Compile Include="EuromaMigrations\202201280943582_Overviewv2.Designer.vb">
+      <DependentUpon>202201280943582_Overviewv2.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202201280943582_Overviewv2.vb" />
+    <Compile Include="EuromaMigrations\202201281156061_Overviewv21.Designer.vb">
+      <DependentUpon>202201281156061_Overviewv21.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202201281156061_Overviewv21.vb" />
+    <Compile Include="EuromaMigrations\202201281201569_Overviewv22.Designer.vb">
+      <DependentUpon>202201281201569_Overviewv22.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202201281201569_Overviewv22.vb" />
+    <Compile Include="EuromaMigrations\202202181413264_TempiCAD.Designer.vb">
+      <DependentUpon>202202181413264_TempiCAD.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202202181413264_TempiCAD.vb" />
+    <Compile Include="EuromaMigrations\202203011248372_AccettazioneUC.Designer.vb">
+      <DependentUpon>202203011248372_AccettazioneUC.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202203011248372_AccettazioneUC.vb" />
+    <Compile Include="EuromaMigrations\202203021512143_UC.Designer.vb">
+      <DependentUpon>202203021512143_UC.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202203021512143_UC.vb" />
+    <Compile Include="EuromaMigrations\202203021514201_UC1.Designer.vb">
+      <DependentUpon>202203021514201_UC1.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202203021514201_UC1.vb" />
+    <Compile Include="EuromaMigrations\202203030929180_EmailOP.Designer.vb">
+      <DependentUpon>202203030929180_EmailOP.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202203030929180_EmailOP.vb" />
+    <Compile Include="EuromaMigrations\202203031023154_UsrEmail.Designer.vb">
+      <DependentUpon>202203031023154_UsrEmail.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202203031023154_UsrEmail.vb" />
+    <Compile Include="EuromaMigrations\202203161349245_EmailInviataUC.Designer.vb">
+      <DependentUpon>202203161349245_EmailInviataUC.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202203161349245_EmailInviataUC.vb" />
+    <Compile Include="EuromaMigrations\202203210828162_AspNetProfiles.Designer.vb">
+      <DependentUpon>202203210828162_AspNetProfiles.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202203210828162_AspNetProfiles.vb" />
+    <Compile Include="EuromaMigrations\202203250755393_Ticket_Alnus.Designer.vb">
+      <DependentUpon>202203250755393_Ticket_Alnus.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202203250755393_Ticket_Alnus.vb" />
+    <Compile Include="EuromaMigrations\202203250756211_Ticket_Alnus1.Designer.vb">
+      <DependentUpon>202203250756211_Ticket_Alnus1.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202203250756211_Ticket_Alnus1.vb" />
+    <Compile Include="EuromaMigrations\202203250802491_Ticket_Alnus3.Designer.vb">
+      <DependentUpon>202203250802491_Ticket_Alnus3.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202203250802491_Ticket_Alnus3.vb" />
+    <Compile Include="EuromaMigrations\202203251405182_Added_Logs.Designer.vb">
+      <DependentUpon>202203251405182_Added_Logs.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202203251405182_Added_Logs.vb" />
+    <Compile Include="EuromaMigrations\202204061115300_Stato_Accettazione.Designer.vb">
+      <DependentUpon>202204061115300_Stato_Accettazione.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202204061115300_Stato_Accettazione.vb" />
+    <Compile Include="EuromaMigrations\202204140945454_TempiMacchina.Designer.vb">
+      <DependentUpon>202204140945454_TempiMacchina.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202204140945454_TempiMacchina.vb" />
+    <Compile Include="EuromaMigrations\202205061221086_ProgettiUT.Designer.vb">
+      <DependentUpon>202205061221086_ProgettiUT.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202205061221086_ProgettiUT.vb" />
+    <Compile Include="EuromaMigrations\202205061221475_ProgettiUT1.Designer.vb">
+      <DependentUpon>202205061221475_ProgettiUT1.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202205061221475_ProgettiUT1.vb" />
+    <Compile Include="EuromaMigrations\202205090838330_ProgettiUT2.Designer.vb">
+      <DependentUpon>202205090838330_ProgettiUT2.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202205090838330_ProgettiUT2.vb" />
+    <Compile Include="EuromaMigrations\202205100756258_OperatoreProgettiUT.Designer.vb">
+      <DependentUpon>202205100756258_OperatoreProgettiUT.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202205100756258_OperatoreProgettiUT.vb" />
+    <Compile Include="EuromaMigrations\202205100818359_StatoUT.Designer.vb">
+      <DependentUpon>202205100818359_StatoUT.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202205100818359_StatoUT.vb" />
+    <Compile Include="EuromaMigrations\202205161310037_IsRevisione.Designer.vb">
+      <DependentUpon>202205161310037_IsRevisione.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202205161310037_IsRevisione.vb" />
+    <Compile Include="EuromaMigrations\202206130702265_Init2.Designer.vb">
+      <DependentUpon>202206130702265_Init2.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202206130702265_Init2.vb" />
+    <Compile Include="EuromaMigrations\202206130744407_Update_Ticket.Designer.vb">
+      <DependentUpon>202206130744407_Update_Ticket.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202206130744407_Update_Ticket.vb" />
+    <Compile Include="EuromaMigrations\202206230855130_Init3.Designer.vb">
+      <DependentUpon>202206230855130_Init3.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202206230855130_Init3.vb" />
+    <Compile Include="EuromaMigrations\202206230856152_Init4.Designer.vb">
+      <DependentUpon>202206230856152_Init4.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202206230856152_Init4.vb" />
+    <Compile Include="EuromaMigrations\202206240829267_DDT.Designer.vb">
+      <DependentUpon>202206240829267_DDT.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202206240829267_DDT.vb" />
+    <Compile Include="EuromaMigrations\202207010816479_Licenze.Designer.vb">
+      <DependentUpon>202207010816479_Licenze.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202207010816479_Licenze.vb" />
+    <Compile Include="EuromaMigrations\202207011222143_UpdateOL.Designer.vb">
+      <DependentUpon>202207011222143_UpdateOL.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202207011222143_UpdateOL.vb" />
+    <Compile Include="EuromaMigrations\202207040638309_Email_Lav.Designer.vb">
+      <DependentUpon>202207040638309_Email_Lav.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202207040638309_Email_Lav.vb" />
+    <Compile Include="EuromaMigrations\202207040700587_Enum_Lav_est.Designer.vb">
+      <DependentUpon>202207040700587_Enum_Lav_est.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202207040700587_Enum_Lav_est.vb" />
+    <Compile Include="EuromaMigrations\202207070931381_Disegni_MPA.Designer.vb">
+      <DependentUpon>202207070931381_Disegni_MPA.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202207070931381_Disegni_MPA.vb" />
+    <Compile Include="EuromaMigrations\202207071313081_Identity.Designer.vb">
+      <DependentUpon>202207071313081_Identity.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202207071313081_Identity.vb" />
+    <Compile Include="EuromaMigrations\202207071313442_Identity_Divisioni.Designer.vb">
+      <DependentUpon>202207071313442_Identity_Divisioni.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202207071313442_Identity_Divisioni.vb" />
+    <Compile Include="EuromaMigrations\202207121503209_CampoDescAlnus.Designer.vb">
+      <DependentUpon>202207121503209_CampoDescAlnus.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202207121503209_CampoDescAlnus.vb" />
+    <Compile Include="EuromaMigrations\202207130909110_ChangeLog.Designer.vb">
+      <DependentUpon>202207130909110_ChangeLog.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202207130909110_ChangeLog.vb" />
+    <Compile Include="EuromaMigrations\202207131134259_ChangeLog_Visualizzazione.Designer.vb">
+      <DependentUpon>202207131134259_ChangeLog_Visualizzazione.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202207131134259_ChangeLog_Visualizzazione.vb" />
+    <Compile Include="EuromaMigrations\202207131147166_ChangeLog_Visualizzazione1.Designer.vb">
+      <DependentUpon>202207131147166_ChangeLog_Visualizzazione1.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202207131147166_ChangeLog_Visualizzazione1.vb" />
+    <Compile Include="EuromaMigrations\202207131426444_DisegniServerMPA.Designer.vb">
+      <DependentUpon>202207131426444_DisegniServerMPA.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202207131426444_DisegniServerMPA.vb" />
+    <Compile Include="EuromaMigrations\202207211346388_UpdateLicenze.Designer.vb">
+      <DependentUpon>202207211346388_UpdateLicenze.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202207211346388_UpdateLicenze.vb" />
+    <Compile Include="EuromaMigrations\202207251202012_Audit.Designer.vb">
+      <DependentUpon>202207251202012_Audit.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202207251202012_Audit.vb" />
+    <Compile Include="EuromaMigrations\202207271217254_AggiuntaNoteEStati.Designer.vb">
+      <DependentUpon>202207271217254_AggiuntaNoteEStati.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202207271217254_AggiuntaNoteEStati.vb" />
+    <Compile Include="EuromaMigrations\202207281403079_ProduzioneAdded.Designer.vb">
+      <DependentUpon>202207281403079_ProduzioneAdded.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202207281403079_ProduzioneAdded.vb" />
+    <Compile Include="EuromaMigrations\202207281404003_ProduzioneAdded_Db.Designer.vb">
+      <DependentUpon>202207281404003_ProduzioneAdded_Db.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202207281404003_ProduzioneAdded_Db.vb" />
+    <Compile Include="EuromaMigrations\202207291430020_AddedPriorita.Designer.vb">
+      <DependentUpon>202207291430020_AddedPriorita.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202207291430020_AddedPriorita.vb" />
+    <Compile Include="EuromaMigrations\202208010640299_Priorita_Data_Consegna_Prod_UT.Designer.vb">
+      <DependentUpon>202208010640299_Priorita_Data_Consegna_Prod_UT.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202208010640299_Priorita_Data_Consegna_Prod_UT.vb" />
+    <Compile Include="EuromaMigrations\202208010949152_StoricoOC.Designer.vb">
+      <DependentUpon>202208010949152_StoricoOC.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202208010949152_StoricoOC.vb" />
+    <Compile Include="EuromaMigrations\202208011133211_StoricoOC1.Designer.vb">
+      <DependentUpon>202208011133211_StoricoOC1.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202208011133211_StoricoOC1.vb" />
+    <Compile Include="EuromaMigrations\202208030734458_DocumentiPerOC.Designer.vb">
+      <DependentUpon>202208030734458_DocumentiPerOC.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202208030734458_DocumentiPerOC.vb" />
+    <Compile Include="EuromaMigrations\202208041150089_PrioritaUpdate.Designer.vb">
+      <DependentUpon>202208041150089_PrioritaUpdate.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202208041150089_PrioritaUpdate.vb" />
+    <Compile Include="EuromaMigrations\202208251222576_BrandPerAccettazione.Designer.vb">
+      <DependentUpon>202208251222576_BrandPerAccettazione.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202208251222576_BrandPerAccettazione.vb" />
+    <Compile Include="EuromaMigrations\202208251316471_CostoMaggiorato.Designer.vb">
+      <DependentUpon>202208251316471_CostoMaggiorato.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202208251316471_CostoMaggiorato.vb" />
+    <Compile Include="EuromaMigrations\202208291314518_Cliente.Designer.vb">
+      <DependentUpon>202208291314518_Cliente.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202208291314518_Cliente.vb" />
+    <Compile Include="EuromaMigrations\202208311427336_Check_4.Designer.vb">
+      <DependentUpon>202208311427336_Check_4.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202208311427336_Check_4.vb" />
+    <Compile Include="EuromaMigrations\202209051309179_FasiOC.Designer.vb">
+      <DependentUpon>202209051309179_FasiOC.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202209051309179_FasiOC.vb" />
+    <Compile Include="EuromaMigrations\202209051343527_FasiOC_Articolo.Designer.vb">
+      <DependentUpon>202209051343527_FasiOC_Articolo.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202209051343527_FasiOC_Articolo.vb" />
+    <Compile Include="EuromaMigrations\202209090850341_TempiAttivita.Designer.vb">
+      <DependentUpon>202209090850341_TempiAttivita.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202209090850341_TempiAttivita.vb" />
+    <Compile Include="EuromaMigrations\202209091124049_AddedMacchinaFasi.Designer.vb">
+      <DependentUpon>202209091124049_AddedMacchinaFasi.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202209091124049_AddedMacchinaFasi.vb" />
+    <Compile Include="EuromaMigrations\202209091245434_AddedMacchinaFasi1.Designer.vb">
+      <DependentUpon>202209091245434_AddedMacchinaFasi1.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202209091245434_AddedMacchinaFasi1.vb" />
+    <Compile Include="EuromaMigrations\202209200901098_Nomina_Overview.Designer.vb">
+      <DependentUpon>202209200901098_Nomina_Overview.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202209200901098_Nomina_Overview.vb" />
+    <Compile Include="EuromaMigrations\202209200935038_OP.Designer.vb">
+      <DependentUpon>202209200935038_OP.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202209200935038_OP.vb" />
+    <Compile Include="EuromaMigrations\202209201307127_ODP.Designer.vb">
+      <DependentUpon>202209201307127_ODP.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202209201307127_ODP.vb" />
+    <Compile Include="EuromaMigrations\202209210837378_Articolo.Designer.vb">
+      <DependentUpon>202209210837378_Articolo.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202209210837378_Articolo.vb" />
+    <Compile Include="EuromaMigrations\202209211429449_GestioneMagazzino.Designer.vb">
+      <DependentUpon>202209211429449_GestioneMagazzino.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202209211429449_GestioneMagazzino.vb" />
+    <Compile Include="EuromaMigrations\202209230641229_GestioneMagazzino_ArtNote.Designer.vb">
+      <DependentUpon>202209230641229_GestioneMagazzino_ArtNote.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202209230641229_GestioneMagazzino_ArtNote.vb" />
+    <Compile Include="EuromaMigrations\202209231153144_GestioneMagazzino_Modifica.Designer.vb">
+      <DependentUpon>202209231153144_GestioneMagazzino_Modifica.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202209231153144_GestioneMagazzino_Modifica.vb" />
+    <Compile Include="EuromaMigrations\202209231321401_TabellaVisualizzazioneAggiornamento.Designer.vb">
+      <DependentUpon>202209231321401_TabellaVisualizzazioneAggiornamento.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202209231321401_TabellaVisualizzazioneAggiornamento.vb" />
+    <Compile Include="EuromaMigrations\202209231324497_TabellaVisualizzazioneAggiornamento1.Designer.vb">
+      <DependentUpon>202209231324497_TabellaVisualizzazioneAggiornamento1.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202209231324497_TabellaVisualizzazioneAggiornamento1.vb" />
+    <Compile Include="EuromaMigrations\Configuration.vb" />
+    <Compile Include="Global.asax.vb">
+      <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
+    <Compile Include="IdentityMigrations\202111161323354_Init.Designer.vb">
+      <DependentUpon>202111161323354_Init.vb</DependentUpon>
+    </Compile>
+    <Compile Include="IdentityMigrations\202111161323354_Init.vb" />
+    <Compile Include="IdentityMigrations\202111161327170_Init1.Designer.vb">
+      <DependentUpon>202111161327170_Init1.vb</DependentUpon>
+    </Compile>
+    <Compile Include="IdentityMigrations\202111161327170_Init1.vb" />
+    <Compile Include="IdentityMigrations\202112271458561_Init2.Designer.vb">
+      <DependentUpon>202112271458561_Init2.vb</DependentUpon>
+    </Compile>
+    <Compile Include="IdentityMigrations\202112271458561_Init2.vb" />
+    <Compile Include="IdentityMigrations\202112271507456_Init3.Designer.vb">
+      <DependentUpon>202112271507456_Init3.vb</DependentUpon>
+    </Compile>
+    <Compile Include="IdentityMigrations\202112271507456_Init3.vb" />
+    <Compile Include="IdentityMigrations\202201280923510_Overview.Designer.vb">
+      <DependentUpon>202201280923510_Overview.vb</DependentUpon>
+    </Compile>
+    <Compile Include="IdentityMigrations\202201280923510_Overview.vb" />
+    <Compile Include="IdentityMigrations\202203210827485_AspNetProfiles.Designer.vb">
+      <DependentUpon>202203210827485_AspNetProfiles.vb</DependentUpon>
+    </Compile>
+    <Compile Include="IdentityMigrations\202203210827485_AspNetProfiles.vb" />
+    <Compile Include="IdentityMigrations\202203210832119_AspNetProfiles1.Designer.vb">
+      <DependentUpon>202203210832119_AspNetProfiles1.vb</DependentUpon>
+    </Compile>
+    <Compile Include="IdentityMigrations\202203210832119_AspNetProfiles1.vb" />
+    <Compile Include="IdentityMigrations\202203210834475_AspNetProfiles2.Designer.vb">
+      <DependentUpon>202203210834475_AspNetProfiles2.vb</DependentUpon>
+    </Compile>
+    <Compile Include="IdentityMigrations\202203210834475_AspNetProfiles2.vb" />
+    <Compile Include="IdentityMigrations\202203210910456_Init4.Designer.vb">
+      <DependentUpon>202203210910456_Init4.vb</DependentUpon>
+    </Compile>
+    <Compile Include="IdentityMigrations\202203210910456_Init4.vb" />
+    <Compile Include="IdentityMigrations\202203231001361_Path_ricerca.Designer.vb">
+      <DependentUpon>202203231001361_Path_ricerca.vb</DependentUpon>
+    </Compile>
+    <Compile Include="IdentityMigrations\202203231001361_Path_ricerca.vb" />
+    <Compile Include="IdentityMigrations\202204051200508_Soprannome.Designer.vb">
+      <DependentUpon>202204051200508_Soprannome.vb</DependentUpon>
+    </Compile>
+    <Compile Include="IdentityMigrations\202204051200508_Soprannome.vb" />
+    <Compile Include="IdentityMigrations\202205170633161_Init5.Designer.vb">
+      <DependentUpon>202205170633161_Init5.vb</DependentUpon>
+    </Compile>
+    <Compile Include="IdentityMigrations\202205170633161_Init5.vb" />
+    <Compile Include="IdentityMigrations\202206130701347_Init6.Designer.vb">
+      <DependentUpon>202206130701347_Init6.vb</DependentUpon>
+    </Compile>
+    <Compile Include="IdentityMigrations\202206130701347_Init6.vb" />
+    <Compile Include="IdentityMigrations\202207071314209_Identity_Div.Designer.vb">
+      <DependentUpon>202207071314209_Identity_Div.vb</DependentUpon>
+    </Compile>
+    <Compile Include="IdentityMigrations\202207071314209_Identity_Div.vb" />
+    <Compile Include="IdentityMigrations\202209201257265_ProgrammazioneEsterno.Designer.vb">
+      <DependentUpon>202209201257265_ProgrammazioneEsterno.vb</DependentUpon>
+    </Compile>
+    <Compile Include="IdentityMigrations\202209201257265_ProgrammazioneEsterno.vb" />
+    <Compile Include="IdentityMigrations\Configuration.vb" />
+    <Compile Include="Models\AccountViewModels.vb" />
+    <Compile Include="Models\DatatablesAjaxPostModels.vb" />
+    <Compile Include="Models\EuromaModels.vb" />
+    <Compile Include="Models\EuromaEnums.vb" />
+    <Compile Include="Models\IdentityModels.vb" />
+    <Compile Include="Models\ManageViewModels.vb" />
+    <Compile Include="My Project\AssemblyInfo.vb" />
+    <Compile Include="My Project\Application.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Application.myapp</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="My Project\Resources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Settings.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="Controllers\HomeController.vb" />
+    <Compile Include="Startup.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="EuromaMigrations\202112171439482_Init.resx">
+      <DependentUpon>202112171439482_Init.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202112171441012_Init1.resx">
+      <DependentUpon>202112171441012_Init1.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202201031002061_Storico.resx">
+      <DependentUpon>202201031002061_Storico.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202201031003013_Storico1.resx">
+      <DependentUpon>202201031003013_Storico1.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202201280925247_Overview.resx">
+      <DependentUpon>202201280925247_Overview.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202201280943582_Overviewv2.resx">
+      <DependentUpon>202201280943582_Overviewv2.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202201281156061_Overviewv21.resx">
+      <DependentUpon>202201281156061_Overviewv21.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202201281201569_Overviewv22.resx">
+      <DependentUpon>202201281201569_Overviewv22.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202202181413264_TempiCAD.resx">
+      <DependentUpon>202202181413264_TempiCAD.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202203011248372_AccettazioneUC.resx">
+      <DependentUpon>202203011248372_AccettazioneUC.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202203021512143_UC.resx">
+      <DependentUpon>202203021512143_UC.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202203021514201_UC1.resx">
+      <DependentUpon>202203021514201_UC1.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202203030929180_EmailOP.resx">
+      <DependentUpon>202203030929180_EmailOP.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202203031023154_UsrEmail.resx">
+      <DependentUpon>202203031023154_UsrEmail.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202203161349245_EmailInviataUC.resx">
+      <DependentUpon>202203161349245_EmailInviataUC.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202203210828162_AspNetProfiles.resx">
+      <DependentUpon>202203210828162_AspNetProfiles.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202203250755393_Ticket_Alnus.resx">
+      <DependentUpon>202203250755393_Ticket_Alnus.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202203250756211_Ticket_Alnus1.resx">
+      <DependentUpon>202203250756211_Ticket_Alnus1.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202203250802491_Ticket_Alnus3.resx">
+      <DependentUpon>202203250802491_Ticket_Alnus3.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202203251405182_Added_Logs.resx">
+      <DependentUpon>202203251405182_Added_Logs.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202204061115300_Stato_Accettazione.resx">
+      <DependentUpon>202204061115300_Stato_Accettazione.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202204140945454_TempiMacchina.resx">
+      <DependentUpon>202204140945454_TempiMacchina.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202205061221086_ProgettiUT.resx">
+      <DependentUpon>202205061221086_ProgettiUT.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202205061221475_ProgettiUT1.resx">
+      <DependentUpon>202205061221475_ProgettiUT1.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202205090838330_ProgettiUT2.resx">
+      <DependentUpon>202205090838330_ProgettiUT2.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202205100756258_OperatoreProgettiUT.resx">
+      <DependentUpon>202205100756258_OperatoreProgettiUT.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202205100818359_StatoUT.resx">
+      <DependentUpon>202205100818359_StatoUT.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202205161310037_IsRevisione.resx">
+      <DependentUpon>202205161310037_IsRevisione.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202206130702265_Init2.resx">
+      <DependentUpon>202206130702265_Init2.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202206130744407_Update_Ticket.resx">
+      <DependentUpon>202206130744407_Update_Ticket.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202206230855130_Init3.resx">
+      <DependentUpon>202206230855130_Init3.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202206230856152_Init4.resx">
+      <DependentUpon>202206230856152_Init4.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202206240829267_DDT.resx">
+      <DependentUpon>202206240829267_DDT.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202207010816479_Licenze.resx">
+      <DependentUpon>202207010816479_Licenze.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202207011222143_UpdateOL.resx">
+      <DependentUpon>202207011222143_UpdateOL.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202207040638309_Email_Lav.resx">
+      <DependentUpon>202207040638309_Email_Lav.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202207040700587_Enum_Lav_est.resx">
+      <DependentUpon>202207040700587_Enum_Lav_est.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202207070931381_Disegni_MPA.resx">
+      <DependentUpon>202207070931381_Disegni_MPA.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202207071313081_Identity.resx">
+      <DependentUpon>202207071313081_Identity.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202207071313442_Identity_Divisioni.resx">
+      <DependentUpon>202207071313442_Identity_Divisioni.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202207121503209_CampoDescAlnus.resx">
+      <DependentUpon>202207121503209_CampoDescAlnus.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202207130909110_ChangeLog.resx">
+      <DependentUpon>202207130909110_ChangeLog.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202207131134259_ChangeLog_Visualizzazione.resx">
+      <DependentUpon>202207131134259_ChangeLog_Visualizzazione.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202207131147166_ChangeLog_Visualizzazione1.resx">
+      <DependentUpon>202207131147166_ChangeLog_Visualizzazione1.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202207131426444_DisegniServerMPA.resx">
+      <DependentUpon>202207131426444_DisegniServerMPA.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202207211346388_UpdateLicenze.resx">
+      <DependentUpon>202207211346388_UpdateLicenze.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202207251202012_Audit.resx">
+      <DependentUpon>202207251202012_Audit.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202207271217254_AggiuntaNoteEStati.resx">
+      <DependentUpon>202207271217254_AggiuntaNoteEStati.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202207281403079_ProduzioneAdded.resx">
+      <DependentUpon>202207281403079_ProduzioneAdded.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202207281404003_ProduzioneAdded_Db.resx">
+      <DependentUpon>202207281404003_ProduzioneAdded_Db.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202207291430020_AddedPriorita.resx">
+      <DependentUpon>202207291430020_AddedPriorita.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202208010640299_Priorita_Data_Consegna_Prod_UT.resx">
+      <DependentUpon>202208010640299_Priorita_Data_Consegna_Prod_UT.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202208010949152_StoricoOC.resx">
+      <DependentUpon>202208010949152_StoricoOC.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202208011133211_StoricoOC1.resx">
+      <DependentUpon>202208011133211_StoricoOC1.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202208030734458_DocumentiPerOC.resx">
+      <DependentUpon>202208030734458_DocumentiPerOC.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202208041150089_PrioritaUpdate.resx">
+      <DependentUpon>202208041150089_PrioritaUpdate.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202208251222576_BrandPerAccettazione.resx">
+      <DependentUpon>202208251222576_BrandPerAccettazione.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202208251316471_CostoMaggiorato.resx">
+      <DependentUpon>202208251316471_CostoMaggiorato.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202208291314518_Cliente.resx">
+      <DependentUpon>202208291314518_Cliente.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202208311427336_Check_4.resx">
+      <DependentUpon>202208311427336_Check_4.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202209051309179_FasiOC.resx">
+      <DependentUpon>202209051309179_FasiOC.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202209051343527_FasiOC_Articolo.resx">
+      <DependentUpon>202209051343527_FasiOC_Articolo.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202209090850341_TempiAttivita.resx">
+      <DependentUpon>202209090850341_TempiAttivita.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202209091124049_AddedMacchinaFasi.resx">
+      <DependentUpon>202209091124049_AddedMacchinaFasi.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202209091245434_AddedMacchinaFasi1.resx">
+      <DependentUpon>202209091245434_AddedMacchinaFasi1.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202209200901098_Nomina_Overview.resx">
+      <DependentUpon>202209200901098_Nomina_Overview.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202209200935038_OP.resx">
+      <DependentUpon>202209200935038_OP.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202209201307127_ODP.resx">
+      <DependentUpon>202209201307127_ODP.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202209210837378_Articolo.resx">
+      <DependentUpon>202209210837378_Articolo.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202209211429449_GestioneMagazzino.resx">
+      <DependentUpon>202209211429449_GestioneMagazzino.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202209230641229_GestioneMagazzino_ArtNote.resx">
+      <DependentUpon>202209230641229_GestioneMagazzino_ArtNote.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202209231153144_GestioneMagazzino_Modifica.resx">
+      <DependentUpon>202209231153144_GestioneMagazzino_Modifica.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202209231321401_TabellaVisualizzazioneAggiornamento.resx">
+      <DependentUpon>202209231321401_TabellaVisualizzazioneAggiornamento.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202209231324497_TabellaVisualizzazioneAggiornamento1.resx">
+      <DependentUpon>202209231324497_TabellaVisualizzazioneAggiornamento1.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IdentityMigrations\202111161323354_Init.resx">
+      <DependentUpon>202111161323354_Init.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IdentityMigrations\202111161327170_Init1.resx">
+      <DependentUpon>202111161327170_Init1.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IdentityMigrations\202112271458561_Init2.resx">
+      <DependentUpon>202112271458561_Init2.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IdentityMigrations\202112271507456_Init3.resx">
+      <DependentUpon>202112271507456_Init3.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IdentityMigrations\202201280923510_Overview.resx">
+      <DependentUpon>202201280923510_Overview.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IdentityMigrations\202203210827485_AspNetProfiles.resx">
+      <DependentUpon>202203210827485_AspNetProfiles.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IdentityMigrations\202203210832119_AspNetProfiles1.resx">
+      <DependentUpon>202203210832119_AspNetProfiles1.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IdentityMigrations\202203210834475_AspNetProfiles2.resx">
+      <DependentUpon>202203210834475_AspNetProfiles2.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IdentityMigrations\202203210910456_Init4.resx">
+      <DependentUpon>202203210910456_Init4.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IdentityMigrations\202203231001361_Path_ricerca.resx">
+      <DependentUpon>202203231001361_Path_ricerca.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IdentityMigrations\202204051200508_Soprannome.resx">
+      <DependentUpon>202204051200508_Soprannome.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IdentityMigrations\202205170633161_Init5.resx">
+      <DependentUpon>202205170633161_Init5.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IdentityMigrations\202206130701347_Init6.resx">
+      <DependentUpon>202206130701347_Init6.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IdentityMigrations\202207071314209_Identity_Div.resx">
+      <DependentUpon>202207071314209_Identity_Div.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IdentityMigrations\202209201257265_ProgrammazioneEsterno.resx">
+      <DependentUpon>202209201257265_ProgrammazioneEsterno.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="My Project\Resources.resx">
+      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Asset\img\euromagroup-logo-negativo.svg" />
+    <Content Include="Asset\img\logo-nero.png" />
+    <Content Include="Asset\loading.gif" />
+    <Content Include="Content\bootstrap-theme.css" />
+    <Content Include="Content\bootstrap-theme.min.css" />
+    <Content Include="Content\bootstrap.css" />
+    <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\datepicker.min.css" />
+    <Content Include="Content\font-awesome.css" />
+    <Content Include="Content\icons\Doc_UT.png" />
+    <Content Include="Content\Firme\Firma.png" />
+    <Content Include="Content\guides.css" />
+    <Content Include="Content\icons\Cartella.png" />
+    <Content Include="Content\icons\Cerca.png" />
+    <Content Include="Content\icons\Download.png" />
+    <Content Include="Content\icons\Impostazioni.svg" />
+    <Content Include="Content\icons\Mail.png" />
+    <Content Include="Content\icons\Modifica.png" />
+    <Content Include="Content\icons\pdf_Icon.png" />
+    <Content Include="Content\icons\Rey_Lightsaber.cur" />
+    <Content Include="Content\jtimeline.css" />
+    <Content Include="Content\mp3\notification_operatore.mp3" />
+    <Content Include="Content\mp3\notification_admin_UT.mp3" />
+    <Content Include="Content\svg\loading-gif-icon-11 %281%29.gif" />
+    <Content Include="Content\svg\Magnify.gif" />
+    <Content Include="Content\svg\Planimetria.svg" />
+    <Content Include="Content\Template\Magazzini_Template.xlsx" />
+    <Content Include="Content\Template\per_mattia.xlsx" />
+    <Content Include="Content\Template\MegaExcelMagazzinoFinale_Copia.xlsx" />
+    <Content Include="Content\Template\INVENTARIO_UFFICIALE.xlsx" />
+    <Content Include="Content\font\CeraProMedium.otf" />
+    <Content Include="Content\Template\Anagrafica.xlsx" />
+    <Content Include="Content\File_Base_UC\Condizioni_Generali_Fornitura_ENG.pdf" />
+    <Content Include="Content\File_Base_UC\Condizioni_Generali_Fornitura_ITL.pdf" />
+    <Content Include="fonts\glyphicons-halflings-regular.svg" />
+    <Content Include="fonts\glyphicons-halflings-regular.woff2" />
+    <Content Include="fonts\glyphicons-halflings-regular.woff" />
+    <Content Include="fonts\glyphicons-halflings-regular.ttf" />
+    <Content Include="fonts\glyphicons-halflings-regular.eot" />
+    <Content Include="Content\bootstrap.min.css.map" />
+    <Content Include="Content\bootstrap.css.map" />
+    <Content Include="Content\bootstrap-theme.min.css.map" />
+    <Content Include="Content\bootstrap-theme.css.map" />
+    <Content Include="Content\Template\INVENTARIO_VALORIZZAZIONE_TEMPLATE.xlsx" />
+    <Content Include="Content\font\Barcode.ttf" />
+    <Content Include="Content\mail.json" />
+    <Content Include="favicon.ico" />
+    <Content Include="img\grid.png" />
+    <Content Include="img\icon_sprite.png" />
+    <Content Include="img\slider_handle.png" />
+    <Content Include="Scripts\bootstrap.bundle.min.js" />
+    <Content Include="Scripts\chart.js" />
+    <Content Include="Scripts\Cleave.js" />
+    <Content Include="Scripts\datepicker.js" />
+    <Content Include="Scripts\font-awesome.js" />
+    <Content Include="Scripts\css\DatePicker_A.css" />
+    <Content Include="Scripts\Gradient.js" />
+    <Content Include="Scripts\HotKeys.js" />
+    <Content Include="Scripts\jquery.fn.gantt.js" />
+    <Content Include="Scripts\loader.js" />
+    <Content Include="Scripts\popper.min.js" />
+    <Content Include="Scripts\sweetalert2.js" />
+    <Content Include="Scripts\Timepicker\timepicker-ui.esm.js" />
+    <Content Include="Scripts\Timepicker\timepicker-ui.js" />
+    <Content Include="Scripts\Timepicker\timepicker-ui.umd.js" />
+    <Content Include="tessdata\Configs\bazzar" />
+    <Content Include="tessdata\eng.traineddata" />
+    <Content Include="tessdata\eng.user-patterns" />
+    <Content Include="tessdata\eng.user-words" />
+    <Content Include="tessdata\osd.traineddata" />
+    <Content Include="tessdata\pdf.ttf" />
+    <Content Include="Content\Template\Euroma_Fatturato.xlsx" />
+    <Content Include="Content\Template\Euroma_Ordinato.xlsx" />
+    <Content Include="Content\datatable.min.css" />
+    <Content Include="Content\Template\OffertaFornitore.pdf" />
+    <Content Include="Content\Template\OffertaFornitoreDDT.pdf" />
+    <Content Include="Content\Template\Template_Priorita.xlsx" />
+    <Content Include="Content\json\particlesjs-config.json" />
+    <None Include="My Project\Application.myapp">
+      <Generator>MyApplicationCodeGenerator</Generator>
+      <LastGenOutput>Application.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="My Project\PublishProfiles\Default Settings.pubxml" />
+    <None Include="My Project\PublishProfiles\Default Settings1.pubxml" />
+    <None Include="My Project\PublishProfiles\FolderProfile.pubxml" />
+    <None Include="My Project\PublishProfiles\FolderProfile1.pubxml" />
+    <None Include="My Project\PublishProfiles\FolderProfile2.pubxml" />
+    <None Include="My Project\PublishProfiles\FolderProfile3.pubxml" />
+    <None Include="My Project\PublishProfiles\IISProfile.pubxml" />
+    <None Include="My Project\PublishProfiles\IISProfile1.pubxml" />
+    <None Include="My Project\PublishProfiles\IISProfile2.pubxml" />
+    <None Include="My Project\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <CustomToolNamespace>My</CustomToolNamespace>
+      <LastGenOutput>Settings.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="packages.config" />
+    <Compile Include="Models\EuromaWeb.vb" />
+    <Content Include="Scripts\bootstrap.js" />
+    <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Scripts\bootstrap.notify.js" />
+    <Content Include="Scripts\chartjs-plugin-doughnutlabel.min.js" />
+    <Content Include="Content\fontawesome.css" />
+    <Content Include="Scripts\css\dropify.min.css" />
+    <Content Include="Scripts\dropify.min.js" />
+    <Content Include="Migrations Commands.txt" />
+    <None Include="Scripts\jquery-3.4.1.intellisense.js" />
+    <Content Include="Scripts\filterDropDown.js" />
+    <Content Include="Scripts\guides.min.js" />
+    <Content Include="Scripts\jquery-3.4.1.js" />
+    <Content Include="Scripts\jquery-3.4.1.min.js" />
+    <Content Include="Scripts\jquery-3.4.1.slim.js" />
+    <Content Include="Scripts\jquery-3.4.1.slim.min.js" />
+    <Content Include="Scripts\jquery.form.upload.init.js" />
+    <None Include="Scripts\jquery.validate-vsdoc.js" />
+    <Content Include="Scripts\jquery.validate.js" />
+    <Content Include="Scripts\jquery.validate.min.js" />
+    <Content Include="Scripts\jquery.validate.unobtrusive.js" />
+    <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Scripts\jtimeline.js" />
+    <Content Include="Scripts\Tagify\tagify.css" />
+    <Content Include="Scripts\Tagify\tagify.min.js" />
+    <Content Include="Scripts\Tagify\tagify.polyfills.min.js" />
+    <Content Include="Views\Account\_ExternalLoginsListPartial.vbhtml" />
+    <Content Include="Views\Account\ConfirmEmail.vbhtml" />
+    <Content Include="Views\Account\ExternalLoginConfirmation.vbhtml" />
+    <Content Include="Views\Account\ExternalLoginFailure.vbhtml" />
+    <Content Include="Views\Account\ForgotPassword.vbhtml" />
+    <Content Include="Views\Account\ForgotPasswordConfirmation.vbhtml" />
+    <Content Include="Views\Account\Login.vbhtml" />
+    <Content Include="Views\Account\Register.vbhtml" />
+    <Content Include="Views\Account\ResetPassword.vbhtml" />
+    <Content Include="Views\Account\ResetPasswordConfirmation.vbhtml" />
+    <Content Include="Views\Account\SendCode.vbhtml" />
+    <Content Include="Views\Account\VerifyCode.vbhtml" />
+    <Content Include="Views\Manage\AddPhoneNumber.vbhtml" />
+    <Content Include="Views\Manage\ChangePassword.vbhtml" />
+    <Content Include="Views\Manage\Index.vbhtml" />
+    <Content Include="Views\Manage\ManageLogins.vbhtml" />
+    <Content Include="Views\Manage\SetPassword.vbhtml" />
+    <Content Include="Views\Manage\VerifyPhoneNumber.vbhtml" />
+    <Content Include="plugins\dropify\css\dropify.min.css" />
+    <Content Include="plugins\dropify\fonts\dropify.svg" />
+    <Content Include="plugins\dropify\images\1.jpg" />
+    <Content Include="plugins\dropify\images\2.jpg" />
+    <Content Include="plugins\dropify\images\cover.jpg" />
+    <Content Include="plugins\dropify\js\dropify.min.js" />
+    <Content Include="Views\Pezzi\StampaEtichetta.vbhtml" />
+    <Content Include="Views\Pezzi\FatturatoPage.vbhtml" />
+    <Content Include="Views\Pezzi\CommessaPage.vbhtml" />
+    <Content Include="Views\ProgettiUT\Create.vbhtml" />
+    <Content Include="Views\ProgettiUT\Delete.vbhtml" />
+    <Content Include="Views\ProgettiUT\Details.vbhtml" />
+    <Content Include="Views\ProgettiUT\EditOperatore.vbhtml" />
+    <Content Include="Views\ProgettiUT\Index.vbhtml" />
+    <Content Include="Views\ProgettiUT\EditAdmin.vbhtml" />
+    <Content Include="tessdata\eng.cube.bigrams" />
+    <Content Include="tessdata\eng.cube.fold" />
+    <Content Include="tessdata\eng.cube.lm" />
+    <Content Include="tessdata\eng.cube.nn" />
+    <Content Include="tessdata\eng.cube.params" />
+    <Content Include="tessdata\eng.cube.size" />
+    <Content Include="tessdata\eng.cube.word-freq" />
+    <Content Include="tessdata\eng.tesseract_cube.nn" />
+    <Content Include="Views\Pezzi\Tempi.vbhtml" />
+    <Content Include="Views\Pezzi\OrdinatoPage.vbhtml" />
+    <Content Include="Views\Acquisti\LavorazioniEsterne.vbhtml" />
+    <Content Include="Views\Acquisti\Lista.vbhtml" />
+    <Content Include="Views\Licenze\Create.vbhtml" />
+    <Content Include="Views\Licenze\Delete.vbhtml" />
+    <Content Include="Views\Licenze\Details.vbhtml" />
+    <Content Include="Views\Licenze\Edit.vbhtml" />
+    <Content Include="Views\Licenze\Index.vbhtml" />
+    <Content Include="Views\Home\DettagliMPA.vbhtml" />
+    <Content Include="Views\ChangeLog\Create.vbhtml" />
+    <Content Include="Views\ChangeLog\Delete.vbhtml" />
+    <Content Include="Views\ChangeLog\Details.vbhtml" />
+    <Content Include="Views\ChangeLog\Edit.vbhtml" />
+    <Content Include="Views\ChangeLog\Index.vbhtml" />
+    <Content Include="Views\Home\ListDownloadMPA.vbhtml" />
+    <Content Include="Views\Pezzi\PrioritaPage.vbhtml" />
+    <Content Include="Views\ProgettiProd\Create.vbhtml" />
+    <Content Include="Views\ProgettiProd\Delete.vbhtml" />
+    <Content Include="Views\ProgettiProd\Details.vbhtml" />
+    <Content Include="Views\ProgettiProd\EditAdmin.vbhtml" />
+    <Content Include="Views\ProgettiProd\Index.vbhtml" />
+    <Content Include="Views\Overviews\Ordine.vbhtml" />
+    <Content Include="Views\Shared\Email_Euroma_Amm.vbhtml" />
+    <Content Include="Views\AccettazioneUC\CaricoUT.vbhtml" />
+    <Content Include="Views\Pezzi\TestRicorsivo.vbhtml" />
+    <Content Include="Views\Overviews\Mancanti.vbhtml" />
+    <Content Include="Views\Overviews\Gantt.vbhtml" />
+    <Content Include="Views\Pezzi\ComplessivoOrdinato.vbhtml" />
+    <Content Include="Views\ProgettiUT\DetailsEst.vbhtml" />
+    <Content Include="Views\ProgettiUT\EditEsterno.vbhtml" />
+    <Content Include="Views\Overviews\GestioneMagazzino.vbhtml" />
+    <Content Include="Views\Overviews\ListaArticoli.vbhtml" />
+    <Content Include="Views\ProgettiProd\Schedulatore.vbhtml" />
+    <None Include="Views\Shared\Email_Euroma.vbhtml" />
+    <Content Include="Views\Shared\Lockout.vbhtml" />
+    <Content Include="Views\Shared\_LoginPartial.vbhtml" />
+    <Content Include="Views\Commesse\Index.vbhtml" />
+    <Content Include="Views\Clienti\Index.vbhtml" />
+    <Content Include="Views\Costi\Index.vbhtml" />
+    <Content Include="Views\Pezzi\Index.vbhtml" />
+    <Content Include="Views\Ordini\Create.vbhtml" />
+    <Content Include="Views\Ordini\Delete.vbhtml" />
+    <Content Include="Views\Ordini\Details.vbhtml" />
+    <Content Include="Views\Ordini\Edit.vbhtml" />
+    <Content Include="Views\Ordini\Index.vbhtml" />
+    <Content Include="Views\Home\InventarioPerMagazzino.vbhtml" />
+    <Content Include="Views\Progetti\Create.vbhtml" />
+    <Content Include="Views\Progetti\Delete.vbhtml" />
+    <Content Include="Views\Progetti\Details.vbhtml" />
+    <Content Include="Views\Progetti\Edit.vbhtml" />
+    <Content Include="Views\Progetti\Index.vbhtml" />
+    <Content Include="Views\Overviews\CreateArticolo.vbhtml" />
+    <Content Include="Views\Overviews\Delete.vbhtml" />
+    <Content Include="Views\Overviews\Details.vbhtml" />
+    <Content Include="Views\Overviews\Edit.vbhtml" />
+    <Content Include="Views\Overviews\Index.vbhtml" />
+    <Content Include="Views\Pezzi\Par.vbhtml" />
+    <Content Include="Views\AccettazioneUC\Create.vbhtml" />
+    <Content Include="Views\AccettazioneUC\Details.vbhtml" />
+    <Content Include="Views\AccettazioneUC\Index.vbhtml" />
+    <Content Include="plugins\dropify\fonts\dropify.eot" />
+    <Content Include="plugins\dropify\fonts\dropify.ttf" />
+    <Content Include="plugins\dropify\fonts\dropify.woff" />
+    <Content Include="Views\AccettazioneUC\EditAccettazione.vbhtml" />
+    <Content Include="Views\AccettazioneUC\Edit.vbhtml" />
+    <Content Include="Views\Account\_NuovoUtente.vbhtml" />
+    <Content Include="Views\AccettazioneUC\CreaEmail.vbhtml" />
+    <Content Include="Views\Account\_EditUtente.vbhtml" />
+    <Content Include="Views\Home\RicercaDisegni.vbhtml" />
+    <Content Include="Scripts\jquery-3.4.1.slim.min.map" />
+    <Content Include="Scripts\jquery-3.4.1.min.map" />
+    <Content Include="Views\HelpDesks\Create.vbhtml" />
+    <Content Include="Views\HelpDesks\Delete.vbhtml" />
+    <Content Include="Views\HelpDesks\Details.vbhtml" />
+    <Content Include="Views\HelpDesks\EditTicket.vbhtml" />
+    <Content Include="Views\HelpDesks\Index.vbhtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Global.asax" />
+    <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Web.config" />
+    <Content Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+    <Content Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+    <Content Include="Content\Site.css" />
+    <Content Include="Views\_ViewStart.vbhtml" />
+    <Content Include="Views\Home\About.vbhtml" />
+    <Content Include="Views\Home\Contact.vbhtml" />
+    <Content Include="Views\Home\Index.vbhtml" />
+    <Content Include="Views\Shared\Error.vbhtml" />
+    <Content Include="Views\Shared\_Layout.vbhtml" />
+    <Content Include="Views\Web.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="App_Data\" />
+    <Folder Include="Content\allegati_UC\" />
+    <Folder Include="Content\OfferteFornitori\" />
+    <Folder Include="Content\upload_esterno\" />
+    <Folder Include="Content\upload_UC\ConFirma\" />
+    <Folder Include="Content\upload_UC\Email\" />
+    <Folder Include="Content\upload_UC_Progetti\" />
+    <Folder Include="Content\upload_utenti\" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="Microsoft.Office.Core">
+      <Guid>{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}</Guid>
+      <VersionMajor>2</VersionMajor>
+      <VersionMinor>8</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="Microsoft.Office.Interop.Outlook">
+      <Guid>{00062FFF-0000-0000-C000-000000000046}</Guid>
+      <VersionMajor>9</VersionMajor>
+      <VersionMinor>6</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="stdole">
+      <Guid>{00020430-0000-0000-C000-000000000046}</Guid>
+      <VersionMajor>2</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.VisualBasic.targets" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <Target Name="MvcBuildViews" AfterTargets="AfterBuild" Condition="'$(MvcBuildViews)'=='true'">
+    <AspNetCompiler VirtualPath="temp" PhysicalPath="$(WebProjectOutputDir)" />
+  </Target>
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>True</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>56639</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>https://localhost:44306/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+      <UserProperties content_4bootstrap_1css_1map__JsonSchema="" />
+    </VisualStudio>
+  </ProjectExtensions>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>Questo progetto fa riferimento a uno o più pacchetti NuGet che non sono presenti in questo computer. Usare lo strumento di ripristino dei pacchetti NuGet per scaricarli. Per altre informazioni, vedere http://go.microsoft.com/fwlink/?LinkID=322105. Il file mancante è {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Data.SqlClient.SNI.3.0.0\build\net46\Microsoft.Data.SqlClient.SNI.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Data.SqlClient.SNI.3.0.0\build\net46\Microsoft.Data.SqlClient.SNI.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.0\build\Microsoft.Extensions.Logging.Abstractions.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.0\build\Microsoft.Extensions.Logging.Abstractions.targets'))" />
+  </Target>
+  <Import Project="..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets" Condition="Exists('..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets')" />
+  <Import Project="..\packages\Microsoft.Data.SqlClient.SNI.3.0.0\build\net46\Microsoft.Data.SqlClient.SNI.targets" Condition="Exists('..\packages\Microsoft.Data.SqlClient.SNI.3.0.0\build\net46\Microsoft.Data.SqlClient.SNI.targets')" />
+  <Import Project="..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.0\build\Microsoft.Extensions.Logging.Abstractions.targets" Condition="Exists('..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.0\build\Microsoft.Extensions.Logging.Abstractions.targets')" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target> -->
+</Project>
