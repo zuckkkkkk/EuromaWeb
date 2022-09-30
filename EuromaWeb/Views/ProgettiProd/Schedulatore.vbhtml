@@ -45,23 +45,17 @@ End Code
                     </tr>
                 </thead>
                 <tbody>
-                    @For Each item In Model
-                        @<tr>
+                        <tr>
                             <td>
-                                @Html.DisplayFor(Function(modelItem) item.ODP) (@Html.DisplayFor(Function(modelItem) item.Cliente))
                             </td>
 
                             <td>
-                                @Html.DisplayFor(Function(modelItem) item.Articolo)
                             </td>
                             <td>
-                                @Html.DisplayFor(Function(modelItem) item.Desc_Art)
                             </td>
                             <td>
-                                @Html.DisplayFor(Function(modelItem) item.ListaAttivita)
                             </td>
                         </tr>
-                    Next
                 </tbody>
             </Table>
         </div>

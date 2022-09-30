@@ -27,7 +27,7 @@ Partial Public Class Startup
     Private results As String
 #If DEBUG Then
     Private Iterator Function GetHangfireServers() As IEnumerable(Of IDisposable) '127.0.0.1 
-        GlobalConfiguration.Configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage("Server= 127.0.0.1; Database=HangFire; Integrated Security=True;", New SqlServerStorageOptions With { '     (localdb)\MSSQLLocalDB
+        GlobalConfiguration.Configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage("Server=(localdb)\MSSQLLocalDB; Database=HangFire; Integrated Security=True;", New SqlServerStorageOptions With { '     127.0.0.1
             .CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
             .SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
             .QueuePollInterval = TimeSpan.Zero,

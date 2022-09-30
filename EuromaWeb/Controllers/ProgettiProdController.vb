@@ -28,26 +28,7 @@ Namespace Controllers
             Return View(db.ProgettiProd.ToList())
         End Function
         Function Schedulatore() As ActionResult
-            Dim data As New List(Of ODPProduzioneViewModel)
-            Dim listaODP = db.FasiOC.Where(Function(x) x.Completata = 0).ToList
-            For Each l In listaODP
-                Dim artdes = ""
-                If db.ArticoliPerOC.Where(Function(x) x.OC = l.OC And x.Cod_Art = l.Articolo).Count > 0 Then
-                    artdes = db.ArticoliPerOC.Where(Function(x) x.OC = l.OC And x.Cod_Art = l.Articolo).First.Descrizione
-                End If
-                Dim cliente = db.AccettazioneUC.Where(Function(x) x.OC = l.OC).First.Cliente
-                Dim listFasiPerOP = db.FasiOC.Where(Function(X) X.OP = l.OP).ToList
-                data.Add(New ODPProduzioneViewModel With {
-                        .Articolo = l.Articolo,
-                        .Cliente = cliente,
-                        .Completato = 0,
-                        .Desc_Art = artdes,
-                        .ODP = l.OP,
-                        .Data_Inizio_Attività = DateTime.Now,
-                        .ListaAttivita = listFasiPerOP
-                    })
-            Next
-            Return View(data)
+            Return View()
         End Function
         ' GET: ProgettiProd/Details/5
         <Authorize>
