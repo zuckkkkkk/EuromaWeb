@@ -165,7 +165,7 @@ Namespace Controllers
                 Dim data As IQueryable(Of ODPProduzioneViewModel)
                 Dim listaODP = db.FasiOC.Where(Function(x) x.Completata = 0).ToList
                 For Each l In listaODP
-                    If dataTMP.Where(Function(x) x.Articolo = l.Articolo).Count = 0 Then
+                    If Not dataTMP.Where(Function(x) x.Articolo = l.Articolo).Any Then
                         Dim artdes = ""
                         myConn = New SqlConnection(ConnectionString)
                         myCmd = myConn.CreateCommand

@@ -285,42 +285,7 @@ Namespace Controllers
         '    Return Json(listaF)
         'End Function
         Function Gantt(ByVal id As String) As ActionResult
-            Dim listFasi = db.FasiOC.Where(Function(x) x.Descrizione_Fase <> "Versamento a mag." And x.Descrizione_Fase <> "Montaggio").Take(1000).ToList
-            Dim listaF As New List(Of GanttViewModel)
-            Dim dateNow = DateTime.Now
-            Dim listaObj As New List(Of Object)
-            Dim listaGantt As New List(Of Object)
-            For Each l In listFasi
-                If Not listFasi.Where(Function(x) x.OP = l.OP And x.Completata = False).Count = 0 Then
-                    If listaGantt.Where(Function(x) x.name = l.OP).Count > 0 Then
-                        Dim elem = listaGantt.Where(Function(x) x.name = l.OP).Last
-                        Dim data = elem.values.to
-                        Dim dataInizio As New DateTime(1970, 1, 1, 0, 0, 0)
-                        Dim dataFine As New DateTime(1970, 1, 1, 0, 0, 0)
-                        dataFine = dataFine.AddSeconds(data)
-                        dataInizio = dataInizio.AddSeconds(data)
-                        listaGantt.Add(New With {
-                       .name = "",
-                       .desc = "",
-                       .values = New With {
-                           .from = dataInizio,
-                           .to = (dataFine.AddDays(getDays(l.Macchina, l.Descrizione_Fase)) - New DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds,
-                           .label = l.Descrizione_Fase
-                       }
-                   })
-                    Else
-                        listaGantt.Add(New With {
-                       .name = l.OP,
-                       .desc = l.Articolo,
-                       .values = New With {
-                       .from = (DateTime.Now - New DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds,
-                       .to = (dateNow.AddDays(getDays(l.Macchina, l.Descrizione_Fase)) - New DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds,
-                       .label = l.Descrizione_Fase
-                   }
-                   })
-                    End If
-                End If
-            Next
+           
             Return View()
         End Function
         Function PostGantt() As JsonResult
@@ -330,9 +295,9 @@ Namespace Controllers
             Dim listaObj As New List(Of Object)
             Dim listaGantt As New List(Of Object)
             For Each l In listFasi
-                If listaGantt.Where(Function(x) x.name = l.OP).Count > 0 Then
+                If listaGantt.Where(Function(x) x.name = l.OP).Any Then
                     Dim elem = listaGantt.Where(Function(x) x.name = l.OP).Last
-                    Dim StartingDate = DateTime.ParseExact(elem.values(0).To, “MM/dd/yyyy”, System.Globalization.CultureInfo.InvariantCulture)
+                    Dim StartingDate = DateTime.ParseExact(elem.values(0).To, “dd/MM/yyyy”, System.Globalization.CultureInfo.InvariantCulture)
                     Dim dateLater = StartingDate.AddDays(getDays(l.Macchina, l.Descrizione_Fase)).ToString.Split(" ")(0)
                     Dim colore = ""
                     If l.Completata Then
@@ -343,9 +308,9 @@ Namespace Controllers
                     Dim ojb As New List(Of Object)
                     ojb.Add(New With {
                         .customClass = colore,
-                        .from = StartingDate.ToString.Split(" ")(0).Substring(3, 2) + "/" + StartingDate.ToString.Split(" ")(0).Substring(0, 2) + "/" + StartingDate.ToString.Split(" ")(0).Substring(6, 4),
-                        .to = dateLater.Substring(3, 2) + "/" + dateLater.Substring(0, 2) + "/" + dateLater.Substring(6, 4),
-                        .label = l.Descrizione_Fase})
+                        .from = DateTime.ParseExact(StartingDate, “dd/MM/yyyy”, System.Globalization.CultureInfo.InvariantCulture), 'StartingDate.ToString.Split(" ")(0).Substring(3, 2) + "/" + StartingDate.ToString.Split(" ")(0).Substring(0, 2) + "/" + StartingDate.ToString.Split(" ")(0).Substring(6, 4),
+                         .to = DateTime.ParseExact(dateLater, “dd/MM/yyyy”, System.Globalization.CultureInfo.InvariantCulture), 'dateLater.Substring(3, 2) + "/" + dateLater.Substring(0, 2) + "/" + dateLater.Substring(6, 4),
+                    .label = l.Descrizione_Fase})
                     listaGantt.Add(New With {
                         .name = l.OP,
                         .desc = "",
@@ -363,8 +328,8 @@ Namespace Controllers
                     Dim ojb As New List(Of Object)
                     ojb.Add(New With {
                         .customClass = colore,
-                        .from = dateNow.Substring(3, 2) + "/" + dateNow.Substring(0, 2) + "/" + dateNow.Substring(6, 4),
-                        .to = dateLater.Substring(3, 2) + "/" + dateLater.Substring(0, 2) + "/" + dateLater.Substring(6, 4),
+                        .from = DateTime.ParseExact(dateNow, “dd/MM/yyyy”, System.Globalization.CultureInfo.InvariantCulture),
+                        .to = DateTime.ParseExact(dateLater, “dd/MM/yyyy”, System.Globalization.CultureInfo.InvariantCulture),
                         .label = l.Descrizione_Fase})
                     listaGantt.Add(New With {
                         .name = l.OP,

@@ -177,7 +177,7 @@
             minDate: null,
             maxDate: null,
             // paging
-            itemsPerPage: 10,
+            itemsPerPage: 50,
             // localisation
             dow: ["D", "L", "M", "M", "G", "V", "S"],
             months: ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Augusto", "Settembre", "Ottobre", "Novembre", "Dicembre"],
