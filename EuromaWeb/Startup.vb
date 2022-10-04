@@ -15,6 +15,7 @@ Imports System.Web
 Imports System.Web.Mvc
 Imports EuromaWeb
 Imports Microsoft.Ajax.Utilities
+Imports StackExchange.Profiling.MiniProfiler
 
 <Assembly: OwinStartupAttribute(GetType(Startup))>
 
@@ -25,9 +26,8 @@ Partial Public Class Startup
     Private myCmd As SqlCommand
     Private myReader As SqlDataReader
     Private results As String
-#If DEBUG Then
     Private Iterator Function GetHangfireServers() As IEnumerable(Of IDisposable) '127.0.0.1 
-        GlobalConfiguration.Configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage("Server=(localdb)\MSSQLLocalDB; Database=HangFire; Integrated Security=True;", New SqlServerStorageOptions With { '  127.0.0.1
+        GlobalConfiguration.Configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage("Server=(localdb)\MSSQLLocalDB; Database=HangFire; Integrated Security=True;", New SqlServerStorageOptions With { '   127.0.0.1
             .CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
             .SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
             .QueuePollInterval = TimeSpan.Zero,
@@ -36,19 +36,6 @@ Partial Public Class Startup
         })
         Yield New BackgroundJobServer()
     End Function
-#Else
-        Private Iterator Function GetHangfireServers() As IEnumerable(Of IDisposable) '127.0.0.1 
-        GlobalConfiguration.Configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage("Server=; Database=HangFire; Integrated Security=True;", New SqlServerStorageOptions With {
-            .CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-            .SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-            .QueuePollInterval = TimeSpan.Zero,
-            .UseRecommendedIsolationLevel = True,
-            .DisableGlobalLocks = True
-        })
-        Yield New BackgroundJobServer()
-    End Function
-#End If
-
     Public Sub Configuration(app As IAppBuilder)
         ConfigureAuth(app)
         app.UseHangfireAspNet(AddressOf GetHangfireServers)

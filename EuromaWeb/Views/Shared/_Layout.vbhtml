@@ -29,7 +29,9 @@
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/fcmam5/nightly.js@v1.0/dist/nightly.min.js"></script>
-    <script src="~/Scripts/jquery.fn.gantt.js"></script>
+    @*<script src="~/Scripts/jquery.fn.gantt.js"></script>*@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js" integrity="sha512-HyGTvFEibBWxuZkDsE2wmy0VQ0JRirYgGieHp0pUmmwyrcFkAbn55kZrSXzCgKga04SIti5jZQVjbTSzFpzMlg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css" integrity="sha512-57KPd8WI3U+HC1LxsxWPL2NKbW82g0BH+0PuktNNSgY1E50mnIc0F0cmWxdnvrWx09l8+PU2Kj+Vz33I+0WApw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <style>
     .darkmode--activated *{
@@ -335,9 +337,6 @@
                          @If User.IsInRole("Admin") Or User.IsInRole("Magazzino") Then
                              @<li Class="nav-item">
                                  <a Class="nav-link" href="@Url.Action("Schedulatore", "ProgettiProd")"> Gestione</a>
-                             </li>
-                             @<li Class="nav-item">
-                                 <a Class="nav-link" href="@Url.Action("Gantt", "Overviews")"> Vis. Gantt</a>
                              </li>
                          End If
                          <!-- Analisi Costi -->
@@ -1275,6 +1274,7 @@
                     $(this).find('.modal-body').html('').load('/AccettazioneUC/Edit/' + recipient, function () {
                     });
                     break;
+
                 case 'edit_controller_produzione':
                     $(this).find('.modal-title').removeClass('text-danger').html('Modifica Progetto');
                     $(this).data('reload', true);
@@ -1941,13 +1941,12 @@
             processing: true,
                 serverSide: true,
                 drawCallback: function (settings, json) {
-                    console.log(json);
                     $('[data-toggle="tooltip"]').tooltip('update');
                     //$("#list-of-product tbody tr > td").tooltip('hide');
                 },
                 ajax: { url: '@Url.Content("~/ProgettiProd/ServerProcessingSchedulatore")', type: 'POST' },
                "deferRender": true,
-            dom: '<"row  align-items-center"<"col col-auto"f><"col"i><"col col-auto"B>>rt<"row align-items-center"<"col"p><"col col-auto"l>>',
+                 dom: '<"row  align-items-center"<"col col-auto"f><"col"i><"col col-auto"B>>rt<"row align-items-center"<"col"p><"col col-auto"l>>',
                  buttons: [
                     {
                         extend: 'excel',
@@ -1961,9 +1960,11 @@
                      }],
                 columns: [
                     { data: "ODP", orderable: true, },
+                    { data: "OC", orderable: true, },
                     { data: "Articolo", orderable: true, },
-                    { data: "Descrizione", orderable: true, },
-                    { data: "StatoProgetto", searchable: true }
+                    { data: "Descrizione", orderable: true, "width": "20%"  },
+                    { data: "Azioni", searchable: true, "width": "5%"  },
+                    { data: "StatoProgetto", searchable: true, "width": "20%" }
                ],
                "columnDefs": [
                    {

@@ -189,7 +189,7 @@
             useCookie: false,
             cookieKey: "jquery.fn.gantt",
             // scale parameters
-            scale: "days",
+            scale: "hours",
             maxScale: "months",
             minScale: "hours",
             // callbacks

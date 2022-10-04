@@ -163,52 +163,91 @@ Namespace Controllers
                 Dim result As New List(Of Object)
                 Dim dataTMP As New List(Of ODPProduzioneViewModel)
                 Dim data As IQueryable(Of ODPProduzioneViewModel)
-                Dim listaODP = db.FasiOC.Where(Function(x) x.Completata = 0).ToList
-                For Each l In listaODP
-                    If Not dataTMP.Where(Function(x) x.Articolo = l.Articolo).Any Then
-                        Dim artdes = ""
+                Dim listaParallela = db.FasiOC.Where(Function(x) x.Completata = 0).GroupBy(Function(x) x.OP).Select(Function(x) x.Key).ToList
+                For Each elem In listaParallela
+                    Dim l = db.FasiOC.Where(Function(x) x.OP = elem).FirstOrDefault
+                    Dim stato = False
+                    Try
                         myConn = New SqlConnection(ConnectionString)
                         myCmd = myConn.CreateCommand
-                        myCmd.CommandText = "select ARTDES from ARTANA where ARTCO1 = '" + l.Articolo + "'"
+                        myCmd.CommandText = "SELECT COUNT(*) FROM ODLTES00 where ODLSTS < '080' and ODLANN = '" + l.OP.Split("-")(0) + "' AND ODLSEZ = 'OP' AND ODLNMR = '" + l.OP.Split("-")(2) + "'"
                         myConn.Open()
+                    Catch ex As Exception
+                        Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+                    End Try
+                    Try
+                        myReader = myCmd.ExecuteReader
+                        Do While myReader.Read()
+                            Dim Conteggio = myReader.GetInt32(0)
+                            If Conteggio > 0 Then
+                                stato = True
+                            End If
+                        Loop
+                        myConn.Close()
+                    Catch ex As Exception
+
+                    End Try
+                    If stato Then
                         Try
-                            myReader = myCmd.ExecuteReader
-                            Dim countDB = 0
-                            Do While myReader.Read()
-                                artdes = myReader.GetString(0)
-                            Loop
-                            myConn.Close()
+                            If Not dataTMP.Where(Function(x) x.Articolo = l.Articolo).Any Then
+                                Dim artdes = ""
+                                myConn = New SqlConnection(ConnectionString)
+                                myCmd = myConn.CreateCommand
+                                myCmd.CommandText = "select ARTDES from ARTANA where ARTCO1 = '" + l.Articolo + "'"
+                                myConn.Open()
+                                Try
+                                    myReader = myCmd.ExecuteReader
+                                    Dim countDB = 0
+                                    Do While myReader.Read()
+                                        artdes = myReader.GetString(0)
+                                    Loop
+                                    myConn.Close()
+                                Catch ex As Exception
+                                End Try
+                                Dim cliente = ""
+                                Dim name = db.AccettazioneUC.Where(Function(x) x.OC = l.OC).First.Cliente
+                                If name.Length > 0 Then
+                                    cliente = name
+                                End If
+                                Dim listFasiPerOP = db.FasiOC.Where(Function(X) X.OP = l.OP).ToList
+                                Dim OC = db.FasiOC.Where(Function(X) X.OP = l.OP).First.OC
+                                dataTMP.Add(New ODPProduzioneViewModel With {
+                                .Articolo = l.Articolo.Trim,
+                                .OC = OC,
+                                .Cliente = IIf(IsNothing(cliente), "", cliente.Trim),
+                                .Completato = 0,
+                                .Desc_Art = artdes,
+                                .ODP = l.OP,
+                                .Data_Inizio_Attività = DateTime.Now,
+                                .ListaAttivita = listFasiPerOP
+                            })
+                            End If
                         Catch ex As Exception
+
                         End Try
-                        Dim cliente = db.AccettazioneUC.Where(Function(x) x.OC = l.OC).First.Cliente
-                        Dim listFasiPerOP = db.FasiOC.Where(Function(X) X.OP = l.OP).ToList
-                        dataTMP.Add(New ODPProduzioneViewModel With {
-                            .Articolo = l.Articolo,
-                            .Cliente = cliente,
-                            .Completato = 0,
-                            .Desc_Art = artdes,
-                            .ODP = l.OP,
-                            .Data_Inizio_Attività = DateTime.Now,
-                            .ListaAttivita = listFasiPerOP
-                        })
+
+                    Else
+                        l.Completata = True
+                        db.SaveChanges()
                     End If
 
                 Next
-                data = dataTMP.AsQueryable
                 'ricerca
                 Try
                     If Not IsNothing(PostedData.search.value) Then
                         If Not PostedData.search.value.Contains(" ") Then 'singola parola
                             Dim search As String = PostedData.search.value
-                            Dim w As Expressions.Expression(Of Func(Of ODPProduzioneViewModel, Boolean)) = MakeWhereExpressionSchedulatore(search)
-                            w.Compile()
-                            data = data.Where(w)
+                            'Dim w As Expressions.Expression(Of Func(Of ODPProduzioneViewModel, Boolean)) = MakeWhereExpressionSchedulatore(search)
+                            'w.Compile()
+                            'data = data.Where(w)
+                            dataTMP = dataTMP.Where(Function(X) X.ODP.Contains(search) Or X.Articolo.Contains(search) Or X.Desc_Art.Contains(search) Or X.OC.Contains(search)).ToList
+                            Dim es = ""
                         Else 'multiple
-                            For Each term As String In PostedData.search.value.Split(" ")
-                                Dim wpartial As Expressions.Expression(Of Func(Of ODPProduzioneViewModel, Boolean)) = MakeWhereExpressionSchedulatore(term)
-                                wpartial.Compile()
-                                data = data.Where(wpartial)
-                            Next
+                            'For Each term As String In PostedData.search.value.Split(" ")
+                            '    Dim wpartial As Expressions.Expression(Of Func(Of ODPProduzioneViewModel, Boolean)) = MakeWhereExpressionSchedulatore(term)
+                            '    wpartial.Compile()
+                            '    data = data.Where(wpartial)
+                            'Next
                         End If
                     End If
                 Catch ex As SystemException
@@ -221,6 +260,8 @@ Namespace Controllers
                       })
                     db.SaveChanges()
                 End Try
+                data = dataTMP.AsQueryable
+
                 'paginazione
                 Dim filtered As Integer = 0
                 Try
@@ -338,6 +379,7 @@ Namespace Controllers
                 End Try
                 'esecuzione (spero)
                 For Each Acc As ODPProduzioneViewModel In data
+
                     Try
                         Dim ListaMancanti As New Dictionary(Of String, String)
                         Dim listMancanti = RecursiveDistinta(New DBMancanteViewModel With {.Codice = Acc.Articolo, .ListaArt = New List(Of DBMancanteViewModel)}, ListaMancanti)
@@ -363,26 +405,33 @@ Namespace Controllers
                             End Select
                             StatoProgetto = "<div Class='progress-bar bg-" + colore + " progress-bar-striped progress-bar-animated' role='progressbar' style='width:  " + valFasi.ToString.Split(",")(0) + "%;border-radius: 8px;' aria-valuenow='" + valFasi.ToString.Split(",")(0) + "' aria-valuemin='0' aria-valuemax='100'>" + valFasi.ToString.Split(",")(0) + "%</div>"
                         End If
-                        Dim typeMancanti = "<i style='color:#228B22;'class='fa-solid fa-check'></i>"
+                        Dim title = "title='"
+                        Dim typeMancanti = "<i style='color:#228B22;'class='fa-solid fa-check' data-toggle='tooltip' data-placement='top'></i>"
+
                         For Each m In ListaMancanti
-                            If typeMancanti = "<i style='color:#228B22;'class='fa-solid fa-check'></i>" And m.Value = "Mancante" Then
-                                typeMancanti = "<i style='color:#FF0000;'class='fa-solid fa-circle-exclamation'></i>"
+                            title = title + m.Key.Trim() + " - " + m.Value + " | "
+                        Next
+                        title = title + "'"
+                        For Each m In ListaMancanti
+                            If typeMancanti = "<i style='color:#228B22;'class='fa-solid fa-check' data-toggle='tooltip' data-placement='top'></i>" And m.Value = "Mancante" Then
+                                typeMancanti = "<i style='color:#FF0000;'class='fa-solid fa-circle-exclamation' data-toggle='tooltip' data-placement='top'" + title + "></i>"
                             End If
-                            If typeMancanti = "<i style='color:#228B22;'class='fa-solid fa-check'></i>" And m.Value = "In Attesa" Then
-                                typeMancanti = "<i style='color:#4682B4;'class='fa-solid fa-clock'></i>"
+                            If typeMancanti = "<i style='color:#228B22;'class='fa-solid fa-check' data-toggle='tooltip' data-placement='top'></i>" And m.Value = "In Attesa" Then
+                                typeMancanti = "<i style='color:#4682B4;'class='fa-solid fa-clock' data-toggle='tooltip' data-placement='top'" + title + "></i>"
                             End If
                         Next
                         result.Add(New With {
                                 .DT_RowData = New With {.value = Acc.ODP},
                                 .DT_RowId = "row_" & Acc.ODP,
                                 .Id = Acc.ODP,
+                                .OC = Acc.OC,
                                 .ODP = "<a style='margin-right:8px!important;text-decoration:none!important;'href='/Overviews/Ordine/" + Acc.ODP.ToString + "' Target='_blank'>" + Acc.ODP + "(" + Acc.Cliente + ")" + "</a>" + typeMancanti,
                                 .Articolo = Acc.Articolo,
                                 .Descrizione = Acc.Desc_Art,
                                 .StatoProgetto = StatoProgetto,
-                                .ListaAttivita = Acc.ListaAttivita
+                                .ListaAttivita = Acc.ListaAttivita,
+                                .Azioni = "<btn class='btn btn-primary' data-value='" + Acc.ODP + "' data-bs-toggle='modal' data-bs-target='#exampleModal' data-type='show_gantt'> <i class='fa-solid fa-chart-simple'></i></btn>"
                            })
-
                     Catch ex As SystemException
                         db.Log.Add(New Log With {
                              .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},
@@ -818,9 +867,10 @@ Namespace Controllers
         End Function
         Private Function MakeWhereExpressionSchedulatore(Search As String) As Expressions.Expression(Of Func(Of ODPProduzioneViewModel, Boolean))
             Return Function(x) x.ODP.Contains(Search) Or
-                        x.Articolo.Contains(Search) Or
-                        x.Cliente.Contains(Search) Or
-                        x.Desc_Art.Contains(Search)
+                               x.Articolo.Contains(Search) Or
+                               x.OC.Contains(Search) Or
+                               x.Cliente.Contains(Search) Or
+                               x.Desc_Art.Contains(Search)
         End Function
         Private Function MakeOrderExpression(Column As Integer) As Expressions.Expression(Of Func(Of ProgettiProd, String))
             Select Case Column
@@ -834,8 +884,9 @@ Namespace Controllers
             Select Case Column
                 Case Nothing : Return Function(x) x.ODP
                 Case 0 : Return Function(x) x.ODP
-                Case 1 : Return Function(x) x.Articolo
-                Case 2 : Return Function(x) x.Desc_Art
+                Case 1 : Return Function(x) x.OC
+                Case 2 : Return Function(x) x.Articolo
+                Case 3 : Return Function(x) x.Desc_Art
                 Case Else : Return Function(x) x.ODP
             End Select
         End Function

@@ -266,76 +266,52 @@ Namespace Controllers
             Dim a = RecursiveDistinta(New DBViewModel With {.Codice = id, .ListaArt = New List(Of DBViewModel)})
             Return PartialView(a)
         End Function
-        'Function Gantt(ByVal id As String) As JsonResult
-        '    Dim listFasi = db.FasiOC.Where(Function(x) x.OP = id).ToList
-        '    Dim listaF As New List(Of GanttViewModel)
-        '    Dim dateNow = DateTime.Now
-        '    Dim listaObj As New List(Of Object)
-        '    For Each l In listFasi
-        '        listaF.Add(New GanttViewModel With {
-        '            .id = l.Id,
-        '            .completa = l.Completata,
-        '            .inizio = dateNow,
-        '            .fine = dateNow.AddDays(getDays(l.Macchina, l.Descrizione_Fase)),
-        '            .nome = l.Descrizione_Fase
-        '        })
-        '        dateNow = dateNow.AddDays(getDays(l.Macchina, l.Descrizione_Fase))
-        '    Next
-        '    'Dim a = RecursiveDistinta(New DBViewModel With {.Codice = id, .ListaArt = New List(Of DBViewModel)})
-        '    Return Json(listaF)
-        'End Function
         Function Gantt(ByVal id As String) As ActionResult
-           
-            Return View()
+            ViewBag.idOP = id
+            Return PartialView()
         End Function
-        Function PostGantt() As JsonResult
-            Dim listFasi = db.FasiOC.Where(Function(x) x.Descrizione_Fase <> "VERSAMENTO A MAG." And x.Descrizione_Fase <> "MONTAGGIO" And x.Descrizione_Fase <> "COLLAUDO").ToList '.Where(Function(x) x.OP = id)
+        Function PostGantt(ByVal id As String) As JsonResult
+            Dim listFasi = db.FasiOC.Where(Function(x) x.OP = id).ToList '.Where(Function(x) x.OP = id)
             Dim listaF As New List(Of GanttViewModel)
             Dim dateNow = DateTime.Now.ToString.Split(" ")(0)
             Dim listaObj As New List(Of Object)
             Dim listaGantt As New List(Of Object)
             For Each l In listFasi
-                If listaGantt.Where(Function(x) x.name = l.OP).Any Then
-                    Dim elem = listaGantt.Where(Function(x) x.name = l.OP).Last
-                    Dim StartingDate = DateTime.ParseExact(elem.values(0).To, “dd/MM/yyyy”, System.Globalization.CultureInfo.InvariantCulture)
+                If listaGantt.Where(Function(x) x.OP = l.OP).Any Then
+                    Dim elem = listaGantt.Where(Function(x) x.OP = l.OP).Last
+                    Dim StartingDate = DateTime.ParseExact(elem.end, “yyyy-MM-dd”, System.Globalization.CultureInfo.InvariantCulture)
                     Dim dateLater = StartingDate.AddDays(getDays(l.Macchina, l.Descrizione_Fase)).ToString.Split(" ")(0)
-                    Dim colore = ""
+                    Dim progress = 0
                     If l.Completata Then
-                        colore = "ganttComplete"
+                        progress = 100
                     Else
-                        colore = "ganttInattesa"
+                        progress = 0
                     End If
                     Dim ojb As New List(Of Object)
-                    ojb.Add(New With {
-                        .customClass = colore,
-                        .from = DateTime.ParseExact(StartingDate, “dd/MM/yyyy”, System.Globalization.CultureInfo.InvariantCulture), 'StartingDate.ToString.Split(" ")(0).Substring(3, 2) + "/" + StartingDate.ToString.Split(" ")(0).Substring(0, 2) + "/" + StartingDate.ToString.Split(" ")(0).Substring(6, 4),
-                         .to = DateTime.ParseExact(dateLater, “dd/MM/yyyy”, System.Globalization.CultureInfo.InvariantCulture), 'dateLater.Substring(3, 2) + "/" + dateLater.Substring(0, 2) + "/" + dateLater.Substring(6, 4),
-                    .label = l.Descrizione_Fase})
                     listaGantt.Add(New With {
-                        .name = l.OP,
-                        .desc = "",
                         .id = l.Id,
-                        .values = ojb
+                        .start = StartingDate.ToString.Substring(6, 4) + "-" + StartingDate.ToString.Substring(3, 2) + "-" + StartingDate.ToString.Substring(0, 2),
+                        .end = dateLater.ToString.Substring(6, 4) + "-" + dateLater.ToString.Substring(3, 2) + "-" + dateLater.ToString.Substring(0, 2),
+                        .name = l.Descrizione_Fase,
+                        .progress = progress,
+                        .OP = l.OP
                     })
                 Else
                     Dim dateLater = DateTime.Now.AddDays(getDays(l.Macchina, l.Descrizione_Fase)).ToString.Split(" ")(0)
-                    Dim colore = ""
+                    Dim progress = 0
                     If l.Completata Then
-                        colore = "ganttComplete"
+                        progress = 100
                     Else
-                        colore = "ganttInattesa"
+                        progress = 0
                     End If
                     Dim ojb As New List(Of Object)
-                    ojb.Add(New With {
-                        .customClass = colore,
-                        .from = DateTime.ParseExact(dateNow, “dd/MM/yyyy”, System.Globalization.CultureInfo.InvariantCulture),
-                        .to = DateTime.ParseExact(dateLater, “dd/MM/yyyy”, System.Globalization.CultureInfo.InvariantCulture),
-                        .label = l.Descrizione_Fase})
                     listaGantt.Add(New With {
-                        .name = l.OP,
-                        .desc = l.Articolo,
                         .id = l.Id,
-                        .values = ojb
+                        .start = dateNow.ToString.Substring(6, 4) + "-" + dateNow.ToString.Substring(3, 2) + "-" + dateNow.ToString.Substring(0, 2),
+                        .end = dateLater.ToString.Substring(6, 4) + "-" + dateLater.ToString.Substring(3, 2) + "-" + dateLater.ToString.Substring(0, 2),
+                        .name = l.Descrizione_Fase,
+                        .progress = progress,
+                        .OP = l.OP
                     })
                 End If
             Next

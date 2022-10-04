@@ -34,10 +34,16 @@ End Code
                             Ordine di produzione
                         </th>
                         <th>
+                            Commessa
+                        </th>
+                        <th>
                             Articolo
                         </th>
                         <th>
                             Descrizione
+                        </th>
+                        <th>
+                            Azioni
                         </th>
                         <th>
                             Attività
@@ -45,17 +51,20 @@ End Code
                     </tr>
                 </thead>
                 <tbody>
-                        <tr>
-                            <td>
-                            </td>
-
-                            <td>
-                            </td>
-                            <td>
-                            </td>
-                            <td>
-                            </td>
-                        </tr>
+                    <tr>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
                 </tbody>
             </Table>
         </div>

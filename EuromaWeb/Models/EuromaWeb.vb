@@ -36,6 +36,7 @@ Public Class GanttValueViewModel
 End Class
 Public Class ODPProduzioneViewModel
     Public Property ODP As String
+    Public Property OC As String
     Public Property Cliente As String
     Public Property Articolo As String
     Public Property Desc_Art As String
