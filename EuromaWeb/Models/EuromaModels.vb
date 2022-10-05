@@ -61,6 +61,8 @@ Public Class EuromaModels
     Public Overridable Property SlotScaffale() As DbSet(Of SlotScaffale)
     Public Overridable Property OrdiniDiProduzione() As DbSet(Of OrdiniDiProduzione)
     Public Overridable Property VisualizzazioneFileNota() As DbSet(Of VisualizzazioneFileNota)
+    Public Overridable Property DatiMacchina() As DbSet(Of DatiMacchina)
+    Public Overridable Property Macchine() As DbSet(Of Macchine)
 End Class
 Public Class Disegno_Server_ViewModel
     Public Property Id As Integer
@@ -455,6 +457,34 @@ Public Class ArticoliPerOC
     Public Property Descrizione As String
     Public Property OC As String
     Public Property DistintaBase As Boolean
+End Class
+<Table("Macchine")>
+Public Class Macchine
+    Public Property id As Integer
+    Public Property Macchina As String
+    Public Property Descrizione_Macchina As String
+    Public Property Path_3d As String
+End Class
+<Table("DatiMacchina")>
+Public Class DatiMacchina
+    Public Property id As Integer
+    Public Property Macchina As String
+    Public Property ModalitaMacchina As String
+    Public Property FungoPremuto As Boolean
+    Public Property ModalitaControllo As String
+    Public Property Programma As String
+    Public Property EsecuzioneProgramma As String
+    Public Property AvanzamanetoProgramma As Integer
+    Public Property Data As New DateTime
+    Public Property ProgrammaDesc As String
+    Public Property LpCuttingTime As String
+    Public Property LpOperatingTime As String
+    Public Property LpRunningTime As String
+    Public Property LpSpindleRunTime As String
+    Public Property LpTotalCuttinTime As String
+    Public Property LpTotalOperatingTime As String
+    Public Property LpTotalRunningTime As String
+    Public Property LpTotalSpindleRuntime As String
 End Class
 <Table("FasiOC")>
 Public Class FasiOC

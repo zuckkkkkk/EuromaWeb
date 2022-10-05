@@ -512,6 +512,7 @@
     <Compile Include="Controllers\ClientiController.vb" />
     <Compile Include="Controllers\HelpDesksController.vb" />
     <Compile Include="Controllers\LicenzeController.vb" />
+    <Compile Include="Controllers\MacchineController.vb" />
     <Compile Include="Controllers\OrdinesController.vb" />
     <Compile Include="Controllers\OrdiniController.vb" />
     <Compile Include="Controllers\OverviewsController.vb" />
@@ -819,6 +820,22 @@
       <DependentUpon>202209231324497_TabellaVisualizzazioneAggiornamento1.vb</DependentUpon>
     </Compile>
     <Compile Include="EuromaMigrations\202209231324497_TabellaVisualizzazioneAggiornamento1.vb" />
+    <Compile Include="EuromaMigrations\202210041151166_DatiMacchina.Designer.vb">
+      <DependentUpon>202210041151166_DatiMacchina.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202210041151166_DatiMacchina.vb" />
+    <Compile Include="EuromaMigrations\202210041359341_DatiMacchina1.Designer.vb">
+      <DependentUpon>202210041359341_DatiMacchina1.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202210041359341_DatiMacchina1.vb" />
+    <Compile Include="EuromaMigrations\202210051214526_DatiMacchina_Agg.Designer.vb">
+      <DependentUpon>202210051214526_DatiMacchina_Agg.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202210051214526_DatiMacchina_Agg.vb" />
+    <Compile Include="EuromaMigrations\202210051233317_Macchine.Designer.vb">
+      <DependentUpon>202210051233317_Macchine.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202210051233317_Macchine.vb" />
     <Compile Include="EuromaMigrations\Configuration.vb" />
     <Compile Include="Global.asax.vb">
       <DependentUpon>Global.asax</DependentUpon>
@@ -1138,6 +1155,18 @@
     <EmbeddedResource Include="EuromaMigrations\202209231324497_TabellaVisualizzazioneAggiornamento1.resx">
       <DependentUpon>202209231324497_TabellaVisualizzazioneAggiornamento1.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202210041151166_DatiMacchina.resx">
+      <DependentUpon>202210041151166_DatiMacchina.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202210041359341_DatiMacchina1.resx">
+      <DependentUpon>202210041359341_DatiMacchina1.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202210051214526_DatiMacchina_Agg.resx">
+      <DependentUpon>202210051214526_DatiMacchina_Agg.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202210051233317_Macchine.resx">
+      <DependentUpon>202210051233317_Macchine.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="IdentityMigrations\202111161323354_Init.resx">
       <DependentUpon>202111161323354_Init.vb</DependentUpon>
       <SubType>Designer</SubType>
@@ -1392,6 +1421,9 @@
     <Content Include="Views\Overviews\GestioneMagazzino.vbhtml" />
     <Content Include="Views\Overviews\ListaArticoli.vbhtml" />
     <Content Include="Views\ProgettiProd\Schedulatore.vbhtml" />
+    <Content Include="Views\Macchine\Create.vbhtml" />
+    <Content Include="Views\Macchine\Delete.vbhtml" />
+    <Content Include="Views\Macchine\Details.vbhtml" />
     <None Include="Views\Shared\Email_Euroma.vbhtml" />
     <Content Include="Views\Shared\Lockout.vbhtml" />
     <Content Include="Views\Shared\_LoginPartial.vbhtml" />

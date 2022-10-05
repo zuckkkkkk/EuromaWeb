@@ -16,6 +16,7 @@ Imports System.Web.Mvc
 Imports EuromaWeb
 Imports Microsoft.Ajax.Utilities
 Imports StackExchange.Profiling.MiniProfiler
+Imports System.Xml
 
 <Assembly: OwinStartupAttribute(GetType(Startup))>
 
@@ -27,7 +28,7 @@ Partial Public Class Startup
     Private myReader As SqlDataReader
     Private results As String
     Private Iterator Function GetHangfireServers() As IEnumerable(Of IDisposable) '127.0.0.1 
-        GlobalConfiguration.Configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage("Server=(localdb)\MSSQLLocalDB; Database=HangFire; Integrated Security=True;", New SqlServerStorageOptions With { '   127.0.0.1
+        GlobalConfiguration.Configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage("Server= (localdb)\MSSQLLocalDB; Database=HangFire; Integrated Security=True;", New SqlServerStorageOptions With { '  127.0.0.1
             .CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
             .SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
             .QueuePollInterval = TimeSpan.Zero,
@@ -42,6 +43,7 @@ Partial Public Class Startup
         app.UseHangfireDashboard("/jobs") ', options)
         RecurringJob.AddOrUpdate(Sub() LoadOLFromAlnus(), Cron.Hourly)
         RecurringJob.AddOrUpdate(Sub() LoadFasiOP(), Cron.MinuteInterval(4))
+        RecurringJob.AddOrUpdate(Sub() GetMacchina(), Cron.MinuteInterval(4))
         RecurringJob.AddOrUpdate(Sub() UpdateTempiOpera(), Cron.HourInterval(2))
     End Sub
     Public Function LoadOLFromAlnus()
@@ -256,6 +258,107 @@ Partial Public Class Startup
 
             End Try
         Next
+    End Function
+    Function GetMacchina()
+        Dim req As System.Net.WebRequest
+        Dim res As System.Net.WebResponse
+        req = System.Net.WebRequest.Create("http://192.168.100.120:5000/current")
+        Try
+            res = req.GetResponse()
+            Dim doc As XmlDocument = New XmlDocument
+            doc.Load("http://192.168.100.120:5000/current")
+            'Fetch all the Nodes.
+            Dim nodeList As XmlNodeList = doc.SelectNodes("//text()")
+            'Loop through the Nodes.
+            Dim Macchina = "CNT8"
+            Dim ModalitaMacchina = ""
+            Dim FungoPremuto = False
+            Dim ModalitaControllo = ""
+            Dim Programma = ""
+            Dim EsecuzioneProgramma = ""
+            Dim AvanzamentoProgramma = 0
+            Dim DescrizioneProgramma = ""
+            Dim A = ""
+            Dim ProgrammaDesc = ""
+            Dim LpCuttingTime = ""
+            Dim LpOperatingTime = ""
+            Dim LpRunningTime = ""
+            Dim LpSpindleRunTime = ""
+            Dim LpTotalCuttingTime = ""
+            Dim LpTotalOperatingTime = ""
+            Dim LpTotalRunningTime = ""
+            Dim LpTotalSpindleRuntime = ""
+            For Each node As XmlNode In nodeList
+                'Fetch the Node's Name and InnerText values.
+                Console.WriteLine(node.ParentNode.Name & ": " & node.InnerText)
+                Select Case node.ParentNode.Name
+                    Case "EmergencyStop"
+                        FungoPremuto = False
+                    Case "ControllerMode"
+                        ModalitaControllo = node.InnerText
+                    Case "FunctionalMode"
+                        ModalitaMacchina = node.InnerText
+                    Case "Program"
+                        Programma = node.InnerText
+                    Case "Execution"
+                        EsecuzioneProgramma = node.InnerText
+                    Case "PathFeedrateOverride"
+                        AvanzamentoProgramma = node.InnerText
+                    Case "ProgramHeader"
+                        DescrizioneProgramma = node.InnerText
+                    Case = "AccumulatedTime"
+                        'If node.Attributes(0).Name Then
+                        If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpCuttingTime") Then
+                            LpCuttingTime = node.InnerText
+                        End If
+                        If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpOperatingTime") Then
+                            LpOperatingTime = node.InnerText
+                        End If
+                        If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpRunningTime") Then
+                            LpRunningTime = node.InnerText
+                        End If
+                        If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpSpindleRunTime") Then
+                            LpSpindleRunTime = node.InnerText
+                        End If
+                        If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpTotalCuttingTime") Then
+                            LpTotalCuttingTime = node.InnerText
+                        End If
+                        If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpTotalOperatingTime") Then
+                            LpTotalOperatingTime = node.InnerText
+                        End If
+                        If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpTotalRunningTime") Then
+                            LpTotalRunningTime = node.InnerText
+                        End If
+                        If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpTotalSpindleRunTime") Then
+                            LpTotalSpindleRuntime = node.InnerText
+                        End If
+                        A = node.InnerText
+                End Select
+
+            Next
+            db.DatiMacchina.Add(New DatiMacchina With {
+                    .EsecuzioneProgramma = EsecuzioneProgramma,
+                    .AvanzamanetoProgramma = AvanzamentoProgramma,
+                    .FungoPremuto = FungoPremuto,
+                    .Macchina = Macchina,
+                    .ModalitaControllo = ModalitaControllo,
+                    .ModalitaMacchina = ModalitaMacchina,
+                    .Programma = Programma,
+                    .Data = DateTime.Now,
+                    .LpCuttingTime = LpCuttingTime,
+                    .LpOperatingTime = LpOperatingTime,
+                    .LpRunningTime = LpRunningTime,
+                    .LpSpindleRunTime = LpSpindleRunTime,
+                    .LpTotalCuttinTime = LpTotalCuttingTime,
+                    .LpTotalOperatingTime = LpTotalOperatingTime,
+                    .LpTotalRunningTime = LpTotalRunningTime,
+                    .LpTotalSpindleRuntime = LpTotalSpindleRuntime,
+                    .ProgrammaDesc = ProgrammaDesc
+                })
+            db.SaveChanges()
+        Catch e As WebException
+            ' URL doesn't exists
+        End Try
     End Function
     Function UpdateTempiOpera() As JsonResult
         Dim listOfFasi As New List(Of OverviewViewModel)
