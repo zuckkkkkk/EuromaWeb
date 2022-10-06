@@ -1,6 +1,28 @@
 ﻿' È possibile aggiungere dati del profilo per l'utente aggiungendo altre proprietà alla classe ApplicationUser. Per altre informazioni, vedere https://go.microsoft.com/fwlink/?LinkID=317594.
 Imports System.ComponentModel.DataAnnotations
+'Section Macchine
 
+Public Class ListaDisegniViewModel
+    Public Property CodDisegno As String
+    Public Property DescDisegno As String
+    Public Property FirstStart As String
+    Public Property LastStart As String
+End Class
+Public Class MacchinaViewModel
+    Public Property CodMacchina As String
+    Public Property DescMacchina As String
+    Public Property Path3d As String
+    Public Property ActualProgram As String
+    Public Property ActualProgramDesc As String
+    Public Property ActualState As String
+    Public Property ListaDisegni As List(Of ListaDisegniViewModel)
+    Public Property DicitonaryMacchina As Dictionary(Of String, Integer)
+    Public Property DictionaryOperatore As Dictionary(Of String, Integer)
+    Public Property DictionaryStato As Dictionary(Of String, Integer)
+    Public Property TempoComplessivo As Dictionary(Of String, Integer)
+    Public Property LastUpdate As String
+End Class
+'End Section Macchine
 Public Class ClienteViewModel
     Public Property Id() As String
     Public Property Nome1 As String

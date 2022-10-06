@@ -16,19 +16,81 @@ Namespace Controllers
 
         ' GET: Macchine
         Function Index() As ActionResult
-            Return View(db.Macchine.ToList())
+            Return View()
         End Function
 
         ' GET: Macchine/Details/5
-        Function Details(ByVal id As Integer?) As ActionResult
+        <HttpPost>
+        <Authorize>
+        Function DetailsPost(ByVal id As String) As JsonResult
             If IsNothing(id) Then
-                Return New HttpStatusCodeResult(HttpStatusCode.BadRequest)
+                Return Json(New With {.ok = False})
             End If
-            Dim macchine As Macchine = db.Macchine.Find(id)
+            Dim macchine As Macchine = db.Macchine.Where(Function(x) x.Macchina = id).First
             If IsNothing(macchine) Then
-                Return HttpNotFound()
+                Return Json(New With {.ok = False})
             End If
-            Return View(macchine)
+            Dim lastActivity = db.DatiMacchina.Where(Function(X) X.Macchina = id).OrderByDescending(Function(x) x.id).First '.Reverse().First
+            Dim DicitonaryMacchina As New Dictionary(Of String, Integer)
+            Dim DictionaryOperatore As New Dictionary(Of String, Integer)
+            Dim DictionaryStato As New Dictionary(Of String, Integer)
+            Dim ListaDisegni As New List(Of ListaDisegniViewModel)
+            Dim ListaRunningTime As New Dictionary(Of String, Integer)
+            Dim dataOld = DateTime.Now.AddDays(-7)
+            Dim Lista = db.DatiMacchina.Where(Function(x) x.Macchina = id And x.Data < DateTime.Now And x.Data > dataOld).ToList
+            For Each disegno In Lista
+                'Lista Disegni
+                If ListaDisegni.Where(Function(x) x.CodDisegno = disegno.Programma).Count = 0 Then
+                    Dim lastDis = db.DatiMacchina.Where(Function(x) x.Programma = disegno.Programma).OrderByDescending(Function(x) x.id).First
+                    ListaDisegni.Add(New ListaDisegniViewModel With {
+                        .CodDisegno = disegno.Programma,
+                        .DescDisegno = disegno.ProgrammaDesc,
+                        .FirstStart = disegno.Data.ToString.Split(" ")(0),
+                        .LastStart = lastDis.Data.ToString.Split(" ")(0)
+                    })
+                End If
+                'End Disegni
+                'Pie chart attività
+                If DicitonaryMacchina.ContainsKey(disegno.ModalitaMacchina) Then
+                    DicitonaryMacchina.Item(disegno.ModalitaMacchina) = DicitonaryMacchina.Item(disegno.ModalitaMacchina) + 2
+                Else
+                    DicitonaryMacchina.Add(disegno.ModalitaMacchina, 2)
+                End If
+                If DictionaryOperatore.ContainsKey(disegno.ModalitaControllo) Then
+                    DictionaryOperatore.Item(disegno.ModalitaControllo) = DictionaryOperatore.Item(disegno.ModalitaControllo) + 2
+                Else
+                    DictionaryOperatore.Add(disegno.ModalitaControllo, 2)
+                End If
+                If DictionaryStato.ContainsKey(disegno.EsecuzioneProgramma) Then
+                    DictionaryStato.Item(disegno.EsecuzioneProgramma) = DictionaryStato.Item(disegno.EsecuzioneProgramma) + 2
+                Else
+                    DictionaryStato.Add(disegno.EsecuzioneProgramma, 2)
+                End If
+                'End Pie chart attività
+                If Not ListaRunningTime.ContainsKey(disegno.Data.ToString.Split(" ")(1)) Then
+                    ListaRunningTime.Add(disegno.Data.ToString.Split(" ")(1), disegno.LpSpindleRunTime / 60)
+                End If
+            Next
+            Try
+                Dim macchina As New MacchinaViewModel With {
+                .LastUpdate = lastActivity.Data.ToString,
+                .ActualProgram = lastActivity.Programma,
+                .ActualProgramDesc = lastActivity.ProgrammaDesc,
+                .ActualState = lastActivity.EsecuzioneProgramma,
+                .CodMacchina = id,
+                .DescMacchina = macchine.Descrizione_Macchina,
+                .DicitonaryMacchina = DicitonaryMacchina,
+                .DictionaryOperatore = DictionaryOperatore,
+                .DictionaryStato = DictionaryStato,
+                .ListaDisegni = ListaDisegni,
+                .Path3d = macchine.Path_3d,
+                .TempoComplessivo = ListaRunningTime
+            }
+                Return Json(New With {.ok = True, .data = macchina})
+            Catch ex As Exception
+
+            End Try
+
         End Function
 
         ' GET: Macchine/Create

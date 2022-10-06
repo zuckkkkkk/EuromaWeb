@@ -339,6 +339,11 @@
                                  <a Class="nav-link" href="@Url.Action("Schedulatore", "ProgettiProd")"> Gestione</a>
                              </li>
                          End If
+                         @If User.IsInRole("Admin") Then
+                             @<li Class="nav-item">
+                                 <a Class="nav-link" href="@Url.Action("Index", "Macchine")"> Macchine</a>
+                             </li>
+                         End If
                          <!-- Analisi Costi -->
                          @If User.IsInRole("Admin") Or User.IsInRole("Commerciale_Admin") Or User.IsInRole("ProduzioneController") Or User.IsInRole("Produzione") Or User.IsInRole("Tecnico") Or User.IsInRole("TecnicoAdmin") Then
                              @<li Class="nav-item dropdown">
@@ -2593,7 +2598,7 @@
                 var kmkLabel = data.lista.map(c =>  c.DataInizio + "-" + c.DataFine);
                 var kmkData = data.lista.map(c => c.Totale);
                 $("#ChartComplessivo").remove();
-                $('#ComplessivoChartContainer').append('<canvas id="ChartComplessivo"><canvas>');
+                $('#ComplessivoChartContainer').append('<canvas id="ChartComplessivo"></canvas>');
                 window.ChartComplessivo = new Chart(document.getElementById("ChartComplessivo"), {
                     type: 'bar',
                     data: {

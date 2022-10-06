@@ -1424,6 +1424,7 @@
     <Content Include="Views\Macchine\Create.vbhtml" />
     <Content Include="Views\Macchine\Delete.vbhtml" />
     <Content Include="Views\Macchine\Details.vbhtml" />
+    <Content Include="Views\Macchine\Index.vbhtml" />
     <None Include="Views\Shared\Email_Euroma.vbhtml" />
     <Content Include="Views\Shared\Lockout.vbhtml" />
     <Content Include="Views\Shared\_LoginPartial.vbhtml" />
