@@ -52,6 +52,7 @@ Public Class EuromaModels
     Public Overridable Property ArticoliPerOC() As DbSet(Of ArticoliPerOC)
     Public Overridable Property NotePerOC() As DbSet(Of NotePerOC)
     Public Overridable Property DocumentiPerOC() As DbSet(Of DocumentiPerOC)
+    Public Overridable Property DocumentiPerLicenze() As DbSet(Of DocumentiPerLicenze)
     Public Overridable Property StoricoOC() As DbSet(Of StoricoOC)
     Public Overridable Property FasiOC() As DbSet(Of FasiOC)
     Public Overridable Property TempiAttivita() As DbSet(Of TempiAttivita)
@@ -381,6 +382,12 @@ Public Class DBViewModel
     Public Property Tipoart As String
     Public Property Colore As String
 End Class
+Public Class MasterCosti
+    Public Property CostoContoLavoro As Decimal
+    Public Property CostoMateriali As Decimal
+    Public Property CostoInterno_Mdo As Decimal
+    Public Property CostoInterno_Macchina As Decimal
+End Class
 Public Class OCTempiViewModel
     Public Property OCOT As String
     Public Property Data_Inizio As DateTime
@@ -522,7 +529,16 @@ Public Class DocumentiPerOC
     Public Property Operatore_Id As String
     Public Property Operatore_Nome As String
 End Class
-
+<Table("DocumentiPerLicenze")>
+Public Class DocumentiPerLicenze
+    <Key>
+    Public Property Id As Integer
+    Public Property Nome_File As String
+    Public Property Percorso_File As String
+    Public Property DataCreazioneFile As DateTime
+    Public Property Operatore_Id As String
+    Public Property Operatore_Nome As String
+End Class
 <Table("Licenze")>
 Public Class Licenze
     <Key>

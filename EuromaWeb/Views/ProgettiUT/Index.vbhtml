@@ -110,7 +110,6 @@ End Code
 
             </tr>
         </thead>
-
         <tbody>
             @For Each item In Model
             @<tr>
@@ -165,10 +164,6 @@ End Code
                 <th>
                     Stato progetto
                 </th>
-                @*<th>
-                        Richiesta Materiali
-                    </th>*@
-
             </tr>
         </thead>
 
@@ -194,9 +189,7 @@ End Code
                     @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
 
                 </td>
-                @*<td>
-                        @Html.DisplayFor(Function(modelItem) item.Flag_Invio_Materiali, New With {.htmlAttributes = New With {.style = "width: 30px; height: 30px;"}})
-                    </td>*@
+               
 
             </tr>
                                 Next

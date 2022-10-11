@@ -1699,13 +1699,14 @@ Namespace Controllers
             costiDueAnniFa.Manodopera = costiDueAnniFa.Costo_Manodopera_Int + costiDueAnniFa.Costo_Macchina + costiDueAnniFa.Costo_Attrezzaggio
             Return Json(New With {.id = id, .dataOggi = costiOggi, .dataAnnoScorso = costiAnnoScorso, .dataDueAnniFa = costiDueAnniFa, .Labels = Labels.ToArray, .DataTot = DataTot.ToArray, .DataMat = DataMat.ToArray, .DataMacchina = DataMacchina.ToArray, .DataManoEst = DataManoEst.ToArray, .DataAtt = DataAtt.ToArray, .DataManoInt = DataManoInt.ToArray}, JsonRequestBehavior.AllowGet)
         End Function
-        Function TestRicorsivo() As ActionResult
+        Function TestRicorsivo(ByVal id As String) As ActionResult
             Dim stringProva = "111802-100"
-            Dim a = RecursiveDistinta(New DBViewModel With {.Codice = stringProva, .ListaArt = New List(Of DBViewModel)})
+            Dim s = New MasterCosti With {.CostoContoLavoro = 0, .CostoInterno_Macchina = 0, .CostoInterno_Mdo = 0, .CostoMateriali = 0}
+            Dim a = RecursiveDistinta(New DBViewModel With {.Codice = id, .ListaArt = New List(Of DBViewModel)}, s)
             System.Console.WriteLine("await here")
             Return View("TestRicorsivo", a)
         End Function
-        Function RecursiveDistinta(ByVal listaArticoliDaDistinta As DBViewModel)
+        Function RecursiveDistinta(ByVal listaArticoliDaDistinta As DBViewModel, ByVal costiMaster As MasterCosti)
             Try
                 myConn = New SqlConnection(ConnectionString)
                 myCmd = myConn.CreateCommand
@@ -1730,7 +1731,7 @@ Namespace Controllers
                     Try
                         myConn = New SqlConnection(ConnectionString)
                         myCmd = myConn.CreateCommand
-                        myCmd.CommandText = "select ORFMOV,FAQIFA from FFODET00 where ARTCOD = '" + l.Codice + "'"
+                        myCmd.CommandText = "select CLFCOD,ORFMOV,AVG(FAQIFA) from FFODET00 where ARTCOD = '" + l.Codice + "' GROUP BY CLFCOD,ORFMOV"
                         myConn.Open()
                     Catch ex As Exception
                         Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
@@ -1739,12 +1740,12 @@ Namespace Controllers
                         myReader = myCmd.ExecuteReader
 
                         Do While myReader.Read()
-                            Select Case myReader.GetString(0)
+                            Select Case myReader.GetString(1)
                                 Case "EL1"
-                                    Dim CO = myReader.GetDecimal(1)
+                                    Dim CO = myReader.GetDecimal(2)
                                     l.CostoContoLavoro = l.CostoContoLavoro + Math.Round(CO, 2)
                                 Case "EA1"
-                                    l.CostoMateriali = Math.Round(myReader.GetDecimal(1), 2)
+                                    l.CostoMateriali = Math.Round(myReader.GetDecimal(2), 2)
                             End Select
                         Loop
                         myConn.Close()
@@ -1757,7 +1758,7 @@ Namespace Controllers
                     Try
                         myConn = New SqlConnection(ConnectionString)
                         myCmd = myConn.CreateCommand
-                        myCmd.CommandText = "SELECT ODLLVR,ODLLVM FROM ODLTES00,ODLMOP00 WHERE ODLALP = '" + l.Codice + "' AND ODLMOP00.ODLNMR =ODLTES00.ODLNMR AND ODLMOP00.ODLANN = ODLTES00.ODLANN"
+                        myCmd.CommandText = "SELECT AVG(ODLLVR),AVG(ODLLVM) FROM ODLTES00,ODLMOP00 WHERE ODLALP = '" + l.Codice + "' AND ODLMOP00.ODLNMR =ODLTES00.ODLNMR AND ODLMOP00.ODLANN = ODLTES00.ODLANN AND ODLTES00.ODLANN = '2022' AND (ODLLVR > 0 OR ODLLVM > 0) GROUP BY ODLALP"
                         myConn.Open()
                     Catch ex As Exception
                         Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
@@ -1771,6 +1772,16 @@ Namespace Controllers
                             Dim CostoMacc = myReader.GetDecimal(1)
                             l.CostoInterno_Macchina = l.CostoInterno_Macchina + Math.Round(CostoMacc, 2)
                         Loop
+                        Try
+                            l.CostoInterno_Mdo = Math.Round(l.CostoInterno_Mdo / 60, 2) * 30
+                        Catch ex As Exception
+
+                        End Try
+                        Try
+                            l.CostoInterno_Macchina = Math.Round(l.CostoInterno_Macchina / 60, 2) * 30
+                        Catch ex As Exception
+
+                        End Try
                         myConn.Close()
 
                     Catch ex As Exception
@@ -1799,7 +1810,11 @@ Namespace Controllers
                     End Try
                     '-----------------------------------------------------------------END LAV INTERNO
                     '-----------------------------------------------------------------Ricorsivo
-                    l = RecursiveDistinta(l)
+                    costiMaster.CostoMateriali = costiMaster.CostoMateriali + l.CostoMateriali
+                    costiMaster.CostoInterno_Mdo = costiMaster.CostoInterno_Mdo + l.CostoInterno_Mdo
+                    costiMaster.CostoInterno_Macchina = costiMaster.CostoInterno_Macchina + l.CostoInterno_Macchina
+                    costiMaster.CostoContoLavoro = costiMaster.CostoContoLavoro + l.CostoContoLavoro
+                    l = RecursiveDistinta(l, costiMaster)
                 Next
             Catch ex As Exception
 

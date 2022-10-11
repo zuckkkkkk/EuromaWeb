@@ -66,6 +66,12 @@ Namespace IdentityMigrations
                 Dim role = New IdentityRole With {.Name = "Admin"}
                 manager.Create(role)
             End If
+            If Not context.Roles.Any(Function(r) r.Name = "GestioneLicenze") Then
+                Dim store = New RoleStore(Of IdentityRole)(context)
+                Dim manager = New RoleManager(Of IdentityRole)(store)
+                Dim role = New IdentityRole With {.Name = "GestioneLicenze"}
+                manager.Create(role)
+            End If
             If Not context.Roles.Any(Function(r) r.Name = "Magazzino") Then
                 Dim store = New RoleStore(Of IdentityRole)(context)
                 Dim manager = New RoleManager(Of IdentityRole)(store)

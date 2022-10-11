@@ -1,4 +1,5 @@
-﻿Imports System.Threading.Tasks
+﻿Imports System.IO
+Imports System.Threading.Tasks
 Imports Microsoft.AspNet.Identity
 Imports Microsoft.AspNet.Identity.Owin
 Imports Microsoft.Owin.Security
@@ -6,7 +7,10 @@ Imports Microsoft.Owin.Security
 <Authorize>
 Public Class ManageController
     Inherits Controller
+
+    Private db As New EuromaModels
     Private appctx As New ApplicationDbContext
+
     Public Sub New()
     End Sub
 
@@ -14,7 +18,7 @@ Public Class ManageController
     Private _userManager As ApplicationUserManager
 
     Public Sub New(appUserManager As ApplicationUserManager, appSignInManager As ApplicationSignInManager)
-        UserManager = appUserManager 
+        UserManager = appUserManager
         SignInManager = appSignInManager
     End Sub
 
@@ -61,6 +65,277 @@ Public Class ManageController
             ViewBag.Users = listUtenti
         End If
         Return View(model)
+    End Function
+    Public Function AggiungiLicenza() As ActionResult
+        Dim utenti = appctx.Users.ToList
+        ViewBag.IdEsterno = New SelectList(utenti, "Id", "Username")
+        Return PartialView()
+    End Function
+    <HttpPost>
+    <ValidateAntiForgeryToken>
+    Public Function AggiungiLicenza(<Bind(Include:="NomeLicenza,DescrizioneLicenza,DataInizio,DataRinnovo,TypeLicenza,CostoLicenza,QtaLicenze")> ByVal Licenza As UserLicenze) As JsonResult
+        If ModelState.IsValid Then
+            Try
+                Dim NewLic = New UserLicenze With {
+                .CostoLicenza = Licenza.CostoLicenza,
+                .DataInizio = Licenza.DataInizio,
+                .DataRinnovo = Licenza.DataRinnovo,
+                .DescrizioneLicenza = Licenza.DescrizioneLicenza,
+                .DurataLicenza = Licenza.DurataLicenza,
+                .NomeLicenza = Licenza.NomeLicenza,
+                .TypeLicenza = Licenza.TypeLicenza,
+                .QtaLicenze = Licenza.QtaLicenze
+            }
+                appctx.UserLicenze.Add(NewLic)
+                appctx.SaveChanges()
+                Return Json(New With {.ok = True, .message = "Licenza correttamente aggiunta, q.tà: " + Licenza.QtaLicenze.ToString})
+            Catch ex As Exception
+                Return Json(New With {.ok = False, .message = "Errore:" & ex.Message & "."})
+            End Try
+        Else
+            Return Json(New With {.ok = False, .message = "Errore: Modello dati non valido."})
+        End If
+    End Function
+    Public Function ModificaLicenza(ByVal id As Integer) As ActionResult
+        Dim licenza = appctx.UserLicenze.Find(id)
+        Return PartialView(licenza)
+    End Function
+    <HttpPost>
+    <ValidateAntiForgeryToken>
+    Public Function ModificaLicenza(<Bind(Include:="Id,NomeLicenza,DescrizioneLicenza,DataInizio,DataRinnovo,TypeLicenza,CostoLicenza,QtaLicenze")> ByVal Licenza As UserLicenze, file As HttpPostedFileBase) As JsonResult
+        If ModelState.IsValid Then
+            For i = 0 To Request.Files.Count - 1
+                Dim OpID As String = vbNullString
+                Dim OpName As String = vbNullString
+                Dim CurrentDate As DateTime = Now
+                Try
+                    OpID = User.Identity.GetUserId()
+                    OpName = User.Identity.GetUserName()
+                    Dim UploadedFile As HttpPostedFileBase = Request.Files(i)
+                    If UploadedFile IsNot Nothing AndAlso UploadedFile.ContentLength > 0 Then
+                        Dim pathTMP = Path.Combine(Server.MapPath("~/Content/upload_doc_licenze"), UploadedFile.FileName)
+                        If System.IO.File.Exists(pathTMP) Then
+                            db.DocumentiPerLicenze.Add(New DocumentiPerLicenze With {
+                                .DataCreazioneFile = DateTime.Now,
+                                .Nome_File = UploadedFile.FileName,
+                                .Id = Licenza.Id,
+                                .Operatore_Id = OpID,
+                                .Operatore_Nome = OpName,
+                                .Percorso_File = pathTMP
+                            })
+                            db.SaveChanges()
+                        Else
+                            UploadedFile.SaveAs(pathTMP)
+                            db.DocumentiPerLicenze.Add(New DocumentiPerLicenze With {
+                                .DataCreazioneFile = DateTime.Now,
+                                .Nome_File = UploadedFile.FileName,
+                                .Id = Licenza.Id,
+                                .Operatore_Id = OpID,
+                                .Operatore_Nome = OpName,
+                                .Percorso_File = pathTMP
+                            })
+                            db.SaveChanges()
+                        End If
+
+                    End If
+                Catch ex As SystemException
+                    db.Log.Add(New Log With {
+                                                     .Livello = TipoLogLivello.Errors,
+                                                     .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                                     .Messaggio = "Errore: " + ex.Message,
+                                                     .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.Disegno = "errore"}),
+                                                    .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                                       })
+                    db.SaveChanges()
+                End Try
+            Next
+            Try
+                Dim lic = appctx.UserLicenze.Where(Function(x) x.Id = Licenza.Id).First
+                If lic.NomeLicenza <> Licenza.NomeLicenza Then
+                    lic.NomeLicenza = Licenza.NomeLicenza
+                End If
+                If lic.DescrizioneLicenza <> Licenza.DescrizioneLicenza Then
+                    lic.DescrizioneLicenza = Licenza.DescrizioneLicenza
+                End If
+                If lic.DataInizio <> Licenza.DataInizio Then
+                    lic.DataInizio = Licenza.DataInizio
+                End If
+                If lic.DataRinnovo <> Licenza.DataRinnovo Then
+                    lic.DataRinnovo = Licenza.DataRinnovo
+                End If
+                If lic.TypeLicenza <> Licenza.TypeLicenza Then
+                    lic.TypeLicenza = Licenza.TypeLicenza
+                End If
+                If lic.CostoLicenza <> Licenza.CostoLicenza Then
+                    lic.CostoLicenza = Licenza.CostoLicenza
+                End If
+                If lic.QtaLicenze <> Licenza.QtaLicenze Then
+                    lic.QtaLicenze = Licenza.QtaLicenze
+                End If
+                appctx.SaveChanges()
+                Return Json(New With {.ok = True, .message = "Licenza modificata correttamente"})
+            Catch ex As Exception
+                Return Json(New With {.ok = False, .message = "Errore:" & ex.Message & "."})
+            End Try
+        Else
+            Return Json(New With {.ok = False, .message = "Errore: Modello dati non valido."})
+        End If
+    End Function
+    <HttpPost()>
+    <ValidateInput(False)>
+    Function ServerProcessingLicenze(PostedData As DataTableAjaxPostModel) As JsonResult
+        Dim OpID As String = vbNullString
+        Dim OpName As String = vbNullString
+        Dim CurrentDate As DateTime = Now
+        Try
+            OpID = User.Identity.GetUserId()
+            OpName = User.Identity.GetUserName()
+
+            Dim result As New List(Of Object)
+            Dim data As IQueryable(Of AspNetUserExchangeLicenseTable)
+            Dim UsersList = appctx.Users.ToList
+            Dim UsersLicenze = appctx.UserLicenze.ToList
+            data = appctx.AspNetUserExchangeLicenseTable
+            'paginazione
+            Dim filtered As Integer = 0
+            Try
+                filtered = data.Count
+                'If PostedData.length > 0 Then
+                '    data = data.Skip(PostedData.start).Take(PostedData.length)
+                'End If
+            Catch ex As SystemException
+                db.Log.Add(New Log With {
+                                         .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},
+                                         .Livello = TipoLogLivello.Errors,
+                                         .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                         .Messaggio = "Errore Paginazione -> " & ex.Message,
+                                         .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {PostedData})
+                                         })
+                db.SaveChanges()
+            End Try
+            'esecuzione (spero)
+            For Each Acc As AspNetUserExchangeLicenseTable In data
+                If Not result.Any(Function(x) x.Id = Acc.Id) Then
+                    Try
+                        Dim userString = "Utenti"
+                        For Each u In UsersLicenze.Where(Function(x) x.Id = Acc.IdEsternoLicenza).ToList
+                            Dim utente = UsersList.Where(Function(x) x.Id = Acc.IdEsternoUtente).First.UserName
+                            userString = userString + "," + utente
+                        Next
+                        Dim lic = UsersLicenze.Where(Function(x) x.Id = Acc.IdEsternoLicenza).First
+                        Dim count = UsersLicenze.Where(Function(x) x.Id = Acc.IdEsternoLicenza).Count
+                        result.Add(New With {
+                                    .DT_RowData = New With {.value = Acc.Id},
+                                    .DT_RowId = "row_" & Acc.Id,
+                                    .Id = Acc.Id,
+                                    .Utente = userString,
+                                    .Licenza = lic.NomeLicenza,
+                                    .Descrizione = lic.DescrizioneLicenza,
+                                    .DataScadenza = lic.DataRinnovo.ToString.Split(" ")(0),
+                                    .Qta = "Usata/e " + count.ToString + " su " + lic.QtaLicenze.ToString
+                               })
+
+                    Catch ex As SystemException
+                        db.Log.Add(New Log With {
+                                 .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},
+                                 .Livello = TipoLogLivello.Errors,
+                                 .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                 .Messaggio = "Errore Creazione Lista Progetti Esterni (" & Acc.Id & ") -> " & ex.Message & " [" & ex.InnerException.Message & "]",
+                                 .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {PostedData})
+                            })
+                        db.SaveChanges()
+                    End Try
+                End If
+
+            Next
+
+            Return Json(New With {PostedData.draw, .recordsTotal = db.ProgettiUT.Count, .recordsFiltered = filtered, .data = result})
+        Catch ex As SystemException
+            db.Log.Add(New Log With {
+                     .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},
+                     .Livello = TipoLogLivello.Errors,
+                     .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                     .Messaggio = "Errore Generico -> " & ex.Message,
+                     .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {PostedData})
+                     })
+            db.SaveChanges()
+        End Try
+        Return Json(New With {PostedData.draw, .recordsTotalEst = db.OrdiniDiProduzione.Count, .recordsFiltered = 0})
+    End Function
+
+    Public Function GestioneUtenti() As ActionResult
+        Dim utenti = appctx.Users.ToList
+        Dim listUtenti As New List(Of UserListViewModel)
+        For Each u In utenti
+            listUtenti.Add(New UserListViewModel With {
+                .Email = u.Email,
+                .Username = u.UserName
+            })
+        Next
+        Dim listLicenze As New List(Of UserLicenze)
+        listLicenze = appctx.UserLicenze.ToList
+        Return View(New GestioneUtentiViewModel With {
+            .ListaUtenti = listUtenti,
+            .ListaLicenze = listLicenze
+        })
+    End Function
+    Function CreateAssociazione() As ActionResult
+        Dim utenti = appctx.Users.ToList
+        Dim listaLicenze = appctx.UserLicenze.ToList
+        Dim FinalLista As New List(Of UserLicenze)
+        For Each l In listaLicenze
+            If appctx.AspNetUserExchangeLicenseTable.Where(Function(x) x.IdEsternoLicenza = l.Id).Count < l.QtaLicenze Then
+                FinalLista.Add(New UserLicenze With {
+                        .Id = l.Id,
+                        .NomeLicenza = l.NomeLicenza
+                 })
+            End If
+        Next
+        ViewBag.IdEsternoUtente = New SelectList(utenti, "Id", "Email")
+        ViewBag.IdEsternoLicenza = New SelectList(FinalLista, "Id", "NomeLicenza")
+        Return PartialView()
+    End Function
+
+    ' POST: HelpDesks/Create
+    'Per la protezione da attacchi di overposting, abilitare le proprietà a cui eseguire il binding. 
+    'Per altri dettagli, vedere https://go.microsoft.com/fwlink/?LinkId=317598.
+    <HttpPost()>
+    <ValidateAntiForgeryToken()>
+    Function CreateAssociazione(<Bind(Include:="IdEsternoUtente, IdEsternoLicenza")> ByVal associazione As AspNetUserExchangeLicenseTable) As JsonResult
+        Dim OpID As String = vbNullString
+        Dim OpName As String = vbNullString
+        If ModelState.IsValid Then
+            Try
+                OpID = User.Identity.GetUserId()
+                OpName = User.Identity.GetUserName()
+                appctx.AspNetUserExchangeLicenseTable.Add(New AspNetUserExchangeLicenseTable With {
+                    .IdEsternoLicenza = associazione.IdEsternoLicenza,
+                    .IdEsternoUtente = associazione.IdEsternoUtente
+                })
+                appctx.SaveChanges()
+                db.Audit.Add(New Audit With {
+                                             .Livello = TipoAuditLivello.Info,
+                                             .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                             .Messaggio = "Associata Licenza correttamnete",
+                                             .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.idUtente = associazione.IdEsternoUtente, .idEsterno = associazione.IdEsternoLicenza}),
+                                            .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                               })
+                db.SaveChanges()
+                Return Json(New With {.ok = True, .message = "Licenza associata correttamente."})
+            Catch ex As Exception
+                db.Log.Add(New Log With {
+                                                 .Livello = TipoLogLivello.Errors,
+                                                 .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                                 .Messaggio = "Errore:  " + ex.Message,
+                                                 .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.licenza = "errore"}),
+                                                .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                                   })
+                db.SaveChanges()
+
+                Return Json(New With {.ok = False, .message = "Errore: Impossibile inserire associazione."})
+            End Try
+        End If
+        Return Json(New With {.ok = False, .message = "Errore: Impossibile inserire associazione."})
     End Function
 
     '
@@ -247,7 +522,6 @@ Public Class ManageController
         ' Se si è arrivati a questo punto, significa che si è verificato un errore, rivisualizzare il form
         Return View(model)
     End Function
-
     '
     ' GET: /Manage/ManageLogins
     Public Async Function ManageLogins(message As System.Nullable(Of ManageMessageId)) As Task(Of ActionResult)

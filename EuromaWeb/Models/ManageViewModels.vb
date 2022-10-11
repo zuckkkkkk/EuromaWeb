@@ -16,6 +16,7 @@ Public Class ManageLoginsViewModel
 End Class
 
 Public Class UserListViewModel
+    Public Property id As Integer
     Public Property Username As String
     Public Property Email As String
 End Class

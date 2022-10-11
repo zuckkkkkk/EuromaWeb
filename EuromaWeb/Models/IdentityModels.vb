@@ -33,6 +33,9 @@ Public Class ApplicationDbContext
     End Function
 
     Public Overridable Property Profiles As DbSet(Of Profile)
+    Public Overridable Property Device As DbSet(Of AspNetUserDevice)
+    Public Overridable Property UserLicenze As DbSet(Of UserLicenze)
+    Public Overridable Property AspNetUserExchangeLicenseTable As DbSet(Of AspNetUserExchangeLicenseTable)
 End Class
 
 <Table("AspNetProfiles")>
@@ -50,5 +53,32 @@ Public Class Profile
     Public Property ISA As Boolean
     Public Property UNI As Boolean
 End Class
-
-
+<Table("AspNetUserDevice")>
+Public Class AspNetUserDevice
+    <Key>
+    Public Property Id As Integer
+    Public Property IdRuolo As Integer 'Se a zero utente se 1 computer
+    Public Property NomeDispositivo As String
+    Public Property DescrizioneDispositivo As String
+    Public Property IPDispositivo As String
+End Class
+<Table("AspNetUserExchangeLicenseTable")>
+Public Class AspNetUserExchangeLicenseTable
+    <Key>
+    Public Property Id As Integer
+    Public Property IdEsternoUtente As String
+    Public Property IdEsternoLicenza As Integer
+End Class
+<Table("AspNetUserLicenze")>
+Public Class UserLicenze
+    <Key>
+    Public Property Id As Integer
+    Public Property TypeLicenza As Boolean
+    Public Property NomeLicenza As String
+    Public Property DescrizioneLicenza As String
+    Public Property DataInizio As DateTime
+    Public Property DataRinnovo As DateTime
+    Public Property DurataLicenza As Integer
+    Public Property CostoLicenza As Double
+    Public Property QtaLicenze As Integer
+End Class

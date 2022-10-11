@@ -1,13 +1,6 @@
-﻿Imports System
-Imports System.Collections.Generic
-Imports System.Data
-Imports System.Data.Entity
+﻿Imports System.Data.Entity
 Imports System.Data.SqlClient
-Imports System.Linq
 Imports System.Net
-Imports System.Web
-Imports System.Web.Mvc
-Imports EuromaWeb
 Imports Microsoft.AspNet.Identity
 
 Namespace Controllers
@@ -163,8 +156,26 @@ Namespace Controllers
                 Dim result As New List(Of Object)
                 Dim dataTMP As New List(Of ODPProduzioneViewModel)
                 Dim data As IQueryable(Of ODPProduzioneViewModel)
-                Dim listaParallela = db.FasiOC.Where(Function(x) x.Completata = 0).GroupBy(Function(x) x.OP).Select(Function(x) x.Key).ToList
-                For Each elem In listaParallela
+                Dim listaParallelaTMP = db.FasiOC.Where(Function(x) x.Completata = 0).GroupBy(Function(x) x.OP).Select(Function(x) x.Key).ToList
+                Dim listaParallela = listaParallelaTMP.AsQueryable
+                'paginazione
+                Dim filtered As Integer = 0
+                Try
+                    filtered = listaParallela.Count
+                    If PostedData.length > 0 Then
+                        listaParallela = listaParallela.Skip(PostedData.start).Take(PostedData.length * 5)
+                    End If
+                Catch ex As SystemException
+                    db.Log.Add(New Log With {
+                                         .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},
+                                         .Livello = TipoLogLivello.Errors,
+                                         .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                         .Messaggio = "Errore Paginazione -> " & ex.Message,
+                                         .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {PostedData})
+                                         })
+                    db.SaveChanges()
+                End Try
+                For Each elem In listaParallela.ToList
                     Dim l = db.FasiOC.Where(Function(x) x.OP = elem).FirstOrDefault
                     Dim stato = False
                     Try
@@ -232,7 +243,24 @@ Namespace Controllers
                     End If
 
                 Next
+                Try
+                    Do While dataTMP.Count > (PostedData.length)
+                        ' Last node and the previous one
+                        Dim dLast = dataTMP.Last
+                        dataTMP.Remove(dLast)
+                    Loop
+                Catch ex As SystemException
+                    db.Log.Add(New Log With {
+                                         .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},
+                                         .Livello = TipoLogLivello.Errors,
+                                         .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                         .Messaggio = "Errore Paginazione -> " & ex.Message,
+                                         .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {PostedData})
+                                         })
+                    db.SaveChanges()
+                End Try
                 'ricerca
+
                 Try
                     If Not IsNothing(PostedData.search.value) Then
                         If Not PostedData.search.value.Contains(" ") Then 'singola parola
@@ -261,24 +289,6 @@ Namespace Controllers
                     db.SaveChanges()
                 End Try
                 data = dataTMP.AsQueryable
-
-                'paginazione
-                Dim filtered As Integer = 0
-                Try
-                    filtered = data.Count
-                    If PostedData.length > 0 Then
-                        data = data.Skip(PostedData.start).Take(PostedData.length)
-                    End If
-                Catch ex As SystemException
-                    db.Log.Add(New Log With {
-                                         .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},
-                                         .Livello = TipoLogLivello.Errors,
-                                         .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
-                                         .Messaggio = "Errore Paginazione -> " & ex.Message,
-                                         .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {PostedData})
-                                         })
-                    db.SaveChanges()
-                End Try
                 Try
                     If PostedData.order.Count = 0 Then
                         Dim o As Expressions.Expression(Of Func(Of ODPProduzioneViewModel, String))

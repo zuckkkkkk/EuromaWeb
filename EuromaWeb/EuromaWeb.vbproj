@@ -836,6 +836,10 @@
       <DependentUpon>202210051233317_Macchine.vb</DependentUpon>
     </Compile>
     <Compile Include="EuromaMigrations\202210051233317_Macchine.vb" />
+    <Compile Include="EuromaMigrations\202210101146045_DocumentiPerLicenze.Designer.vb">
+      <DependentUpon>202210101146045_DocumentiPerLicenze.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202210101146045_DocumentiPerLicenze.vb" />
     <Compile Include="EuromaMigrations\Configuration.vb" />
     <Compile Include="Global.asax.vb">
       <DependentUpon>Global.asax</DependentUpon>
@@ -900,6 +904,14 @@
       <DependentUpon>202209201257265_ProgrammazioneEsterno.vb</DependentUpon>
     </Compile>
     <Compile Include="IdentityMigrations\202209201257265_ProgrammazioneEsterno.vb" />
+    <Compile Include="IdentityMigrations\202210060952487_LicenzeEDispositivi.Designer.vb">
+      <DependentUpon>202210060952487_LicenzeEDispositivi.vb</DependentUpon>
+    </Compile>
+    <Compile Include="IdentityMigrations\202210060952487_LicenzeEDispositivi.vb" />
+    <Compile Include="IdentityMigrations\202210070654471_LicenzeEDispositivi_2.Designer.vb">
+      <DependentUpon>202210070654471_LicenzeEDispositivi_2.vb</DependentUpon>
+    </Compile>
+    <Compile Include="IdentityMigrations\202210070654471_LicenzeEDispositivi_2.vb" />
     <Compile Include="IdentityMigrations\Configuration.vb" />
     <Compile Include="Models\AccountViewModels.vb" />
     <Compile Include="Models\DatatablesAjaxPostModels.vb" />
@@ -1167,6 +1179,9 @@
     <EmbeddedResource Include="EuromaMigrations\202210051233317_Macchine.resx">
       <DependentUpon>202210051233317_Macchine.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202210101146045_DocumentiPerLicenze.resx">
+      <DependentUpon>202210101146045_DocumentiPerLicenze.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="IdentityMigrations\202111161323354_Init.resx">
       <DependentUpon>202111161323354_Init.vb</DependentUpon>
       <SubType>Designer</SubType>
@@ -1214,6 +1229,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="IdentityMigrations\202209201257265_ProgrammazioneEsterno.resx">
       <DependentUpon>202209201257265_ProgrammazioneEsterno.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IdentityMigrations\202210060952487_LicenzeEDispositivi.resx">
+      <DependentUpon>202210060952487_LicenzeEDispositivi.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IdentityMigrations\202210070654471_LicenzeEDispositivi_2.resx">
+      <DependentUpon>202210070654471_LicenzeEDispositivi_2.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="My Project\Resources.resx">
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
@@ -1425,6 +1446,10 @@
     <Content Include="Views\Macchine\Delete.vbhtml" />
     <Content Include="Views\Macchine\Details.vbhtml" />
     <Content Include="Views\Macchine\Index.vbhtml" />
+    <Content Include="Views\Manage\GestioneUtenti.vbhtml" />
+    <Content Include="Views\Manage\AggiungiLicenza.vbhtml" />
+    <Content Include="Views\Manage\CreateAssociazione.vbhtml" />
+    <Content Include="Views\Manage\ModificaLicenza.vbhtml" />
     <None Include="Views\Shared\Email_Euroma.vbhtml" />
     <Content Include="Views\Shared\Lockout.vbhtml" />
     <Content Include="Views\Shared\_LoginPartial.vbhtml" />
@@ -1492,6 +1517,7 @@
     <Folder Include="App_Data\" />
     <Folder Include="Content\allegati_UC\" />
     <Folder Include="Content\OfferteFornitori\" />
+    <Folder Include="Content\upload_doc_licenze\" />
     <Folder Include="Content\upload_esterno\" />
     <Folder Include="Content\upload_UC\ConFirma\" />
     <Folder Include="Content\upload_UC\Email\" />

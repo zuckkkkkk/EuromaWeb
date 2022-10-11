@@ -362,7 +362,8 @@
                                              @<a href="@Url.Action("Index", "Pezzi")" Class="dropdown-item">Costi</a>
                                              @<a href="@Url.Action("GestioneMagazzino", "Overviews", New With {.id = 1})" Class="dropdown-item">Magazzino 60</a>
                                              @<a href="@Url.Action("GestioneMagazzino", "Overviews", New With {.id = 2})" Class="dropdown-item">Magazzino 70</a>
-
+                                         ElseIf User.IsInRole("GestioneLicenze") Or User.IsInRole("Admin") Then
+                                             @<a href="@Url.Action("GestioneUtenti", "Manage")" Class="dropdown-item">Utenti</a>
                                          End If
                                      </li>
                                      <li>
@@ -841,6 +842,73 @@
                 },
 
         });
+    var TableLicenze = $('#mainDataTableLicenzeAssociazioni').DataTable({
+            stateSave: true,
+            "ordering": false,
+                processing: true,
+                serverSide: true,
+                ajax: { url: '@Url.Content("~/Manage/ServerProcessingLicenze")', type: 'POST' },
+               "deferRender": true,
+                dom: '<"row  align-items-center"<"col col-auto"f><"col"i><"col col-auto"B>>rt<"row align-items-center"<"col"p><"col col-auto"l>>',
+                 buttons: [
+                    {
+                        extend: 'excel',
+                        text:'<i class="fas fa-download"></i>',
+                        filename: 'Lista Licenze •  @DateTime.Now • EuromaGroup',
+                        sheetName: '@DateTime.Now'
+                     },
+                     {
+                         extend: 'print',
+                         text: '<i class="fas fa-print"></i>'
+                     }],
+                columns: [
+                    { data: "Utente", orderable: false },
+                    { data: "Licenza", orderable: false },
+                    { data: "Descrizione", orderable: false },
+                    { data: "DataScadenza", orderable: false },
+                    { data: "Qta", orderable: false }
+               ],
+               "columnDefs": [
+                   {
+                       "targets": [0,2],
+                       "searchable": true
+                   }
+            ],
+               select: {
+                   targets: 0,
+                   data: null,
+                   defaultContent: '',
+                   orderable: true,
+                   className: 'select-checkbox'
+                },
+                lengthMenu: [[5, 10, 15, 20, 30, 50, 75, 100, -1], [5, 10, 15, 20, 30, 50, 75, 100, "Tutti"]],
+                 pageLength: 10,
+                 language: {
+                     "decimal": ",",
+                     "emptyTable": "Nessun Dato Disponibile",
+                     "info": "Visualizzazione da _START_ a _END_ di _TOTAL_ Licenze",
+                     "infoEmpty": "Visualizzazione da 0 a 0 di 0 Licenze",
+                     "infoFiltered": "(Filtrati su _MAX_ Licenze Totali)",
+                     "infoPostFix": "",
+                     "thousands": ".",
+                     "lengthMenu": "Mostra _MENU_",
+                     "loadingRecords": "Caricamento...",
+                     "processing": '<i class="fa fa-circle-notch fa-spin fa-3x fa-fw" style="color: red;"></i><span class="sr-only">Caricamento...</span> ',
+                     "search": "<i class='fas fa-search'></i>",
+                     "zeroRecords": "Nessun Progetto",
+                     "paginate": {
+                         "first": "Prima",
+                         "last": "Ultima",
+                         "next": "Prossima",
+                         "previous": "Precedente"
+                     },
+                     "aria": {
+                         "sortAscending": ": ordina in modo ascendente A-Z",
+                         "sortDescending": ": ordina in modo discendente Z-A"
+                     }
+                },
+
+        });
         var TableProgettiEsterniInAttesa = $('#mainDataTableProgettiEsterniInAttesa').DataTable({
             stateSave: true,
             "ordering": true,
@@ -1132,7 +1200,35 @@
                         $.notify({ message: result.message }, { type: 'danger' });
                     }
                 });
-            } else {
+            } else if (form.attr('action').includes("/ModificaLicenza/")) {
+                var files = $('#LicenzaFileUpload').get(0).dropzone.getAcceptedFiles();
+                for (let x = 0; x < files.length; x++) {
+                    console.log(files[x]);
+                    formData.append('files', files[x]);
+                }
+                $.ajax({
+                    url: form.attr('action'),
+                    method: form.attr('method'),
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    async: false,
+                    success: function (result) {
+                        if (result.ok) {
+                            $.notify({ message: result.message }, { type: 'success' });
+                            window.location.reload();
+                        }
+                        else {
+                            console.log(result);
+                            $.notify({ message: result.message }, { type: 'danger' });
+                        }
+                    },
+                    error: function (result) {
+                        console.log(result);
+                        $.notify({ message: result.message }, { type: 'danger' });
+                    }
+                });
+            }else {
                 $.ajax({
                     url: form.attr('action'),
                     method: form.attr('method'),
@@ -1466,6 +1562,39 @@
                     $(this).find('.Save').show();
                     $(this).find('.SaveClose').hide();
                     $(this).find('.modal-body').html('').load('/Account/_NuovoUtente/', function () {
+                    });
+                    break;
+                case 'createLic':
+                    $(this).find('.modal-title').removeClass('text-danger').html('Crea Licenza');
+                    $(this).data('reload', true);
+                    $(this).find('.Add').hide();
+                    $(this).find('.Send').hide();
+                    $(this).find('.Delete').hide();
+                    $(this).find('.Save').show();
+                    $(this).find('.SaveClose').hide();
+                    $(this).find('.modal-body').html('').load('/Manage/AggiungiLicenza/', function () {
+                    });
+                    break;
+                case 'editLic':
+                    $(this).find('.modal-title').removeClass('text-danger').html('Modifica Licenza');
+                    $(this).data('reload', true);
+                    $(this).find('.Add').hide();
+                    $(this).find('.Send').hide();
+                    $(this).find('.Delete').hide();
+                    $(this).find('.Save').show();
+                    $(this).find('.SaveClose').hide();
+                    $(this).find('.modal-body').html('').load('/Manage/ModificaLicenza/' + recipient, function () {
+                    });
+                    break;
+                case 'createAss':
+                    $(this).find('.modal-title').removeClass('text-danger').html('Crea Associazione utente-licenza');
+                    $(this).data('reload', true);
+                    $(this).find('.Add').hide();
+                    $(this).find('.Send').hide();
+                    $(this).find('.Delete').hide();
+                    $(this).find('.Save').show();
+                    $(this).find('.SaveClose').hide();
+                    $(this).find('.modal-body').html('').load('/Manage/CreateAssociazione/', function () {
                     });
                     break;
                 case 'delete':
@@ -1940,6 +2069,7 @@
         });
 
         var UserTable = $('#mainDataTableUser').DataTable();
+        var UserLicenze = $('#mainDataTableLicenze').DataTable();
         var TableSchedulatore = $('#mainDataTableSchedulatore').DataTable({
             stateSave: true,
             "ordering": true,
@@ -2504,7 +2634,7 @@
                     this.removeAllFiles();
                     this.addFile(file);
                 },
-                dictDefaultMessage: "<strong>Trascinare i disegni in PDF all'interno, oppure cliccare per caricarli.</strong><br/>",
+                dictDefaultMessage: "<strong>Trascinare i documenti all'interno, oppure cliccare per caricarli.</strong><br/>",
                 dictFallbackMessage: "Il browser non supporta il trascinamento di files, usare: chrome, ie, opera, safari, firefox o edge",
                 dictFileTooBig: "File Troppo Grande ({{filesize}}). Il limite è fissato a {{maxFilesize}} MB.",
                 dictInvalidFileType: "Il tipo di file non è fra quelli permessi.",
@@ -2524,6 +2654,7 @@
                     });
                 }
             };
+      
 
             $('#mainDataTable tbody').on('click', 'td.dt-control', function () {
                 var tr = $(this).closest('tr');

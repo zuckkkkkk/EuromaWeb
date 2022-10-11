@@ -22,6 +22,10 @@ Public Class MacchinaViewModel
     Public Property TempoComplessivo As Dictionary(Of String, Integer)
     Public Property LastUpdate As String
 End Class
+Public Class GestioneUtentiViewModel
+    Public Property ListaUtenti As List(Of UserListViewModel)
+    Public Property ListaLicenze As List(Of UserLicenze)
+End Class
 'End Section Macchine
 Public Class ClienteViewModel
     Public Property Id() As String
