@@ -260,7 +260,16 @@
         display: inline-block;
         width: 100%;
     }
-
+    #Hide_Navbar {
+        border-radius: 100px !important;
+        height: 37px !important;
+        width: 37px !important;
+        position: fixed;
+        right: 32px;
+        bottom: 16px;
+        overflow: hidden;
+        padding: 6px !important;
+    }
     .autocomplete-active {
         /*when navigating through the items using the arrow keys:*/
         background-color: DodgerBlue !important;
@@ -352,6 +361,9 @@
                                  <ul Class="dropdown-menu">
                                      <li>
                                          @If User.IsInRole("Produzione") Or User.IsInRole("ProduzioneController") Then
+                                             @<button Class="btn  w-auto" onclick="SearchLotto()" style="box-shadow:none!important;">
+                                                 Ricerca Lotti
+                                             </button>
                                              @<a href="@Url.Action("Index", "Pezzi")" Class="dropdown-item">Articoli</a>
                                              @<a href="@Url.Action("Index", "ChangeLog")" Class="dropdown-item">Changelog</a>
                                              @<a href="@Url.Action("LavorazioniEsterne", "Acquisti")" Class="dropdown-item">C/O</a>
@@ -370,13 +382,13 @@
                                          @If User.IsInRole("Admin") Then
                                              @<a href="@Url.Action("LavorazioniEsterne", "Acquisti")" Class="dropdown-item">C/O</a>
                                              @<a href="@Url.Action("Index", "ChangeLog")" Class="dropdown-item">Changelog</a>
-                                             @<button data-type="downloadFatturato" Class="btn  w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
+                                             @<button data-type="downloadFatturato" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
                                                  Fatturato
                                              </button>
-                                             @<button data-type="downloadOrdinato" Class="btn  w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
+                                             @<button data-type="downloadOrdinato" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
                                                  Ordinato
                                              </button>
-                                             @<button data-type="downloadCompOrdinato" Class="btn  w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
+                                             @<button data-type="downloadCompOrdinato" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
                                                  Prev. Ordinato
                                              </button>
                                          End If
@@ -512,7 +524,10 @@
             });
         }
 
-
+    function ToggleNavbar() {
+        $(".navbar").toggle();
+        $("#ToggleEye").toggleClass("fa-eye fa-eye-slash")
+    }
 
     function autocomplete(inp, arr) {
         /*the autocomplete function takes two arguments,
@@ -689,6 +704,59 @@
         //    console.log(d);
         //    window.location = '/Overviews/Ordine/' + d.toString();
         //});
+    async function SearchLotto() {
+        const { value: text } = await Swal.fire({
+            input: 'text',
+            inputLabel: 'Ricerca Articolo per lotto',
+            inputPlaceholder: 'Inserisci qui il codice...',
+            inputAttributes: {
+                'aria-label': 'Inserisci qui il codice'
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Cerca',
+            cancelButtonText: 'Cancella',
+        })
+
+        if (text) {
+            var id = 0;
+            $.ajax({
+                url: '/Home/Lotti',
+                type: 'POST',
+                data: { stringa: text },
+                dataType: 'json',
+                success: function (result) {
+                    if (result.ok) {
+                        id = result.id;
+                        console.log(result);
+                        Swal.fire({
+                            title: 'Articolo ' + result.data.Art + "(" + result.data.TipoParte + " - " + result.data.Descr+")",
+                            html: "L'articolo ha un <b>lotto minimo di " + result.data.LottoMin + " pezzi </b>e una <b>scorta di sicurezza di " + result.data.Scorta + " pezzi</b>.  Ne sono stati <b>consumati " + result.data.ConsumoAnnoPrec + " pezzi lo scorso </b>anno e <b>" + result.data.ConsumoAnnoCurrent + " quest'anno</b>. Ha una <b>giacenza attuale di " + result.data.CurrentGiacenza + " e " + result.data.AnnoCurrentInAttesa +" in attesa</b> di essere prodotti.",
+                            icon: 'info',
+                            showCancelButton: false,
+                            showDenyButton: false,
+                            confirmButtonText: 'Ok!',
+                            confirmButtonColor: '#26a360',
+                            cancelButtonColor: '#d33'
+                        })
+                    }
+                    else {
+                        console.log(result);
+                        $.notify({ message: result.message }, { type: 'danger' });
+                    }
+                },
+                error: function (result) {
+                    console.log(result);
+                    $.notify({ message: result.message }, { type: 'danger' });
+                }
+            });
+        }
+    }
+    hotkeys('ctrl+b', function (event, handler) {
+        switch (handler.key) {
+            case 'ctrl+b': SearchLotto();
+                break;
+        }
+    });
     $('#btnRicercaOC').on('click', function (e) {
         console.log("active");
         var d = $('#RicercaOC').val();
@@ -842,6 +910,7 @@
                 },
 
         });
+
     var TableLicenze = $('#mainDataTableLicenzeAssociazioni').DataTable({
             stateSave: true,
             "ordering": false,
@@ -1068,6 +1137,66 @@
             window.location = '/Home/RicercaDisegni/' + type + "+" + d.toString();
         }
     });
+    var DisegniMacchina = $("#DisegniMacchinaTable").DataTable();
+    function ChangeComplessivo(id, macchina) {
+        $.ajax({
+        url: '/Macchine/DetailsPostComplessivo?id=' + id + "&macchina=" + macchina,
+        type: 'POST',
+        success: function (result) {
+            if (result.ok) {
+                console.log(result);
+                switch (id) {
+                    case "1":
+                        $(".Complessivo").text("Tempo Taglio Compl.")
+                        break;
+                    case "2":
+                        $(".Complessivo").text("Tempo Mandrino Compl.")
+                        break;
+                    case "3":
+                        $(".Complessivo").text("Operatività Compl.")
+                        break;
+                    case "4":
+                        $(".Complessivo").text("Esecuzione Compl.")
+                        break;
+                }
+                var kmkLabelComplessivo = Object.keys(result.data)
+                var kmkDataComplessivo = Object.values(result.data)
+                $("#ChartComplessivo").remove();
+                $('#ContainerComplessivo').append('<canvas id="ChartComplessivo"></canvas>');
+                window.ChartComplessivo = new Chart(document.getElementById("ChartComplessivo"), {
+                    type: 'line',
+                    data: {
+                        labels: kmkLabelComplessivo,
+                        datasets: [
+                            {
+                                label: "# Tempo",
+                                backgroundColor: ["#3e95cd", "#8e5ea2", "#3cba9f", "#e8c3b9", "#c45850"],
+                                data: kmkDataComplessivo
+                            }
+                        ]
+                    },
+                    options: {
+                        bezierCurve: true,
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Predicted world population (millions) in 2050'
+                        },
+                    }
+                });
+            }
+            else {
+                console.log(result);
+                $.notify({ message: result.message }, { type: 'danger' });
+            }
+        },
+        error: function (result) {
+            console.log(result);
+            $.notify({ message: result.message }, { type: 'danger' });
+        }
+    });
+
+    }
     $('#NomeDisegno').keyup(function (e) {
         e.preventDefault();
         if (e.keyCode == 13) {
@@ -2654,7 +2783,7 @@
                     });
                 }
             };
-      
+
 
             $('#mainDataTable tbody').on('click', 'td.dt-control', function () {
                 var tr = $(this).closest('tr');

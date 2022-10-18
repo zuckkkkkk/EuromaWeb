@@ -260,105 +260,109 @@ Partial Public Class Startup
         Next
     End Function
     Function GetMacchina()
-        Dim req As System.Net.WebRequest
-        Dim res As System.Net.WebResponse
-        req = System.Net.WebRequest.Create("http://192.168.100.120:5000/current")
-        Try
-            res = req.GetResponse()
-            Dim doc As XmlDocument = New XmlDocument
-            doc.Load("http://192.168.100.120:5000/current")
-            'Fetch all the Nodes.
-            Dim nodeList As XmlNodeList = doc.SelectNodes("//text()")
-            'Loop through the Nodes.
-            Dim Macchina = "CNT8"
-            Dim ModalitaMacchina = ""
-            Dim FungoPremuto = False
-            Dim ModalitaControllo = ""
-            Dim Programma = ""
-            Dim EsecuzioneProgramma = ""
-            Dim AvanzamentoProgramma = 0
-            Dim DescrizioneProgramma = ""
-            Dim A = ""
-            Dim ProgrammaDesc = ""
-            Dim LpCuttingTime = ""
-            Dim LpOperatingTime = ""
-            Dim LpRunningTime = ""
-            Dim LpSpindleRunTime = ""
-            Dim LpTotalCuttingTime = ""
-            Dim LpTotalOperatingTime = ""
-            Dim LpTotalRunningTime = ""
-            Dim LpTotalSpindleRuntime = ""
-            For Each node As XmlNode In nodeList
-                'Fetch the Node's Name and InnerText values.
-                Console.WriteLine(node.ParentNode.Name & ": " & node.InnerText)
-                Select Case node.ParentNode.Name
-                    Case "EmergencyStop"
-                        FungoPremuto = False
-                    Case "ControllerMode"
-                        ModalitaControllo = node.InnerText
-                    Case "FunctionalMode"
-                        ModalitaMacchina = node.InnerText
-                    Case "Program"
-                        Programma = node.InnerText
-                    Case "Execution"
-                        EsecuzioneProgramma = node.InnerText
-                    Case "PathFeedrateOverride"
-                        AvanzamentoProgramma = node.InnerText
-                    Case "ProgramHeader"
-                        DescrizioneProgramma = node.InnerText
-                    Case = "AccumulatedTime"
-                        'If node.Attributes(0).Name Then
-                        If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpCuttingTime") Then
-                            LpCuttingTime = node.InnerText
-                        End If
-                        If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpOperatingTime") Then
-                            LpOperatingTime = node.InnerText
-                        End If
-                        If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpRunningTime") Then
-                            LpRunningTime = node.InnerText
-                        End If
-                        If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpSpindleRunTime") Then
-                            LpSpindleRunTime = node.InnerText
-                        End If
-                        If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpTotalCuttingTime") Then
-                            LpTotalCuttingTime = node.InnerText
-                        End If
-                        If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpTotalOperatingTime") Then
-                            LpTotalOperatingTime = node.InnerText
-                        End If
-                        If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpTotalRunningTime") Then
-                            LpTotalRunningTime = node.InnerText
-                        End If
-                        If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpTotalSpindleRunTime") Then
-                            LpTotalSpindleRuntime = node.InnerText
-                        End If
-                        A = node.InnerText
-                End Select
+        Dim listamacchine = db.Macchine.ToList
+        For Each l In listamacchine
+            Dim req As System.Net.WebRequest
+            Dim res As System.Net.WebResponse
+            req = System.Net.WebRequest.Create(l.Descrizione_Macchina)
+            Try
+                res = req.GetResponse()
+                Dim doc As XmlDocument = New XmlDocument
+                doc.Load(l.Descrizione_Macchina)
+                'Fetch all the Nodes.
+                Dim nodeList As XmlNodeList = doc.SelectNodes("//text()")
+                'Loop through the Nodes.
+                Dim Macchina = l.Macchina
+                Dim ModalitaMacchina = ""
+                Dim FungoPremuto = False
+                Dim ModalitaControllo = ""
+                Dim Programma = ""
+                Dim EsecuzioneProgramma = ""
+                Dim AvanzamentoProgramma = 0
+                Dim DescrizioneProgramma = ""
+                Dim A = ""
+                Dim ProgrammaDesc = ""
+                Dim LpCuttingTime = ""
+                Dim LpOperatingTime = ""
+                Dim LpRunningTime = ""
+                Dim LpSpindleRunTime = ""
+                Dim LpTotalCuttingTime = ""
+                Dim LpTotalOperatingTime = ""
+                Dim LpTotalRunningTime = ""
+                Dim LpTotalSpindleRuntime = ""
+                For Each node As XmlNode In nodeList
+                    'Fetch the Node's Name and InnerText values.
+                    Console.WriteLine(node.ParentNode.Name & ": " & node.InnerText)
+                    Select Case node.ParentNode.Name
+                        Case "EmergencyStop"
+                            FungoPremuto = False
+                        Case "ControllerMode"
+                            ModalitaControllo = node.InnerText
+                        Case "FunctionalMode"
+                            ModalitaMacchina = node.InnerText
+                        Case "Program"
+                            Programma = node.InnerText
+                        Case "Execution"
+                            EsecuzioneProgramma = node.InnerText
+                        Case "PathFeedrateOverride"
+                            AvanzamentoProgramma = node.InnerText
+                        Case "ProgramHeader"
+                            DescrizioneProgramma = node.InnerText
+                        Case = "AccumulatedTime"
+                            'If node.Attributes(0).Name Then
+                            If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpCuttingTime") Then
+                                LpCuttingTime = node.InnerText
+                            End If
+                            If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpOperatingTime") Then
+                                LpOperatingTime = node.InnerText
+                            End If
+                            If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpRunningTime") Then
+                                LpRunningTime = node.InnerText
+                            End If
+                            If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpSpindleRunTime") Then
+                                LpSpindleRunTime = node.InnerText
+                            End If
+                            If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpTotalCuttingTime") Then
+                                LpTotalCuttingTime = node.InnerText
+                            End If
+                            If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpTotalOperatingTime") Then
+                                LpTotalOperatingTime = node.InnerText
+                            End If
+                            If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpTotalRunningTime") Then
+                                LpTotalRunningTime = node.InnerText
+                            End If
+                            If node.ParentNode.Attributes(0).InnerText.ToString.Contains("LpTotalSpindleRunTime") Then
+                                LpTotalSpindleRuntime = node.InnerText
+                            End If
+                            A = node.InnerText
+                    End Select
 
-            Next
-            db.DatiMacchina.Add(New DatiMacchina With {
-                    .EsecuzioneProgramma = EsecuzioneProgramma,
-                    .AvanzamanetoProgramma = AvanzamentoProgramma,
-                    .FungoPremuto = FungoPremuto,
-                    .Macchina = Macchina,
-                    .ModalitaControllo = ModalitaControllo,
-                    .ModalitaMacchina = ModalitaMacchina,
-                    .Programma = Programma,
-                    .Data = DateTime.Now,
-                    .LpCuttingTime = LpCuttingTime,
-                    .LpOperatingTime = LpOperatingTime,
-                    .LpRunningTime = LpRunningTime,
-                    .LpSpindleRunTime = LpSpindleRunTime,
-                    .LpTotalCuttinTime = LpTotalCuttingTime,
-                    .LpTotalOperatingTime = LpTotalOperatingTime,
-                    .LpTotalRunningTime = LpTotalRunningTime,
-                    .LpTotalSpindleRuntime = LpTotalSpindleRuntime,
-                    .ProgrammaDesc = ProgrammaDesc
-                })
-            db.SaveChanges()
-        Catch e As WebException
-            ' URL doesn't exists
-        End Try
+                Next
+                db.DatiMacchina.Add(New DatiMacchina With {
+                        .EsecuzioneProgramma = EsecuzioneProgramma,
+                        .AvanzamanetoProgramma = AvanzamentoProgramma,
+                        .FungoPremuto = FungoPremuto,
+                        .Macchina = Macchina,
+                        .ModalitaControllo = ModalitaControllo,
+                        .ModalitaMacchina = ModalitaMacchina,
+                        .Programma = Programma,
+                        .Data = DateTime.Now,
+                        .LpCuttingTime = LpCuttingTime,
+                        .LpOperatingTime = LpOperatingTime,
+                        .LpRunningTime = LpRunningTime,
+                        .LpSpindleRunTime = LpSpindleRunTime,
+                        .LpTotalCuttinTime = LpTotalCuttingTime,
+                        .LpTotalOperatingTime = LpTotalOperatingTime,
+                        .LpTotalRunningTime = LpTotalRunningTime,
+                        .LpTotalSpindleRuntime = LpTotalSpindleRuntime,
+                        .ProgrammaDesc = ProgrammaDesc
+                    })
+                db.SaveChanges()
+            Catch e As WebException
+                ' URL doesn't exists
+            End Try
+        Next
+
     End Function
     Function UpdateTempiOpera() As JsonResult
         Dim listOfFasi As New List(Of OverviewViewModel)

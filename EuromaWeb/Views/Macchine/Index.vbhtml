@@ -4,71 +4,118 @@
         box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
         border-radius: 14px;
     }
-    #Titolo_Macchina{
-        margin-top:32px;
+
+    #Titolo_Macchina {
+        margin-top: 32px;
     }
+
     #Titolo_Chart {
         margin-top: 16px !important;
         margin-left: 16px !important;
     }
 </style>
-<div class="VisualizzaMacchina">
-    <div class="row">
-        <div class="col-md-2">
+<p id="UltimoAggiornamento" style="font-size:11px!important;z-index: 10000;text-align: center; position: fixed; left: 16px; width: 15vw; bottom: 0; color: white; padding: 8px; background-color: black; margin: 0 !important; border-radius: 16px 16px 0px 0px; box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px; ">
+</p>
+<div class="row mt-3">
+    <div class="col-md-3">
 
-        </div>
-        <div class="col-md-8 my-3">
-            <div class="card">
-                    <p id="UltimoAggiornamento"style="position: absolute; left: 0; bottom: 0; color: #808080; font-style: italic; font-size:12px; margin-bottom: 4px !important; margin-left: 8px !important; ">
-                    </p>
-                <div class="row p-3">
-                    <div class="col-md-6">
-                        <img src="https://img.directindustry.it/images_di/photo-g/26786-10682596.webp" style="max-width:100%;" />
-                    </div>
-                    <div class="col-md-6">
-                        <h3 id="Titolo_Macchina"></h3>
-                        <h5 id="Descrizione_Macchina"></h5>
-                        <hr style="width:50%;" />
-                        <h5 id="Programma_Macchina_Title" style="margin-bottom:0!important">Programma in corso:</h5>
-                        <h3 id="Programma_Macchina"></h3>
-                        <h5 id="Descrizione_Programma_Macchina"></h5>
-                        <h5>Status: <span class="badge bg-primary" id="Status_Macchina" style="border-radius:100px;">ACTIVE</span></h5>
-                    </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="row">
+                <div class="col-md-12">
+                    @Html.DropDownList("listaMacchine", Nothing, htmlAttributes:=New With {.class = "form-select form-select mb-3", .style = "width: 100%!important; max-width:none!important; border:none!important;", .id = "SelectMacchina"})
+                </div>
+            </div>
+            <div class="row p-3">
+                <div class="col-md-6">
+                    <img src="https://img.directindustry.it/images_di/photo-g/26786-10682596.webp" style="max-width:100%;" />
+                </div>
+                <div class="col-md-6">
+                    <h3 id="Titolo_Macchina"></h3>
+                    <h5 id="Descrizione_Macchina"></h5>
+                    <hr style="width:50%;" />
+                    <h5 id="Programma_Macchina_Title" style="margin-bottom:0!important">Programma in corso</h5>
+                    <h3 id="Programma_Macchina">Nessuno</h3>
+                    <h5 id="Descrizione_Programma_Macchina"></h5>
+                    <h5>Status: <span class="badge bg-primary" id="Status_Macchina" style="border-radius:100px;">ACTIVE</span></h5>
                 </div>
             </div>
         </div>
-        <div class="col-md-2">
-
-        </div>
     </div>
+    <div class="col-md-3">
+
+    </div>
+</div>
+<div class="VisualizzaMacchina">
     <div class="row">
         <div class="col-md-4">
-            <div id="ContainerTempi" class="card m-2 ">
-                <h3 id="Titolo_Chart">Modalità Macchina</h3>
+            <div id="ContainerTempi"class="card m-2">
+            <div class="row">
+                <div class="col-md-10">
+                    <h3 id="Titolo_Chart">
+                        Modalità Macchina
+                    </h3>
+                </div>
+                <div class="col-md-2" style="display: flex; align-items: center; justify-content: center; margin-top: 8px; margin-right: 0px;">
+                    <div class="dropdown">
+                        <button style="box-shadow:none!important;"class="btn " type="button" id="dropdownModalitaMacchina" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa-2x fa-solid fa-ellipsis-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownModalitaMacchina">
+                            <li><a class="dropdown-item" href="@Url.Action("DownloadModalitaMacchina", "Macchine", New With {.id = ViewBag.idMacchina})">Scarica dati</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
                 <canvas id="ChartTempi"></canvas>
             </div>
         </div>
         <div class="col-md-4">
-            <div id="ContainerTempiOperatore" class="card m-2 ">
-                <h3 id="Titolo_Chart">Modalità Operatore</h3>
+            <div id="ContainerTempiOperatore" class="card m-2">
+                
+                <div class="row">
+                    <div class="col-md-10">
+                        <h3 id="Titolo_Chart">Modalità Operatore</h3>
+                    </div>
+                    <div class="col-md-2" style="display: flex; align-items: center; justify-content: center; margin-top: 8px; margin-right: 0px;">
+                        <div class="dropdown">
+                            <button style="box-shadow:none!important;" class="btn " type="button" id="dropdownModalitaOperatore" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-2x fa-solid fa-ellipsis-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownModalitaOperatore">
+                                <li><a class="dropdown-item" href="@Url.Action("DownloadModalitaOperatore", "Macchine", New With {.id = ViewBag.idMacchina})">Scarica dati</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
                 <canvas id="ChartTempiOperatore"></canvas>
             </div>
         </div>
         <div class="col-md-4">
-            <div id="ContainerStato" class="card m-2 ">
-                <h3 id="Titolo_Chart">Stato Programmi</h3>
+            <div id="ContainerStato" class="card m-2">
+                <div class="row">
+                    <div class="col-md-10">
+                        <h3 id="Titolo_Chart">Stato Programmi</h3>
+                    </div>
+                    <div class="col-md-2" style="display: flex; align-items: center; justify-content: center; margin-top: 8px; margin-right: 0px;">
+                        <div class="dropdown">
+                            <button style="box-shadow:none!important;" class="btn " type="button" id="dropdownModalitaStato" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-2x fa-solid fa-ellipsis-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownModalitaStato">
+                                <li><a class="dropdown-item" href="@Url.Action("DownloadModalitaStato", "Macchine", New With {.id = ViewBag.idMacchina})">Scarica dati</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
                 <canvas id="ChartStato"></canvas>
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-md-6">
-            <div id="ContainerComplessivo" class="card m-2 ">
-                <h3 id="Titolo_Chart">Complessivo</h3>
-                <canvas id="ChartComplessivo"></canvas>
-            </div>
-        </div>
-        <div class="col-md-6">
+</div>
+<div class="row">
+    <div class="col-md-6">
             <div class="containerTabella card m-2">
                 <h3 id="Titolo_Chart">Storico Programmi</h3>
                 <table id="DisegniMacchinaTable" class="table table-striped">
@@ -76,9 +123,6 @@
                         <tr>
                             <td>
                                 Cod. Programma
-                            </td>
-                            <td>
-                                Desc. Programma
                             </td>
                             <td>
                                 Inizio
@@ -92,12 +136,44 @@
                     </tbody>
                 </table>
             </div>
+    </div>
+    <div class="col-md-6">
+        <div class="col-md-12">
+            <div id="ContainerComplessivo" class="card m-2 ">
+                <div class="row">
+                    <div class="col-md-10">
+                        <h3 class="Complessivo"id="Titolo_Chart">Complessivo</h3>
+                    </div>
+                    <div class="col-md-2" style="display: flex; align-items: center; justify-content: center; margin-top: 8px; margin-right: 0px;">
+                        <div class="dropdown">
+                            <button style="box-shadow:none!important;" class="btn " type="button" id="dropdownModalitaComplessivo" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-2x fa-solid fa-ellipsis-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownModalitaComplessivo">
+                                <li><btn class="dropdown-item" onclick="ChangeComplessivo('1', '@ViewBag.idMacchina')">T. Taglio Compl.</btn></li>
+                                <li><btn class="dropdown-item" onclick="ChangeComplessivo('2', '@ViewBag.idMacchina')">T. Mandrino Compl.</btn></li>
+                                <li><btn class="dropdown-item" onclick="ChangeComplessivo('3', '@ViewBag.idMacchina')">Operatività Compl.</btn></li>
+                                <li><btn class="dropdown-item" onclick="ChangeComplessivo('4', '@ViewBag.idMacchina')">Esecuzione Compl.</btn></li>
+                                <li><a class="dropdown-item" href="@Url.Action("DownloadComplessivoDati", "Macchine", New With {.macchina = ViewBag.idMacchina})">Download</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <canvas id="ChartComplessivo"></canvas>
+            </div>
+
         </div>
     </div>
 </div>
+
+<Button type="button" id="Hide_Navbar" onclick="ToggleNavbar()" Class="btn btn-primary w-auto">
+    <i id="ToggleEye"class="fa-solid fa-eye"></i>
+</Button>
+
 <script defer>
+    $("#SelectMacchina option[value='@ViewBag.idMacchina']").attr('selected', 'selected')
     $.ajax({
-        url: '/Macchine/DetailsPost/CNT8',
+        url: '/Macchine/DetailsPost/@ViewBag.idMacchina' ,
         type: 'POST',
         success: function (result) {
             if (result.ok) {
@@ -109,7 +185,7 @@
                 $('#Status_Macchina').text(result.data.ActualState);
                 $('#UltimoAggiornamento').text("Ultimo aggiornamento: " + result.data.LastUpdate);
                 result.data.ListaDisegni.forEach(function (disegno) {
-                    $('#DisegniMacchinaTable').append('<tr><td>' + disegno.CodDisegno + '</td><td>' + disegno.DescDisegno + '</td><td>' + disegno.FirstStart + '</td><td>' + disegno.LastStart+'</td></tr>')
+                    $('#DisegniMacchinaTable').append('<tr><td>' + disegno.CodDisegno + '</td><td>' + disegno.FirstStart + '</td><td>' + disegno.LastStart + '</td></tr>')
                 });
                 var kmkLabel = Object.keys(result.data.DicitonaryMacchina)
                 var kmkData = Object.values(result.data.DicitonaryMacchina)
@@ -219,5 +295,5 @@
             $.notify({ message: result.message }, { type: 'danger' });
         }
     });
-        
+
 </script>

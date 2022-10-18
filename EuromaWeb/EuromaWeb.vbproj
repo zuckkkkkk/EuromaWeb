@@ -1322,6 +1322,9 @@
     <Content Include="Content\Template\OffertaFornitoreDDT.pdf" />
     <Content Include="Content\Template\Template_Priorita.xlsx" />
     <Content Include="Content\json\particlesjs-config.json" />
+    <Content Include="Content\Template\Lotti_Template.xlsx" />
+    <Content Include="Content\Macchine\Template_Macchine.xlsx" />
+    <Content Include="Content\Macchine\Template_Macchine_Complessivo.xlsx" />
     <None Include="My Project\Application.myapp">
       <Generator>MyApplicationCodeGenerator</Generator>
       <LastGenOutput>Application.Designer.vb</LastGenOutput>

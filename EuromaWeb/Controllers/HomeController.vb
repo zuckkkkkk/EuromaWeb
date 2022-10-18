@@ -90,8 +90,8 @@ Public Class HomeController
         Return View()
     End Function
     <Authorize>
-            <HttpPost()>
-                <ValidateAntiForgeryToken()>
+    <HttpPost()>
+    <ValidateAntiForgeryToken()>
     Function InventarioPerMagazzino(<Bind(Include:="CodMagazzino")> ByVal PostedVM As MagazzinoViewModel) As ActionResult
         Dim OpID As String = vbNullString
         Dim OpName As String = vbNullString
@@ -262,6 +262,238 @@ Public Class HomeController
         End Try
 
 
+    End Function
+    <Authorize>
+    <HttpPost>
+    Function Lotti(ByVal stringa As String) As JsonResult
+        Dim OpID As String = vbNullString
+        Dim OpName As String = vbNullString
+        Dim CurrentDate As DateTime = Now
+        OpName = User.Identity.Name
+
+        Dim lotto As New LottiViewModel
+        'Ricerca Articoli per condominio
+        Try
+            myConn = New SqlConnection(ConnectionString)
+            myCmd = myConn.CreateCommand
+            myCmd.CommandText = "
+             select DISTINCT ARTCO1,ARTDES,CAST(ARTLOM as INTEGER),CAST(ARTSCM as INTEGER), CAST(ARTGIA as INTEGER),TPRCOD from ARTANA, ARTPIA,ARTDMA
+                WHERE ARTANA.ARTCO1 = '" + stringa + "' AND ARTANA.ARTCO1 = ARTPIA.ARTCOD AND ARTANA.ARTCO1 = ARTDMA.ARTCOD"
+            myConn.Open()
+        Catch ex As Exception
+
+        End Try
+        'Parse dei dati da SQL
+        Try
+            myReader = myCmd.ExecuteReader
+            Do While myReader.Read()
+                lotto.Art = myReader.GetString(0).Trim
+                lotto.Descr = myReader.GetString(1).Trim
+                lotto.LottoMin = myReader.GetInt32(2)
+                lotto.Scorta = myReader.GetInt32(3)
+                lotto.CurrentGiacenza = myReader.GetInt32(4)
+                lotto.TipoParte = myReader.GetString(5).Trim
+            Loop
+            myConn.Close()
+
+        Catch ex As Exception
+
+        End Try
+
+        Try
+            myConn = New SqlConnection(ConnectionString)
+            myCmd = myConn.CreateCommand
+            myCmd.CommandText = "select DISTINCT ODLALP, CAST(SUM(ODLQTP) as INTEGER) from ODLTES00 where ODLALP = '" + stringa + "' AND ODLDIUREV > '20220101' AND ODLDIUREV < '20221231' AND ODLSTS = '080' group by ODLALP"
+            myConn.Open()
+        Catch ex As Exception
+
+        End Try
+        'Parse dei dati da SQL
+        Try
+            myReader = myCmd.ExecuteReader
+            Do While myReader.Read()
+                If Not IsDBNull(myReader.GetValue(1)) Then
+                    lotto.AnnoCurrent = myReader.GetInt32(1)
+                End If
+            Loop
+            myConn.Close()
+
+        Catch ex As Exception
+
+        End Try
+        Try
+            myConn = New SqlConnection(ConnectionString)
+            myCmd = myConn.CreateCommand
+            myCmd.CommandText = "select DISTINCT ODLALP, CAST(SUM(ODLQTP) as INTEGER) from ODLTES00 where ODLALP = '" + stringa + "' AND ODLDIUREV > '20220101' AND ODLDIUREV < '20221231' AND ODLSTS < '080' group by ODLALP"
+            myConn.Open()
+        Catch ex As Exception
+
+        End Try
+        'Parse dei dati da SQL
+        Try
+            myReader = myCmd.ExecuteReader
+            Do While myReader.Read()
+                If Not IsDBNull(myReader.GetValue(1)) Then
+                    lotto.AnnoCurrentInAttesa = myReader.GetInt32(1)
+                End If
+
+
+            Loop
+            myConn.Close()
+
+        Catch ex As Exception
+
+        End Try
+        Try
+            myConn = New SqlConnection(ConnectionString)
+            myCmd = myConn.CreateCommand
+            myCmd.CommandText = "select DISTINCT ARTCOD, CAST(SUM(MVMCVT) as INTEGER)  from MVMDET00 where ARTCOD = '" + stringa + "' AND MVMDREREV > '20210101' AND MVMDREREV < '20211231' AND MVMCAU = 'UP1' GROUP BY ARTCOD"
+            myConn.Open()
+        Catch ex As Exception
+
+        End Try
+        'Parse dei dati da SQL
+        Try
+            myReader = myCmd.ExecuteReader
+            Do While myReader.Read()
+                lotto.ConsumoAnnoPrec = myReader.GetInt32(1)
+            Loop
+            myConn.Close()
+
+        Catch ex As Exception
+
+        End Try
+        Try
+            myConn = New SqlConnection(ConnectionString)
+            myCmd = myConn.CreateCommand
+            myCmd.CommandText = "select DISTINCT ARTCOD, CAST(SUM(MVMCVT) as INTEGER) from MVMDET00 where ARTCOD='" + stringa + "' AND MVMDREREV > '20220101' AND MVMDREREV < '20221231' AND MVMCAU = 'UP1' GROUP BY ARTCOD"
+            myConn.Open()
+        Catch ex As Exception
+
+        End Try
+        'Parse dei dati da SQL
+        Try
+            myReader = myCmd.ExecuteReader
+            Do While myReader.Read()
+                lotto.ConsumoAnnoCurrent = myReader.GetInt32(1)
+            Loop
+            myConn.Close()
+
+        Catch ex As Exception
+
+        End Try
+        Try
+            myConn = New SqlConnection(ConnectionString)
+            myCmd = myConn.CreateCommand
+            myCmd.CommandText = "select DISTINCT ODLALP, CAST(SUM(ODLQTP) as INTEGER) from ODLTES00 where ODLALP = '" + stringa + "' AND ODLDIUREV > '20210101' AND ODLDIUREV < '20211231' group by ODLALP"
+            myConn.Open()
+        Catch ex As Exception
+
+        End Try
+        'Parse dei dati da SQL
+        Try
+            myReader = myCmd.ExecuteReader
+            Do While myReader.Read()
+                If Not IsDBNull(myReader.GetValue(1)) Then
+                    lotto.AnnoPrec = myReader.GetInt32(1)
+                End If
+            Loop
+            myConn.Close()
+
+        Catch ex As Exception
+
+        End Try
+        'Apertura file
+        'Dim fs As New FileStream(Server.MapPath("\Content\Template\Lotti_template.xlsx"), FileMode.Open, FileAccess.Read)
+        'Dim workbook As XSSFWorkbook = New XSSFWorkbook(fs)
+        'Dim ws As XSSFSheet = workbook.GetSheetAt(0)
+        ''Start Pop
+        'Dim i As Integer = 1
+        'Dim baserow As IRow = ws.GetRow(0)
+        ''Dim baserow As IRow = ws.GetRow(2)
+        'Dim ms As New MemoryStream
+        'Dim ms1 As New MemoryStream
+        ''Riga Intestazione
+        'Try
+        '    Try
+        '        For Each l In ListLotti
+
+        '            Dim r As IRow = ws.CreateRow(i)
+        '            For j = 0 To 8
+        '                r.CreateCell(j).CellStyle = baserow.GetCell(j).CellStyle
+        '            Next
+
+        '            Try
+        '                r.GetCell(0).SetCellValue(l.Art)
+        '            Catch ex As Exception
+
+        '            End Try
+        '            Try
+        '                r.GetCell(1).SetCellValue(l.Descr)
+        '            Catch ex As Exception
+
+        '            End Try
+        '            Try
+        '                r.GetCell(2).SetCellValue(l.LottoMin)
+        '            Catch ex As Exception
+
+        '            End Try
+        '            Try
+        '                r.GetCell(3).SetCellValue(l.Scorta)
+        '            Catch ex As Exception
+
+        '            End Try
+        '            Try
+        '                r.GetCell(4).SetCellValue(l.TipoParte)
+        '            Catch ex As Exception
+
+        '            End Try
+        '            'Try
+        '            '    r.GetCell(4).SetCellValue(l.AnnoPrec)
+        '            'Catch ex As Exception
+
+        '            'End Try
+        '            Try
+        '                r.GetCell(5).SetCellValue(l.ConsumoAnnoPrec)
+        '            Catch ex As Exception
+
+        '            End Try
+        '            'Try
+        '            '    r.GetCell(6).SetCellValue(l.AnnoCurrent)
+        '            'Catch ex As Exception
+
+        '            'End Try
+        '            Try
+        '                r.GetCell(6).SetCellValue(l.ConsumoAnnoCurrent)
+        '            Catch ex As Exception
+
+        '            End Try
+        '            Try
+        '                r.GetCell(7).SetCellValue(l.AnnoCurrentInAttesa)
+        '            Catch ex As Exception
+
+        '            End Try
+        '            Try
+        '                r.GetCell(8).SetCellValue(l.CurrentGiacenza)
+        '            Catch ex As Exception
+
+        '            End Try
+        '            i = i + 1
+        '        Next
+        '    Catch ex As Exception
+
+        '    End Try
+        '    'Intestazione
+
+        '    'Dati rilevati
+
+        '    workbook.Write(ms)
+        '    Return File(ms.ToArray, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", Now.Year & "_" & Now.Month & "_" & Now.Day & " - LISTA LOTTI.xlsx")
+        'Catch ex As Exception
+
+        'End Try
+
+        Return Json(New With {.ok = True, .data = lotto}, JsonRequestBehavior.AllowGet)
     End Function
     <Authorize>
     Function ValorizzazioneMagazzino() As ActionResult

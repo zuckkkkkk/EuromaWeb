@@ -213,6 +213,19 @@ Public Class DisegnoMPAViewModel
     Public Property Campo5 As String
     Public Property Desc_Alnus As String
 End Class
+Public Class LottiViewModel
+    Public Property Art As String
+    Public Property Descr As String
+    Public Property LottoMin As Integer
+    Public Property Scorta As Integer
+    Public Property AnnoPrec As Integer
+    Public Property AnnoCurrent As Integer
+    Public Property ConsumoAnnoPrec As Integer
+    Public Property ConsumoAnnoCurrent As Integer
+    Public Property AnnoCurrentInAttesa As Integer
+    Public Property CurrentGiacenza As Integer
+    Public Property TipoParte As String
+End Class
 Public Class ArticoloMagazzinoViewModel
     Public Property Posizione As String
     Public Property Articolo As String

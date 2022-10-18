@@ -109,9 +109,7 @@ End Code
                     </div>
                 </div>
             End If
-
         Next
-
     </div>
     <div class="row text-center mt-3">
         <div class="col">

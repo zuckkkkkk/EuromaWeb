@@ -2,8 +2,8 @@
 
     Public Const Debug As Boolean = False
     Public Const WebAppVersion As String = "0.9.9a"
-    Public Const WebAppVersionDateBuild As Date = #10/10/2022#
-    Public Const WebAppVersionDateRelease As Date = #10/10/2022#
+    Public Const WebAppVersionDateBuild As Date = #10/17/2022#
+    Public Const WebAppVersionDateRelease As Date = #10/17/2022#
     ' DisplayFormat data annotations
     Public Const DisplayFormatDateStandard As String = "{0:dd/MM/yy HH:mm}"
     Public Const DisplayFormatDateOnly As String = "{0:dd/MM/yy}"
