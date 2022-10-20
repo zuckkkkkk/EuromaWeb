@@ -26,6 +26,13 @@ Public Class GestioneUtentiViewModel
     Public Property ListaUtenti As List(Of UserListViewModel)
     Public Property ListaLicenze As List(Of UserLicenze)
 End Class
+Public Class NotificheViewModel
+    Public Property TipologiaNotifica As String
+    Public Property Descrizione As String
+    Public Property ElapsedTime As String
+    Public Property Link As String
+    Public Property DataAzione As DateTime
+End Class
 'End Section Macchine
 Public Class ClienteViewModel
     Public Property Id() As String

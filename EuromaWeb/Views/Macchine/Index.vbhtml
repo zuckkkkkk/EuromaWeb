@@ -173,7 +173,7 @@
 <script defer>
     $("#SelectMacchina option[value='@ViewBag.idMacchina']").attr('selected', 'selected')
     $.ajax({
-        url: '/Macchine/DetailsPost/@ViewBag.idMacchina' ,
+        url: '/Macchine/DetailsPost?id=@ViewBag.idMacchina' ,
         type: 'POST',
         success: function (result) {
             if (result.ok) {

@@ -1315,6 +1315,8 @@ Namespace Controllers
             Dim pathTMP = ""
             For i = 0 To Request.Files.Count - 1
                 Try
+                    OpID = User.Identity.GetUserId()
+                    OpName = User.Identity.GetUserName()
                     Dim UploadedFile As HttpPostedFileBase = Request.Files(i)
                     If UploadedFile IsNot Nothing AndAlso UploadedFile.ContentLength > 0 Then
                         pathTMP = Path.Combine(Server.MapPath("~/Content/upload_UC_Progetti"), UploadedFile.FileName)
@@ -1535,7 +1537,7 @@ Namespace Controllers
                 db.ProgettiProd.Add(Progetto)
                 db.SaveChanges()
                 OC.Accettato = Stato_UC.Inviato_Prod
-                OC_Proj.StatoProgetto = Stato_UT.Completato
+                OC_Proj.StatoProgetto = Stato_UT.Inviato
                 db.Audit.Add(New Audit With {
                                       .Livello = TipoAuditLivello.Info,
                                       .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),

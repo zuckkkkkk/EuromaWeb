@@ -34,6 +34,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css" integrity="sha512-57KPd8WI3U+HC1LxsxWPL2NKbW82g0BH+0PuktNNSgY1E50mnIc0F0cmWxdnvrWx09l8+PU2Kj+Vz33I+0WApw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <style>
+    ::-webkit-scrollbar {
+        display: none;
+    }
+    .NotificaLink, .NotificaChild {
+        text-decoration: none !important;
+        transition: .2s linear;
+        color: black;
+    }
+    .NotificaLink:hover, .NotificaChild:hover {
+        background-color: lightgray;
+        transition: .2s linear;
+    }
     .darkmode--activated *{
         color:white!important;
     }
@@ -416,18 +428,27 @@
                          <li Class="nav-item">
                              <a Class="nav-link" href="@Url.Action("Index", "HelpDesks")">Ticket</a>
                          </li>
-                         <li>
-                             @* <a Class="nav-link" href="@Url.Action("Index", "HelpDesks")"> <i class="fa-solid fa-circle-exclamation"></i></a>*@
-                         </li>
-                         <li>
-
+                         <li Class="nav-item">
+                            
                          </li>
                      </ul>
                      @If Not User.IsInRole("ProgrammazioneEsterno") Then
                          @<div Class="d-flex" style="margin: 0!important;">
-                             <input id="RicercaOC" Class="form-control me-2" type="search" placeholder="2022-OC-1234" aria-label="Search">
-                             <Button id="btnRicercaOC" Class="btn btn-outline-success" type="submit">Cerca</Button>
-                         </div>
+                              <div id="btn_notifiche"style="position: relative;">
+                                  <btn Class="nav-link" style="display: flex; height: 100%; align-items: center;" href="@Url.Action("Index", "HelpDesks")">
+                                      <button type="button" class="btn position-relative" style="color: white;">
+                                          <i class="fa-solid fa-bell">
+                                          </i>
+                                          <span id="conteggioNotifiche"class="position-absolute top-0 start-100 translate-middle badge rounded-pill">
+                                          </span>
+                                      </button>
+                                  </btn>
+                                  
+                              </div>
+                     
+                            <input id="RicercaOC" Class="form-control me-2" type="search" placeholder="2022-OC-1234" aria-label="Search">
+                            <Button id="btnRicercaOC" Class="btn btn-outline-success" type="submit">Cerca</Button>
+                        </div>
                      End If
 
                      <Span Class="navbar-text">
@@ -472,6 +493,12 @@
 
     @RenderSection("scripts", required:=False)
 <script defer>
+    $('body').on('click', function (e) {
+        if ($(".notifiche").length > 0) {
+            $(".notifiche").remove();
+        }
+    });
+
     //const options = {
     //    bottom: '32px', // default: '32px'
     //    right: '32px', // default: '32px'
@@ -487,12 +514,20 @@
     //}
     //const darkmode = new Darkmode(options);
     //darkmode.showWidget();
+    updateNots();
         setInterval(updateNots, 5000);
         function updateNots() {
             $.ajax({
                 method: "GET",
                 url: "/ChangeLog/Aggiornamenti",
                 success: function (data) {
+                    if (data.totalnot > 0) {
+                        $("#conteggioNotifiche").text(data.totalnot);
+                        $("#conteggioNotifiche").addClass("bg-danger");
+                    } else {
+                        $("#conteggioNotifiche").text("");
+                        $("#conteggioNotifiche").removeClass("bg-danger");
+                    }
                     if (data.esiste && !Swal.isVisible() ) {
                         Swal.fire({
                             icon: 'warning',
@@ -520,6 +555,7 @@
                 },
                 error: function (error_data) {
                     console.log("Endpoint GET request error");
+                    window.location.href = "http://192.168.100.50:83/";
                 }
             });
         }
@@ -1416,6 +1452,14 @@
                 'La OC/OT è stata accettata e smistata correttamente dall\'ufficio commerciale',
             );
         })
+    $('#btn_notifiche').on('click', function (e) {
+        if ($(".notifiche").length == 0) {
+            $('#btn_notifiche').append($('<div id="ContainerNotifiche">').load('/Home/Notifiche/'));
+        }
+        else {
+            $('#ContainerNotifiche').remove();
+        }
+    })
     $('body').on('show.bs.modal', '.modal', function (e) {
             var button = $(e.relatedTarget); // Button that triggered the modal
             var recipient = button.data('value');

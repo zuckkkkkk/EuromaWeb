@@ -82,6 +82,32 @@ Namespace Controllers
         Function Aggiornamenti() As JsonResult
             Dim adesso = DateTime.Now
             Dim u = User.Identity.GetUserId
+            Dim OpID As String = vbNullString
+            Dim OpName As String = vbNullString
+            Dim CurrentDate As DateTime = Now
+            Dim totalCount = 0
+            Try
+                OpID = User.Identity.GetUserId()
+                OpName = User.Identity.GetUserName()
+                Dim countNote = db.NotePerOC.Where(Function(x) x.OC.Contains("OC") And x.Operatore_Id <> OpID And x.Data_Nota > "2022/10/17").ToList
+                Dim countFile = db.DocumentiPerOC.Where(Function(x) x.OC.Contains("OC") And x.Operatore_Id <> OpID And x.DataCreazioneFile > "2022/10/17").ToList
+                If countNote.Count > 0 Then
+                    For Each n In countNote
+                        If db.VisualizzazioneFileNota.Where(Function(x) x.type = TipoVisualizzazione.Nota And x.User = OpID And x.id_filenota = n.Id).Count = 0 Then
+                            totalCount = totalCount + 1
+                        End If
+                    Next
+                End If
+                If countFile.Count > 0 Then
+                    For Each n In countFile
+                        If db.VisualizzazioneFileNota.Where(Function(x) x.type = TipoVisualizzazione.File And x.User = OpID And x.id_filenota = n.Id).Count = 0 Then
+                            totalCount = totalCount + 1
+                        End If
+                    Next
+                End If
+            Catch ex As Exception
+
+            End Try
             If Not IsNothing(u) Then
                 If db.ChangeLog.Where(Function(x) x.StartDate < adesso And x.EndDate > adesso).Count > 0 Then
                     Dim changeLog = db.ChangeLog.Where(Function(x) x.StartDate < adesso And x.EndDate > adesso).First
@@ -94,15 +120,15 @@ Namespace Controllers
                             .Release = changeLog.Release_Date,
                             .id = changeLog.Id
                         }
-                        Return Json(New With {.esiste = True, .data = result}, JsonRequestBehavior.AllowGet)
+                        Return Json(New With {.esiste = True, .data = result, .totalnot = totalCount}, JsonRequestBehavior.AllowGet)
                     Else
-                        Return Json(New With {.esiste = False}, JsonRequestBehavior.AllowGet)
+                        Return Json(New With {.esiste = False, .totalnot = totalCount}, JsonRequestBehavior.AllowGet)
                     End If
                 End If
             Else
-                Return Json(New With {.esiste = False}, JsonRequestBehavior.AllowGet)
+                Return Json(New With {.esiste = False, .totalnot = totalCount}, JsonRequestBehavior.AllowGet)
             End If
-            Return Json(New With {.esiste = False}, JsonRequestBehavior.AllowGet)
+            Return Json(New With {.esiste = False, .totalnot = totalCount}, JsonRequestBehavior.AllowGet)
         End Function
         ' POST: ChangeLog/Edit/5
         'Per la protezione da attacchi di overposting, abilitare le proprietà a cui eseguire il binding. 

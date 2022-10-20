@@ -79,7 +79,7 @@ Namespace Controllers
                 End If
                 'End Pie chart attività
                 If Not ListaRunningTime.ContainsKey(disegno.Data.ToString.Split(" ")(1)) Then
-                    ListaRunningTime.Add(disegno.Data.ToString.Split(" ")(1), disegno.LpSpindleRunTime / 60)
+                    ListaRunningTime.Add(disegno.Data.ToString.Split(" ")(1), Convert.ToInt32(disegno.LpSpindleRunTime) / 60)
                 End If
             Next
             Try

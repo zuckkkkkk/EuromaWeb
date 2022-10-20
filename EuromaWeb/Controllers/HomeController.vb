@@ -74,7 +74,106 @@ Public Class HomeController
         End Select
         Return View()
     End Function
+    Function Notifiche() As ActionResult
+        Dim OpID As String = vbNullString
+        Dim OpName As String = vbNullString
+        Dim CurrentDate As DateTime = Now
+        Try
+            OpID = User.Identity.GetUserId()
+            OpName = User.Identity.GetUserName()
+            Dim countNote = db.NotePerOC.Where(Function(x) x.OC.Contains("OC") And x.Operatore_Id <> OpID And x.Data_Nota > "2022/10/17").ToList
+            Dim countFile = db.DocumentiPerOC.Where(Function(x) x.OC.Contains("OC") And x.Operatore_Id <> OpID And x.DataCreazioneFile > "2022/10/17").ToList
+            Dim retList As New List(Of NotificheViewModel)
+            If countNote.Count > 0 Then
+                For Each n In countNote
+                    If db.VisualizzazioneFileNota.Where(Function(x) x.type = TipoVisualizzazione.Nota And x.User = OpID And x.id_filenota = n.Id).Count = 0 Then
+                        Dim tempo = ""
+                        If (CurrentDate - n.Data_Nota).Days > 0 Then
+                            tempo = (CurrentDate - n.Data_Nota).Days.ToString + " giorno/i fa"
+                        ElseIf (CurrentDate - n.Data_Nota).hours > 0 Then
+                            tempo = (CurrentDate - n.Data_Nota).Hours.ToString + " ora/e fa"
+                        Else
+                            tempo = (CurrentDate - n.Data_Nota).Minutes.ToString + " minuto/i fa"
+                        End If
+                        retList.Add(New NotificheViewModel With {
+                            .Descrizione = n.Operatore_Nome + " ha aggiunto una nuova nota all'" + n.OC,
+                            .TipologiaNotifica = "fa-comment",
+                            .Link = "/Home/NotificaLetta?id=" + n.Id.ToString + "&Type=2",
+                            .ElapsedTime = tempo,
+                            .DataAzione = n.Data_Nota
+                        })
+                    End If
+                Next
+            End If
+            If countFile.Count > 0 Then
+                For Each n In countFile
+                    If db.VisualizzazioneFileNota.Where(Function(x) x.type = TipoVisualizzazione.File And x.User = OpID And x.id_filenota = n.Id).Count = 0 Then
+                        Dim tempo = ""
+                        If (CurrentDate - n.DataCreazioneFile).Days > 0 Then
+                            tempo = (CurrentDate - n.DataCreazioneFile).Days.ToString + " giorno/i fa"
+                        ElseIf (CurrentDate - n.DataCreazioneFile).Hours > 0 Then
+                            tempo = (CurrentDate - n.DataCreazioneFile).Hours.ToString + " ora/e fa"
+                        Else
+                            tempo = (CurrentDate - n.DataCreazioneFile).Minutes.ToString + " minuto/i fa"
+                        End If
+                        retList.Add(New NotificheViewModel With {
+                            .Descrizione = n.Operatore_Nome + " ha aggiunto un nuovo file all'" + n.OC,
+                            .TipologiaNotifica = "fa-file",
+                            .Link = "/Home/NotificaLetta?id=" + n.Id.ToString + "&Type=1",
+                            .ElapsedTime = tempo,
+                            .DataAzione = n.DataCreazioneFile
+                        })
+                    End If
+                Next
+            End If
+            retList = retList.OrderByDescending(Function(x) x.DataAzione.Ticks).ToList
+            Return PartialView(retList)
+        Catch ex As Exception
 
+        End Try
+
+    End Function
+    Function NotificaLetta(ByVal id As Integer, ByVal Type As Integer) As ActionResult
+        Dim OpID As String = vbNullString
+        Dim OpName As String = vbNullString
+        Dim CurrentDate As DateTime = Now
+        Try
+            OpID = User.Identity.GetUserId()
+            OpName = User.Identity.GetUserName()
+            db.VisualizzazioneFileNota.Add(New VisualizzazioneFileNota With {
+                  .id_filenota = id,
+                  .type = Type,
+                  .ReaedingDate = DateTime.Now,
+                  .User = OpID
+              })
+            db.SaveChanges()
+            db.Audit.Add(New Audit With {
+                                  .Livello = TipoAuditLivello.Info,
+                                  .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                  .Messaggio = "Notifica correttamente visualizzata",
+                                  .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = id}),
+                                 .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = CurrentDate}
+                    })
+            db.SaveChanges()
+            Dim OC = ""
+            If Type = 2 Then
+                OC = db.NotePerOC.Find(id).OC
+            Else
+                OC = db.DocumentiPerOC.Find(id).OC
+            End If
+            Return RedirectToAction("Ordine", "Overviews", New With {.id = OC})
+        Catch ex As Exception
+            db.Log.Add(New Log With {
+                                       .Livello = TipoAuditLivello.Info,
+                                       .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                       .Messaggio = "Errore aggiunta visualizzazione Notifica",
+                                       .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = id}),
+                                      .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = CurrentDate}
+                         })
+            db.SaveChanges()
+        End Try
+
+    End Function
     Function About() As ActionResult
         ViewData("Message") = "Your application description page."
 
@@ -266,6 +365,7 @@ Public Class HomeController
     <Authorize>
     <HttpPost>
     Function Lotti(ByVal stringa As String) As JsonResult
+        stringa = stringa.ToUpper
         Dim OpID As String = vbNullString
         Dim OpName As String = vbNullString
         Dim CurrentDate As DateTime = Now
@@ -336,8 +436,6 @@ Public Class HomeController
                 If Not IsDBNull(myReader.GetValue(1)) Then
                     lotto.AnnoCurrentInAttesa = myReader.GetInt32(1)
                 End If
-
-
             Loop
             myConn.Close()
 
@@ -403,6 +501,14 @@ Public Class HomeController
         Catch ex As Exception
 
         End Try
+        db.Audit.Add(New Audit With {
+                                         .Livello = TipoAuditLivello.Info,
+                                         .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                         .Messaggio = "Ricercato articolo per lotto",
+                                         .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.art = stringa}),
+                                        .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = CurrentDate}
+                           })
+        db.SaveChanges()
         'Apertura file
         'Dim fs As New FileStream(Server.MapPath("\Content\Template\Lotti_template.xlsx"), FileMode.Open, FileAccess.Read)
         'Dim workbook As XSSFWorkbook = New XSSFWorkbook(fs)

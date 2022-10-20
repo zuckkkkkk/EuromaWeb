@@ -1453,6 +1453,7 @@
     <Content Include="Views\Manage\AggiungiLicenza.vbhtml" />
     <Content Include="Views\Manage\CreateAssociazione.vbhtml" />
     <Content Include="Views\Manage\ModificaLicenza.vbhtml" />
+    <Content Include="Views\Home\Notifiche.vbhtml" />
     <None Include="Views\Shared\Email_Euroma.vbhtml" />
     <Content Include="Views\Shared\Lockout.vbhtml" />
     <Content Include="Views\Shared\_LoginPartial.vbhtml" />
