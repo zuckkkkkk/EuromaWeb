@@ -16,6 +16,12 @@
                 <i class="fa-solid fa-file-pen"></i>
             </button>
         End If
+        @If User.IsInRole("ProgrammazioneEsterno") And Model.Accettato <> Stato_Ordine_Di_Produzione_Esterno.Completato_Esterno Then
+            @<button onclick = "EndExtProg('@Model.OP');" type="button" data-value="@Model.OP" Class="btn btn-info w-auto">
+            Attività conclusa
+            <i class="fa-solid fa-message-lines"></i>
+        </button>
+        End If
         @If User.IsInRole("Tecnico") Or User.IsInRole("TecnicoRevisione") Or User.IsInRole("TecnicoAdmin") Or User.IsInRole("Admin") Then
             @<button onclick="DeleteOP(@Model.Id);" type="button" data-value="@Model.Id" Class="btn btn-warning w-auto">
                 Cancella OP

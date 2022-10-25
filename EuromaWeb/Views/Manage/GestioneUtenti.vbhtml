@@ -22,18 +22,57 @@
     </div>
 </div>
 <div>
-    @*@If User.IsInRole("Admin") Or User.IsInRole("GestioneLicenze") Then*@
-        @*@<ul Class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-            <li Class="nav-item" role="presentation">
-                <Button Class="nav-link active" id="pills-lista-tab" data-bs-toggle="pill" data-bs-target="#pills-lista" type="button" role="tab" aria-controls="pills-lista" aria-selected="true">Database</Button>
-            </li>
-            <li Class="nav-item" role="presentation">
-                <Button Class="nav-link" id="pills-associazioni-tab" data-bs-toggle="pill" data-bs-target="#pills-associazioni" type="button" role="tab" aria-controls="pills-associazioni" aria-selected="false">Associazioni</Button>
-            </li>
-        </ul>
-        @<div Class="tab-content" id="pills-tabContent">*@
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-12">
+            <div class="tab-pane fade show active" id="pills-lista" role="tabpanel" aria-labelledby="pills-lista-tab">
+                <table class="table table-striped" id="mainDataTableLicenzeAssociazioni" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th>
+                                Utente
+                            </th>
+                            <th>
+                                Licenza
+                            </th>
+                            <th>
+                                Descrizione
+                            </th>
+                            <th>
+                                Data Scadenza
+                            </th>
+                            <th>
+                                Qta
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+                <div class="row text-center">
+                    <div class="col">
+                        <button type="button" data-type="createAss" id="Add_Ass" class="btn btn-primary w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                            Aggiungi Associazione
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-md-12">
             <div class="accordion" id="accordionExample">
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="headingOne">
@@ -168,56 +207,10 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="tab-pane fade show active" id="pills-lista" role="tabpanel" aria-labelledby="pills-lista-tab">
-        <table class="table table-striped" id="mainDataTableLicenzeAssociazioni" style="width:100%;">
-            <thead>
-                <tr>
-                    <th>
-                        Utente
-                    </th>
-                    <th>
-                        Licenza
-                    </th>
-                    <th>
-                        Descrizione
-                    </th>
-                    <th>
-                        Data Scadenza
-                    </th>
-                    <th>
-                        Qta
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>
-                    </td>
-                    <td>
-                    </td>
-                    <td>
-                    </td>
-                    <td>
-                    </td>
-                    <td>
-                    </td>
-                </tr>
 
-            </tbody>
-        </table>
-        <div class="row text-center">
-            <div class="col">
-                <button type="button" data-type="createAss" id="Add_Ass" class="btn btn-primary w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                    Aggiungi Associazione
-                </button>
-            </div>
-        </div>
     </div>
-        </div>
-    </div>
+
     <div class="tab-pane fade" id="pills-associazioni" role="tabpanel" aria-labelledby="pills-associazioni-tab">
 
     </div>
-</div>
 </div>

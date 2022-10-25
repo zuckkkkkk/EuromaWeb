@@ -378,7 +378,7 @@
                                              </button>
                                              @<a href="@Url.Action("Index", "Pezzi")" Class="dropdown-item">Articoli</a>
                                              @<a href="@Url.Action("Index", "ChangeLog")" Class="dropdown-item">Changelog</a>
-                                             @<a href="@Url.Action("LavorazioniEsterne", "Acquisti")" Class="dropdown-item">C/O</a>
+                                             @<a href="@Url.Action("LavorazioniEsterne", "Acquisti", New With {.id = 1})" Class="dropdown-item">C/O</a>
                                              @<a href="@Url.Action("GestioneMagazzino", "Overviews", New With {.id = 1})" Class="dropdown-item">Magazzino 60</a>
                                              @<a href="@Url.Action("GestioneMagazzino", "Overviews", New With {.id = 2})" Class="dropdown-item">Magazzino 70</a>
 
@@ -392,7 +392,7 @@
                                      </li>
                                      <li>
                                          @If User.IsInRole("Admin") Then
-                                             @<a href="@Url.Action("LavorazioniEsterne", "Acquisti")" Class="dropdown-item">C/O</a>
+                                             @<a href="@Url.Action("LavorazioniEsterne", "Acquisti", New With {.id = 1})" Class="dropdown-item">C/O</a>
                                              @<a href="@Url.Action("Index", "ChangeLog")" Class="dropdown-item">Changelog</a>
                                              @<button data-type="downloadFatturato" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
                                                  Fatturato
@@ -1580,6 +1580,17 @@
                     $(this).find('.Save').hide();
                     $(this).find('.SaveClose').hide();
                     $(this).find('.modal-body').html('').load('/Overviews/ListaArticoli/' + recipient, function () {
+                    });
+                    break;
+                case 'edit_articolo_magazzino':
+                    $(this).find('.modal-title').removeClass('text-danger').html('Modifica Articolo');
+                    $(this).data('reload', true);
+                    $(this).find('.Add').hide();
+                    $(this).find('.Send').hide();
+                    $(this).find('.Delete').hide();
+                    $(this).find('.Save').show();
+                    $(this).find('.SaveClose').hide();
+                    $(this).find('.modal-body').html('').load('/Overviews/EditArticolo/' + recipient, function () {
                     });
                     break;
                 case 'edit_tecnico_admin':
@@ -3250,7 +3261,25 @@
             }
         });
     }
+    function ModificaArticolo(id) {
 
+        Swal.fire({
+            title: 'Modifica articolo',
+            icon: 'info',
+            html:'',
+            showCloseButton: true,
+            showCancelButton: true,
+            focusConfirm: false,
+            confirmButtonText:
+                '<i class="fa fa-thumbs-up"></i> Great!',
+            confirmButtonAriaLabel: 'Thumbs up, great!',
+            cancelButtonText:
+                '<i class="fa fa-thumbs-down"></i>',
+            cancelButtonAriaLabel: 'Thumbs down'
+        })
+        $(this).find('.swal2-html-container').html('').load('/Overviews/EditArticolo'+ id, function () {
+        });
+    }
     function visualizzaArticolo(id) {
         $.ajax({
             url: "/Overviews/VisualizzaArticolo/" + id,
@@ -3408,6 +3437,39 @@
             if (result.isConfirmed) {
                 $.ajax({
                     url: "/Acquisti/DeleteLavorazione/" + id,
+                    success: function (result) {
+                        if (result.ok) {
+                            $.notify({ icon: ' fa-solid fa-check', message: result.message }, { type: 'success' });
+                            window.location.reload();
+                        }
+                        else {
+                            console.log(result);
+                            $.notify({ icon: ' fa-solid fa-xmark', message: result.message }, { type: 'danger' });
+                        }
+                    },
+                    error: function (result) {
+                        console.log(result);
+                        $.notify({ icon: ' fa-solid fa-xmark', message: result.message }, { type: 'danger' });
+                    }
+                });
+            }
+        })
+    }
+    function EndExtProg(id) {
+        Swal.fire({
+            title: 'Conferma',
+            text: "Sei sicuro di voler chiudere l'attività?",
+            icon: 'question',
+            showCancelButton: true,
+            showDenyButton: false,
+            confirmButtonText: 'Si!',
+            cancelButtonText: 'No',
+            confirmButtonColor: '#26a360',
+            cancelButtonColor: '#d33'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "/ProgettiUT/EndLavorazione/" + id,
                     success: function (result) {
                         if (result.ok) {
                             $.notify({ icon: ' fa-solid fa-check', message: result.message }, { type: 'success' });

@@ -55,8 +55,12 @@ Public Enum Stato_Ordine_Di_Produzione_Esterno As Byte
     In_attesa_int = 0
     <Display(Name:="In attesa documenti esterni")>
     In_attesa_est = 1
-    <Display(Name:="Completato")>
-    Completato = 2
+    <Display(Name:="In lavorazione")>
+    In_Lavorazione = 2
+    <Display(Name:="Completato esterno")>
+    Completato_Esterno = 3
+    <Display(Name:="Conclusa fase macchina")>
+    Completato = 5
 End Enum
 Public Enum Stato_UC As Byte
     Vuoto = Costanti.EnumVuotoValore

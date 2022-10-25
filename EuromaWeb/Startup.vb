@@ -28,7 +28,7 @@ Partial Public Class Startup
     Private myReader As SqlDataReader
     Private results As String
     Private Iterator Function GetHangfireServers() As IEnumerable(Of IDisposable) '127.0.0.1 
-        GlobalConfiguration.Configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage("Server=(localdb)\MSSQLLocalDB ; Database=HangFire; Integrated Security=True;", New SqlServerStorageOptions With { '  127.0.0.1 
+        GlobalConfiguration.Configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage("Server=(localdb)\MSSQLLocalDB ; Database=HangFire; Integrated Security=True;", New SqlServerStorageOptions With { '127.0.0.1   
             .CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
             .SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
             .QueuePollInterval = TimeSpan.Zero,
@@ -45,6 +45,7 @@ Partial Public Class Startup
         RecurringJob.AddOrUpdate(Sub() LoadFasiOP(), Cron.MinuteInterval(4))
         RecurringJob.AddOrUpdate(Sub() GetMacchina(), Cron.MinuteInterval(4))
         RecurringJob.AddOrUpdate(Sub() UpdateTempiOpera(), Cron.HourInterval(2))
+        RecurringJob.AddOrUpdate(Sub() UpdateFasiProgEst(), Cron.MinuteInterval(15))
     End Sub
     Public Function LoadOLFromAlnus()
         Dim newOlList As New List(Of LavorazioniEsterne)
@@ -499,6 +500,59 @@ Partial Public Class Startup
             End Try
 
             Console.WriteLine(totalMinutes)
+        Next
+    End Function
+
+    Function UpdateFasiProgEst() As JsonResult
+        Dim listOfFasi As New List(Of String)
+        Dim date1 = DateTime.Today.AddDays(-2)
+        Dim date2 = DateTime.Today.AddDays(-3)
+        Try
+            myConn = New SqlConnection(ConnectionString)
+            myCmd = myConn.CreateCommand
+            myCmd.CommandText = "
+                         SELECT Distinct F.pb_codice
+                         FROM [Opera6010].[dbo].[Produzione], [Opera6010].[dbo].[Dipendenti] as D, [Opera6010].[dbo].[Fasi]  as F                
+                         WHERE Produzione.fa_id = F.fa_id and Produzione.di_matrico = D.di_matrico AND ma_codice = 'CNT8'"
+            myConn.Open()
+        Catch ex As Exception
+
+        End Try
+        'Parse dei dati da SQL
+        Try
+            myReader = myCmd.ExecuteReader
+            Do While myReader.Read()
+                Dim OP_Code = myReader.GetString(0).Substring(1, 4) + "-" + "OP" + "-" + Replace(LTrim(Replace(myReader.GetString(0).Substring(7, 7), "0", " ")), " ", "0")
+                listOfFasi.Add(OP_Code)
+            Loop
+            myConn.Close()
+
+        Catch ex As Exception
+            db.Log.Add(New Log With {
+                   .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .OperatoreID = "", .Operatore = "Sistema"},
+                   .Livello = TipoLogLivello.Errors,
+                   .Indirizzo = "Startup.vb",
+                   .Messaggio = "Errore Query agg. fasi prog. est -> " & ex.Message,
+                   .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = DateTime.Now.Ticks.ToString})
+                   })
+            db.SaveChanges()
+        End Try
+        For Each l In listOfFasi
+            Dim odp = db.OrdiniDiProduzione.Where(Function(x) x.OP = l).FirstOrDefault
+            If Not IsNothing(odp) Then
+                If odp.Accettato <> Stato_Ordine_Di_Produzione_Esterno.Completato Then
+                    odp.Accettato = Stato_Ordine_Di_Produzione_Esterno.Completato
+                    db.SaveChanges()
+                    db.StoricoOC.Add(New StoricoOC With {
+                               .Descrizione = "Chiusa attività " + odp.OP,
+                               .OC = odp.OP,
+                               .Titolo = "Fase scannata in macchina",
+                               .Ufficio = TipoUfficio.Produzione,
+                               .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = "", .Operatore = "Sistema", .Data = DateTime.Now}
+                           })
+                    db.SaveChanges()
+                End If
+            End If
         Next
     End Function
 End Class

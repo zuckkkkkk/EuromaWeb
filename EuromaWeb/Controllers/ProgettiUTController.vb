@@ -40,9 +40,9 @@ Namespace Controllers
                 Dim result As New List(Of Object)
                 Dim data As IQueryable(Of OrdiniDiProduzione)
                 If User.IsInRole("ProgrammazioneEsterno") Then
-                    data = db.OrdiniDiProduzione.Where(Function(y) y.Accettato = Stato_Ordine_Di_Produzione_Esterno.In_attesa_est).OrderBy(Function(x) x.Priorita).OrderBy(Function(y) y.DataRichiestaConsegna)
+                    data = db.OrdiniDiProduzione.Where(Function(y) y.Accettato >= Stato_Ordine_Di_Produzione_Esterno.In_attesa_est And y.Accettato < Stato_Ordine_Di_Produzione_Esterno.Completato).OrderBy(Function(x) x.Priorita).OrderBy(Function(y) y.DataRichiestaConsegna)
                 Else
-                    data = db.OrdiniDiProduzione.Where(Function(y) y.Accettato = Stato_Ordine_Di_Produzione_Esterno.In_attesa_int Or y.Accettato = Stato_Ordine_Di_Produzione_Esterno.In_attesa_est).OrderBy(Function(x) x.Priorita).OrderBy(Function(y) y.DataRichiestaConsegna)
+                    data = db.OrdiniDiProduzione.Where(Function(y) y.Accettato >= Stato_Ordine_Di_Produzione_Esterno.In_attesa_int And y.Accettato < Stato_Ordine_Di_Produzione_Esterno.Completato).OrderBy(Function(x) x.Priorita).OrderBy(Function(y) y.DataRichiestaConsegna)
                 End If
 
                 'ricerca
@@ -198,7 +198,9 @@ Namespace Controllers
                             Case 1
                                 StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  50%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>50%</div>"
                             Case 2
-                                StatoProgetto = "<div Class='progress-bar bg-success progress-bar-striped progress-bar-animated' role='progressbar' style='width:  100%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>100%</div>"
+                                StatoProgetto = "<div Class='progress-bar bg-success progress-bar-striped progress-bar-animated' role='progressbar' style='width:  66%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>66%</div>"
+                            Case 3
+                                StatoProgetto = "<div Class='progress-bar bg-success progress-bar-striped progress-bar-animated' role='progressbar' style='width:  75%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>75%</div>"
 
                         End Select
                         Select Case Acc.Priorita
@@ -465,7 +467,7 @@ Namespace Controllers
                                 StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  20%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>10%</div>"
                             Case 1
                                 StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  50%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>50%</div>"
-                            Case 2
+                            Case 5
                                 StatoProgetto = "<div Class='progress-bar bg-success progress-bar-striped progress-bar-animated' role='progressbar' style='width:  100%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>100%</div>"
 
                         End Select
@@ -558,7 +560,37 @@ Namespace Controllers
             End Try
             Return Json(New With {PostedData.draw, .recordsTotalEst = db.OrdiniDiProduzione.Count, .recordsFiltered = 0})
         End Function
-
+        Function EndLavorazione(ByVal id As String) As JsonResult
+            Dim OpID As String = vbNullString
+            Dim OpName As String = vbNullString
+            Dim CurrentDate = DateTime.Now
+            Try
+                OpID = User.Identity.GetUserId()
+                OpName = User.Identity.GetUserName()
+                Dim op = db.OrdiniDiProduzione.Where(Function(x) x.OP = id).First
+                op.Accettato = Stato_Ordine_Di_Produzione_Esterno.Completato_Esterno
+                db.SaveChanges()
+                db.Audit.Add(New Audit With {
+                                         .Livello = TipoAuditLivello.Info,
+                                         .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                         .Messaggio = "ODP Esterno concluso correttamente da esterno",
+                                         .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = op.Id, .op = id}),
+                                        .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                           })
+                db.SaveChanges()
+                Return Json(New With {.ok = True, .messaggio = "Attività conclusa correttamente"}, JsonRequestBehavior.AllowGet)
+            Catch ex As Exception
+                db.Log.Add(New Log With {
+                      .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},
+                      .Livello = TipoLogLivello.Errors,
+                      .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                      .Messaggio = "Errore modifica stato -> " & ex.Message,
+                      .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = id})
+                      })
+                db.SaveChanges()
+                Return Json(New With {.ok = False, .messaggio = "Errore conclusione attività"}, JsonRequestBehavior.AllowGet)
+            End Try
+        End Function
         ' GET: ProgettiUT
         'DATATABLES
         <HttpPost()>

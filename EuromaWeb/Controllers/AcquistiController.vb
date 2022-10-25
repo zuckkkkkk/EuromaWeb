@@ -24,11 +24,18 @@ Namespace Controllers
         Function Lista() As ActionResult
             Return PartialView(db.LavorazioniEsterne.ToList())
         End Function
-        Function LavorazioniEsterne() As ActionResult
+        Function LavorazioniEsterne(ByVal id As Integer) As ActionResult
+            Dim lista As New List(Of LavorazioniEsterne)
+            If id = 1 Then
+                lista = db.LavorazioniEsterne.Where(Function(x) x.Inviato = Enum_Bolla.In_attesa).ToList()
+            Else
+                lista = db.LavorazioniEsterne.Where(Function(x) x.Inviato = Enum_Bolla.Inviato).ToList()
+            End If
             Return View(New RichiestaOLviewModel With {
                 .Esecod = "2022",
                 .OL = "OL",
-                .List = db.LavorazioniEsterne.ToList()
+                .List = lista,
+                .idPagina = id
             })
         End Function
         Function DownloadFileDDT(id As Integer) As FileResult

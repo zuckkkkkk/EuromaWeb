@@ -545,6 +545,31 @@ Namespace Controllers
             ViewBag.idSlot = New SelectList(selectSlotList, "Id", "Scaffale_Slot")
             Return PartialView()
         End Function
+        Function EditArticolo(ByVal id As Integer) As ActionResult
+            Dim art = db.ArticoliMagazzino.Find(id)
+            Dim slot = db.SlotScaffale.Find(art.idSlot)
+            Dim scaff = db.ScaffaliMagazzino.Find(slot.idEsternoScaffale)
+            Dim scaffali = db.ScaffaliMagazzino.Where(Function(x) x.idesternoMagazzino = scaff.idesternoMagazzino).ToList
+            Dim selectSlotList As New List(Of SlotListViewModel)
+            For Each s In scaffali
+                Dim slotList = db.SlotScaffale.Where(Function(x) x.idEsternoScaffale = s.Id).ToList
+                For Each l In slotList
+                    Dim scaffale = db.ScaffaliMagazzino.Where(Function(x) x.Id = l.idEsternoScaffale).First.numScaffale
+                    selectSlotList.Add(New SlotListViewModel With {
+                        .Id = l.Id,
+                        .Scaffale_Slot = scaffale.ToString + "-" + l.nomeSlot
+                    })
+                Next
+            Next
+            ViewBag.idSlot = New SelectList(selectSlotList, "Id", "Scaffale_Slot")
+            Return PartialView(New ArticoliMagazzino With {
+                .codArticolo = art.codArticolo,
+                .Id = art.Id,
+                .idSlot = art.idSlot,
+                .noteArticolo = art.noteArticolo,
+                .qta = art.qta
+            })
+        End Function
         <HttpPost()>
         <ValidateAntiForgeryToken()>
         Function CreateArticolo(<Bind(Include:="codArticolo,qta,noteArticolo,idSlot")> ByVal ArticoliMagazzino As ArticoliMagazzino) As JsonResult
@@ -572,6 +597,52 @@ Namespace Controllers
                      .Livello = TipoLogLivello.Errors,
                      .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
                      .Messaggio = "Errore Creazione Articolo -> " & ex.Message,
+                     .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.art = ArticoliMagazzino})
+                     })
+                    db.SaveChanges()
+                    Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+                End Try
+            End If
+            Return Json(New With {.ok = False, .message = "Errore generico"})
+        End Function
+        <HttpPost()>
+        <ValidateAntiForgeryToken()>
+        Function EditArticolo(<Bind(Include:="Id,codArticolo,qta,noteArticolo,idSlot")> ByVal ArticoliMagazzino As ArticoliMagazzino) As JsonResult
+            If ModelState.IsValid Then
+                Dim OpID As String = vbNullString
+                Dim OpName As String = vbNullString
+                Dim CurrentDate As DateTime = Now
+                Try
+                    OpID = User.Identity.GetUserId()
+                    OpName = User.Identity.GetUserName()
+                    Dim art = db.ArticoliMagazzino.Find(ArticoliMagazzino.Id)
+                    If art.idSlot <> ArticoliMagazzino.idSlot Then
+                        art.idSlot = ArticoliMagazzino.idSlot
+                    End If
+                    If art.qta <> ArticoliMagazzino.qta Then
+                        art.qta = ArticoliMagazzino.qta
+                    End If
+                    If art.noteArticolo <> ArticoliMagazzino.noteArticolo Then
+                        art.noteArticolo = ArticoliMagazzino.noteArticolo
+                    End If
+                    If art.codArticolo <> ArticoliMagazzino.codArticolo Then
+                        art.codArticolo = ArticoliMagazzino.codArticolo
+                    End If
+                    db.Audit.Add(New Audit With {
+                                            .Livello = TipoAuditLivello.Info,
+                                            .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                            .Messaggio = "Articolo aggiornato correttamente",
+                                            .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = ArticoliMagazzino.codArticolo}),
+                                           .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                              })
+                    db.SaveChanges()
+                    Return Json(New With {.ok = True, .message = "Articolo aggiornato correttamente."})
+                Catch ex As Exception
+                    db.Log.Add(New Log With {
+                     .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .OperatoreID = OpID, .Operatore = OpName},
+                     .Livello = TipoLogLivello.Errors,
+                     .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                     .Messaggio = "Errore aggiornamento Articolo -> " & ex.Message,
                      .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.art = ArticoliMagazzino})
                      })
                     db.SaveChanges()
@@ -682,7 +753,7 @@ Namespace Controllers
         'Per la protezione da attacchi di overposting, abilitare le proprietà a cui eseguire il binding. 
         'Per altri dettagli, vedere https://go.microsoft.com/fwlink/?LinkId=317598.
         <HttpPost()>
-        <ValidateAntiForgeryToken()>
+                                           <ValidateAntiForgeryToken()>
         Function Edit(<Bind(Include:="Id,Matricola,Macchina,Zona,Data,Totale_Ore_Uomo")> ByVal overview As Overview) As ActionResult
             If ModelState.IsValid Then
                 db.Entry(overview).State = EntityState.Modified

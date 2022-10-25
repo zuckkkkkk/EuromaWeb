@@ -195,6 +195,7 @@ Public Class ManageController
             Dim data As IQueryable(Of AspNetUserExchangeLicenseTable)
             Dim UsersList = appctx.Users.ToList
             Dim UsersLicenze = appctx.UserLicenze.ToList
+            Dim exchange = appctx.AspNetUserExchangeLicenseTable.ToList
             data = appctx.AspNetUserExchangeLicenseTable
             'paginazione
             Dim filtered As Integer = 0
@@ -215,19 +216,23 @@ Public Class ManageController
             End Try
             'esecuzione (spero)
             For Each Acc As AspNetUserExchangeLicenseTable In data
-                If Not result.Any(Function(x) x.Id = Acc.Id) Then
+                If Not result.Any(Function(x) x.id = Acc.IdEsternoLicenza) Then
                     Try
-                        Dim userString = "Utenti"
-                        For Each u In UsersLicenze.Where(Function(x) x.Id = Acc.IdEsternoLicenza).ToList
-                            Dim utente = UsersList.Where(Function(x) x.Id = Acc.IdEsternoUtente).First.UserName
-                            userString = userString + "," + utente
+                        Dim userString = "Utenti: "
+                        Dim count = 0
+                        For Each u In exchange.Where(Function(x) x.IdEsternoLicenza = Acc.IdEsternoLicenza).ToList
+                            Dim utente = UsersList.Where(Function(x) x.Id = u.IdEsternoUtente).First.UserName
+                            userString = userString + utente
+                            If Not u Is exchange.Where(Function(x) x.IdEsternoLicenza = Acc.IdEsternoLicenza).ToList.Last Then
+                                userString = userString + ","
+                            End If
+                            count = count + 1
                         Next
                         Dim lic = UsersLicenze.Where(Function(x) x.Id = Acc.IdEsternoLicenza).First
-                        Dim count = UsersLicenze.Where(Function(x) x.Id = Acc.IdEsternoLicenza).Count
                         result.Add(New With {
                                     .DT_RowData = New With {.value = Acc.Id},
                                     .DT_RowId = "row_" & Acc.Id,
-                                    .Id = Acc.Id,
+                                    .Id = Acc.IdEsternoLicenza,
                                     .Utente = userString,
                                     .Licenza = lic.NomeLicenza,
                                     .Descrizione = lic.DescrizioneLicenza,
@@ -249,7 +254,7 @@ Public Class ManageController
 
             Next
 
-            Return Json(New With {PostedData.draw, .recordsTotal = db.ProgettiUT.Count, .recordsFiltered = filtered, .data = result})
+            Return Json(New With {PostedData.draw, .recordsTotal = db.Licenze.Count, .recordsFiltered = filtered, .data = result})
         Catch ex As SystemException
             db.Log.Add(New Log With {
                      .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},

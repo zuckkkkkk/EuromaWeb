@@ -429,6 +429,7 @@ Public Class OlviewModel
     Public Property listOfArticoli As List(Of ArticoliOL)
 End Class
 Public Class RichiestaOLviewModel
+    Public Property idPagina As Integer
     Public Property Esecod As String
     Public Property OL As String
     Public Property Num As String

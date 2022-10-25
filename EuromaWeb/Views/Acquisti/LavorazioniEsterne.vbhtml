@@ -3,9 +3,16 @@
     ViewData("Title") = "Lavorazioni Esterne"
 End Code
 
+<h2 style="margin-top: 1rem; margin-bottom: 1rem;">
+    Lista OL
+    @If Model.idPagina = 2 Then
+        @<a class="btn btn-primary" href="@Url.Action("LavorazioniEsterne", "Acquisti", New With {.id = 1})">Visualizza in attesa</a>
+    Else
+        @<a class="btn btn-primary" href="@Url.Action("LavorazioniEsterne", "Acquisti", New With {.id = 2})">Visualizza completati</a>
+    End If
+</h2>
 
-<h2 style="margin-top: 1rem; margin-bottom: 1rem;">Lista OL</h2>
-<table id="mainDataTable" class="stripe">
+<table id="mainDataTable" Class="stripe" style="margin-top:.5rem;">
     <thead>
         <tr>
             <th>
@@ -30,71 +37,71 @@ End Code
     </thead>
 
     <tbody>
-                @For Each item In Model.List
-                    @<tr>
-                         <td>
-                             @Select item.Inviato
-                                 Case 1
-                                      @<span class="badge bg-success">Testato</span>
-                                 Case 2
-                                      @<span class="badge bg-success">Inviato</span>
-                                 Case Else
-                                      @<span class="badge bg-info text-dark">In attesa</span>
-                             End Select
-                         </td>
-                         <td>
+        @For Each item In Model.List
+            @<tr>
+                <td>
+                    @Select item.Inviato
+                        Case 1
+    @<span class="badge bg-success">Testato</span>
+                        Case 2
+                            @<span class="badge bg-success">Inviato</span>
+                        Case Else
+                            @<span class="badge bg-info text-dark">In attesa</span>
+                    End Select
+                </td>
+                <td>
 
-                             @Html.DisplayFor(Function(modelItem) item.OL)
-                         </td>
-                         <td>
-                             @Html.DisplayFor(Function(modelItem) item.Email)
-                         </td>
-            <td>
-                @Html.DisplayFor(Function(modelItem) item.Operatore)
-            </td>
-            <td>
-                @Html.DisplayFor(Function(modelItem) item.Data_Inserimento)
-            </td>
-            <td>
-                @If Not IsNothing(item.Path_Doc) Then
-                    @<a id="DOC_@item.Id" href="@Url.Action("DownloadFile", "Acquisti", New With {.id = item.Id})" target="_blank" data-toggle="tooltip" data-placement="top" title="Scarica bolla"><i Class="fa-solid fa-file-invoice"></i></a>
-                End If
-                @If Not IsNothing(item.Path_DDT) Then
-                    @<a id="DDT_@item.Id" href="@Url.Action("DownloadFileDDT", "Acquisti", New With {.id = item.Id})" target="_blank" data-toggle="tooltip" data-placement="top" title="Scarica DDT"><i Class="fa-solid fa-truck"></i></a>
-                End If
-                @If item.Inviato = Enum_Bolla.In_attesa Then
-                    @<btn class="btn-primary btn" data-value="@item.Id" id="sendOLtoFornitore" data-toggle="tooltip" data-placement="top" title="Invia a fornitore"><i class="fa-solid fa-paper-plane"></i></btn>
-                    '<btn class="btn-primary btn" data-value="@item.Id" id="sendOLtoInterno" data-toggle="tooltip" data-placement="top" title="Invia a te stesso"><i class="fa-solid fa-circle-check"></i></btn>
-                    @<div id="loading_@item.Id" style="display: none; align-content: center; justify-content: center; overflow: hidden; height: 64px; width: 64px; ">
-                        <img src="/Asset/loading.gif" />
-                    </div>
-                End If
-                @If item.Inviato = Enum_Bolla.Test_interno Then
-                    @<btn class="btn-primary btn" data-value="@item.Id" id="sendOLtoFornitore" data-toggle="tooltip" data-placement="top" title="Invia a fornitore"><i class="fa-solid fa-paper-plane"></i></btn>
-                    @<div id="loading_@item.Id" style="display: none; align-content: center; justify-content: center; overflow: hidden; height: 64px; width: 64px; ">
-                        <img src="/Asset/loading.gif" />
-                    </div>
-                End If
-                @If item.Inviato = Enum_Bolla.Inviato Then
-                    @*@<btn class="btn-primary btn" data-value="@item.Id" id="sendOLtoInterno" data-toggle="tooltip" data-placement="top" title="Invia a te stesso"><i class="fa-solid fa-circle-check"></i></btn>
-            @<div id="loading_@item.Id" style="display: none; align-content: center; justify-content: center; overflow: hidden; height: 64px; width: 64px; ">
-                <img src="/Asset/loading.gif" />
-            </div>*@
-                End If
-                <btn class="btn-primary btn"onclick="DeleteOL(@item.Id)" data-toggle="tooltip" data-placement="top" title="cancella"><i class="fa-solid fa-trash"></i></btn>
+                    @Html.DisplayFor(Function(modelItem) item.OL)
+                </td>
+                <td>
+                    @Html.DisplayFor(Function(modelItem) item.Email)
+                </td>
+                <td>
+                    @Html.DisplayFor(Function(modelItem) item.Operatore)
+                </td>
+                <td>
+                    @Html.DisplayFor(Function(modelItem) item.Data_Inserimento)
+                </td>
+                <td>
+                    @If Not IsNothing(item.Path_Doc) Then
+                        @<a id="DOC_@item.Id" href="@Url.Action("DownloadFile", "Acquisti", New With {.id = item.Id})" target="_blank" data-toggle="tooltip" data-placement="top" title="Scarica bolla"><i Class="fa-solid fa-file-invoice"></i></a>
+                    End If
+                    @If Not IsNothing(item.Path_DDT) Then
+                        @<a id="DDT_@item.Id" href="@Url.Action("DownloadFileDDT", "Acquisti", New With {.id = item.Id})" target="_blank" data-toggle="tooltip" data-placement="top" title="Scarica DDT"><i Class="fa-solid fa-truck"></i></a>
+                    End If
+                    @If item.Inviato = Enum_Bolla.In_attesa Then
+                        @<btn class="btn-primary btn" data-value="@item.Id" id="sendOLtoFornitore" data-toggle="tooltip" data-placement="top" title="Invia a fornitore"><i class="fa-solid fa-paper-plane"></i></btn>
+                        '<btn class="btn-primary btn" data-value="@item.Id" id="sendOLtoInterno" data-toggle="tooltip" data-placement="top" title="Invia a te stesso"><i class="fa-solid fa-circle-check"></i></btn>
+                        @<div id="loading_@item.Id" style="display: none; align-content: center; justify-content: center; overflow: hidden; height: 64px; width: 64px; ">
+                            <img src="/Asset/loading.gif" />
+                        </div>
+                    End If
+                    @If item.Inviato = Enum_Bolla.Test_interno Then
+                        @<btn class="btn-primary btn" data-value="@item.Id" id="sendOLtoFornitore" data-toggle="tooltip" data-placement="top" title="Invia a fornitore"><i class="fa-solid fa-paper-plane"></i></btn>
+                        @<div id="loading_@item.Id" style="display: none; align-content: center; justify-content: center; overflow: hidden; height: 64px; width: 64px; ">
+                            <img src="/Asset/loading.gif" />
+                        </div>
+                    End If
+                    @If item.Inviato = Enum_Bolla.Inviato Then
+                        @*@<btn class="btn-primary btn" data-value="@item.Id" id="sendOLtoInterno" data-toggle="tooltip" data-placement="top" title="Invia a te stesso"><i class="fa-solid fa-circle-check"></i></btn>
+                            @<div id="loading_@item.Id" style="display: none; align-content: center; justify-content: center; overflow: hidden; height: 64px; width: 64px; ">
+                                <img src="/Asset/loading.gif" />
+                            </div>*@
+                    End If
+                    <btn class="btn-primary btn" onclick="DeleteOL(@item.Id)" data-toggle="tooltip" data-placement="top" title="cancella"><i class="fa-solid fa-trash"></i></btn>
 
 
-            </td>
-        
-        </tr>
-                Next
+                </td>
+
+            </tr>
+        Next
     </tbody>
 
 </table>
 <div class="accordion mt-3" id="accordionExample">
     <div class="accordion-item">
         <h2 class="accordion-header" id="headingOne">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne"  aria-controls="collapseOne">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-controls="collapseOne">
                 Inserimento Lav.Est. manuale
             </button>
         </h2>

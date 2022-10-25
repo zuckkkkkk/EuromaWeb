@@ -502,7 +502,7 @@ Namespace Controllers
                                 db.SaveChanges()
                                 If User.IsInRole("ProgrammazioneEsterno") Then
                                     Dim odp = db.OrdiniDiProduzione.Where(Function(x) x.OP = id_file).First
-                                    odp.Accettato = Stato_Ordine_Di_Produzione_Esterno.Completato
+                                    odp.Accettato = Stato_Ordine_Di_Produzione_Esterno.In_Lavorazione
                                     db.SaveChanges()
                                 End If
                             End If
