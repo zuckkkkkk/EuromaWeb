@@ -16,6 +16,7 @@ Imports System.Web.Mvc
 Imports EuromaWeb
 Imports Microsoft.Ajax.Utilities
 Imports StackExchange.Profiling.MiniProfiler
+Imports Newtonsoft.Json
 Imports System.Xml
 
 <Assembly: OwinStartupAttribute(GetType(Startup))>
@@ -28,7 +29,7 @@ Partial Public Class Startup
     Private myReader As SqlDataReader
     Private results As String
     Private Iterator Function GetHangfireServers() As IEnumerable(Of IDisposable) '127.0.0.1 
-        GlobalConfiguration.Configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage("Server=(localdb)\MSSQLLocalDB ; Database=HangFire; Integrated Security=True;", New SqlServerStorageOptions With { '127.0.0.1   
+        GlobalConfiguration.Configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage("Server=127.0.0.1; Database=HangFire; Integrated Security=True;", New SqlServerStorageOptions With { '(localdb)\MSSQLLocalDB
             .CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
             .SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
             .QueuePollInterval = TimeSpan.Zero,
@@ -45,8 +46,107 @@ Partial Public Class Startup
         RecurringJob.AddOrUpdate(Sub() LoadFasiOP(), Cron.MinuteInterval(4))
         RecurringJob.AddOrUpdate(Sub() GetMacchina(), Cron.MinuteInterval(4))
         RecurringJob.AddOrUpdate(Sub() UpdateTempiOpera(), Cron.HourInterval(2))
+        RecurringJob.AddOrUpdate(Sub() UpdateFasiEst(), Cron.HourInterval(2))
         RecurringJob.AddOrUpdate(Sub() UpdateFasiProgEst(), Cron.MinuteInterval(15))
+        RecurringJob.AddOrUpdate(Sub() CheckPCOff(), Cron.HourInterval(1))
+        RecurringJob.AddOrUpdate(Sub() CheckPCOn(), Cron.HourInterval(6))
+        RecurringJob.AddOrUpdate(Sub() CheckMagGrezzi(), Cron.MinuteInterval(1))
     End Sub
+    Public Function CheckPCOff()
+        For Each pc In db.Computer
+            Dim hourNow = DateTime.Now.Hour
+            Try
+                If Not IsNothing(pc.Ora_Spegnimento) And Not IsNothing(pc.Ora_Accensione) Then
+                    If pc.Ora_Spegnimento <> pc.Ora_Accensione Then
+                        Dim oraSpegnimento = pc.Ora_Spegnimento.Hour
+                        Dim oraAccensione = pc.Ora_Accensione.Hour
+                        If hourNow = oraSpegnimento Then
+                            Dim res = TurnOffPC(pc.Id)
+                        End If
+                    End If
+                End If
+            Catch ex As Exception
+
+            End Try
+
+        Next
+    End Function
+    Public Function CheckPCOn()
+        For Each pc In db.Computer
+            Dim hourNow = DateTime.Now.Hour
+            Try
+                If Not IsNothing(pc.Ora_Spegnimento) And Not IsNothing(pc.Ora_Accensione) Then
+                    If pc.Ora_Spegnimento <> pc.Ora_Accensione Then
+                        Dim oraSpegnimento = pc.Ora_Spegnimento.Hour
+                        Dim oraAccensione = pc.Ora_Accensione.Hour
+                        If hourNow = oraAccensione Then
+                            Dim res = TurnOnPC(pc.Id)
+                        End If
+                    End If
+                End If
+            Catch ex As Exception
+
+            End Try
+
+        Next
+    End Function
+    Function TurnOffPC(ByVal id As Integer)
+        Try
+            Dim pc = db.Computer.Find(id)
+            Dim myProcess = New System.Diagnostics.Process()
+            myProcess.StartInfo.FileName = "CMD"
+            myProcess.StartInfo.UseShellExecute = False
+            myProcess.StartInfo.RedirectStandardInput = True
+            myProcess.Start()
+            Dim myStreamWriter = myProcess.StandardInput
+            myStreamWriter.WriteLine("shutdown -m \\" + pc.IP + " -s -f")
+            db.Audit.Add(New Audit With {
+                .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .OperatoreID = "", .Operatore = ""},
+                .Livello = TipoLogLivello.Errors,
+                .Indirizzo = "Startup.vb",
+                .Messaggio = "PC Spento correttamente ",
+                .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.PC = id})
+            })
+        Catch ex As Exception
+            db.Log.Add(New Log With {
+          .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .OperatoreID = "", .Operatore = ""},
+          .Livello = TipoLogLivello.Errors,
+          .Indirizzo = "Startup.vb",
+          .Messaggio = "Errore spegnimento PC: " & ex.Message,
+          .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.PC = id})
+          })
+            db.SaveChanges()
+        End Try
+    End Function
+    Function TurnOnPC(ByVal id As Integer)
+        Try
+            Dim pc = db.Computer.Find(id)
+            Dim myProcess = New System.Diagnostics.Process()
+            myProcess.StartInfo.FileName = "CMD"
+            myProcess.StartInfo.UseShellExecute = False
+            myProcess.StartInfo.RedirectStandardInput = True
+            myProcess.Start()
+            Dim myStreamWriter = myProcess.StandardInput
+            myStreamWriter.WriteLine("\\srv2k16\D\Azienda\Utenti\Installer_Programmi\WOL\wolcmd.exe " + pc.MAC + " " + pc.IP + " 255.255.255.0")
+            db.Audit.Add(New Audit With {
+                  .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .OperatoreID = "", .Operatore = ""},
+                  .Livello = TipoLogLivello.Errors,
+                  .Indirizzo = "Startup.vb",
+                  .Messaggio = "PC Spento correttamente ",
+                  .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.PC = id})
+              })
+            db.SaveChanges()
+        Catch ex As Exception
+            db.Log.Add(New Log With {
+              .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .OperatoreID = "", .Operatore = ""},
+              .Livello = TipoLogLivello.Errors,
+              .Indirizzo = "Startup.vb",
+              .Messaggio = "Errore accensione PC: " & ex.Message,
+              .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.PC = id})
+              })
+            db.SaveChanges()
+        End Try
+    End Function
     Public Function LoadOLFromAlnus()
         Dim newOlList As New List(Of LavorazioniEsterne)
         Try
@@ -178,6 +278,102 @@ Partial Public Class Startup
     '        End Try
     '    Next
     'End Function
+    Public Function UpdateFasiEst()
+        For Each op In db.OrdiniDiProduzione.ToList
+            Try
+                myConn = New SqlConnection(ConnectionString)
+                myCmd = myConn.CreateCommand
+                myCmd.CommandText = "
+                        select ODLMOP00.ODLANN, 
+                        ODLMOP00.ODLSEZ, 
+                        ODLMOP00.ODLNMR, 
+                        ODLTES00.ODLALP, 
+                        ODLPDP, 
+                        ODLPPR, 
+                        ODLFSE, 
+                        OPRDES,
+                        ODLCMC from 
+                        ODLMOP00,
+                        TABOPR00,
+                        ODLTES00 
+                        where ODLMOP00.ODLOPR =  TABOPR00.OPRCO1  
+                        AND ODLMOP00.ODLANN = '" + op.OP.ToString.Split("-")(0) + "' 
+                        AND ODLMOP00.ODLSEZ = '" + op.OP.ToString.Split("-")(1) + "' 
+                        AND ODLMOP00.ODLNMR = '" + op.OP.ToString.Split("-")(2) + "'
+                        AND ODLMOP00.ODLANN = ODLTES00.ODLANN 
+                        AND ODLMOP00.ODLSEZ = ODLTES00.ODLSEZ 
+                        AND ODLMOP00.ODLNMR = ODLTES00.ODLNMR
+                        "
+                myConn.Open()
+                Try
+                    myReader = myCmd.ExecuteReader
+                    Do While myReader.Read()
+                        Dim OPCode = myReader.GetString(0).ToString + "-" + myReader.GetString(1).ToString + "-" + myReader.GetDecimal(2).ToString
+                        Dim Fa = myReader.GetDecimal(6)
+                        Dim Art = myReader.GetString(3)
+                        Dim count = db.FasiOC.Where(Function(x) x.OP = OPCode And x.Fase = Fa And x.Articolo = Art).Count
+
+                        If count = 0 Then
+                            db.FasiOC.Add(New FasiOC With {
+                                     .OP = OPCode,
+                                     .Articolo = myReader.GetString(3),
+                                     .Qta_Da_Produrre = myReader.GetDecimal(4),
+                                     .Qta_Prodotta = myReader.GetDecimal(5),
+                                     .Fase = myReader.GetDecimal(6),
+                                     .Descrizione_Fase = myReader.GetString(7),
+                                     .OC = "",
+                                     .Completata = False,
+                                     .Macchina = myReader.GetString(8)
+                                   })
+                            db.SaveChanges()
+                        Else
+                            Dim f = db.FasiOC.Where(Function(x) x.OP = OPCode And x.Fase = Fa And x.Articolo = Art).First
+                            If f.Qta_Prodotta <> myReader.GetDecimal(5) Then
+                                f.Qta_Prodotta = myReader.GetDecimal(5)
+                                db.SaveChanges()
+                                db.StoricoOC.Add(New StoricoOC With {
+                                .Descrizione = "Aggiornata fase per l'ODP " + op.OP,
+                                .OC = "",
+                                .Titolo = "Aggiornata Fase (Qta Prodotta)",
+                                .Ufficio = TipoUfficio.Produzione,
+                                .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = "", .Operatore = "Sistema", .Data = DateTime.Now}
+                            })
+                                db.SaveChanges()
+                            End If
+                            If myReader.GetDecimal(4) = myReader.GetDecimal(5) Then
+                                f.Completata = IIf(myReader.GetDecimal(4) = myReader.GetDecimal(5), True, False)
+                                db.SaveChanges()
+                                If f.Macchina.Contains("CNT8") Then
+                                    Dim od = db.OrdiniDiProduzione.Where(Function(x) x.OP = f.OP).First
+                                    od.Accettato = Stato_Ordine_Di_Produzione_Esterno.Finito
+                                End If
+                            End If
+                            End If
+                    Loop
+                    myConn.Close()
+                    db.SaveChanges()
+                Catch ex As Exception
+                    db.Log.Add(New Log With {
+               .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .OperatoreID = "", .Operatore = ""},
+               .Livello = TipoLogLivello.Errors,
+               .Indirizzo = "Startup.vb",
+               .Messaggio = "Errore update fasi OP -> " & ex.Message,
+               .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.OP = op.OP})
+               })
+                    db.SaveChanges()
+                End Try
+            Catch ex As Exception
+                db.Log.Add(New Log With {
+               .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .OperatoreID = "", .Operatore = ""},
+               .Livello = TipoLogLivello.Errors,
+               .Indirizzo = "Startup.vb",
+               .Messaggio = "Errore update fasi OP -> " & ex.Message,
+               .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.OP = op.OP})
+               })
+                db.SaveChanges()
+            End Try
+        Next
+    End Function
     Public Function LoadFasiOP()
         Dim progList = db.ProgettiProd.Where(Function(x) x.StatoProgetto = Stato_Prod.Rilasciato).ToList
         For Each prog In progList
@@ -339,9 +535,17 @@ Partial Public Class Startup
                     End Select
 
                 Next
+                Dim lastActivityMacchina = db.DatiMacchina.Where(Function(x) x.Macchina = Macchina).ToList.Last
+                Dim incrementale = 0
+                If lastActivityMacchina.Programma <> Programma Then
+                    incrementale = lastActivityMacchina.idAttività + 1
+                Else
+                    incrementale = lastActivityMacchina.idAttività
+                End If
                 db.DatiMacchina.Add(New DatiMacchina With {
                         .EsecuzioneProgramma = EsecuzioneProgramma,
                         .AvanzamanetoProgramma = AvanzamentoProgramma,
+                        .idAttività = incrementale,
                         .FungoPremuto = FungoPremuto,
                         .Macchina = Macchina,
                         .ModalitaControllo = ModalitaControllo,
@@ -502,7 +706,115 @@ Partial Public Class Startup
             Console.WriteLine(totalMinutes)
         Next
     End Function
+    Function CheckMagGrezzi()
+        Dim listaArticoliGrezzi = db.ArticoliMagazzino.ToList
+        Dim listOfFasi As New Dictionary(Of String, Decimal)
+        For Each l In listaArticoliGrezzi
+            Dim Slot = db.SlotScaffale.Find(l.idSlot)
+            Dim Scaffale = db.ScaffaliMagazzino.Find(Slot.idEsternoScaffale)
+            If Scaffale.idesternoMagazzino = 1 Then
+                Try
+                    myConn = New SqlConnection(ConnectionString)
+                    myCmd = myConn.CreateCommand
+                    myCmd.CommandText = "
+                                select TOP 1 ODLANN,ODLSEZ,ODLNMR, ODLFTC as Fabbisogno, 
+                                ODLQPV as Quantità_Consumata 
+                                from ODLCMP00 
+                                where ODLALA = '39535." + l.codArticolo.ToString + "' 
+                                AND ODLDICREV > '20221213'
+                                order by 1 desc, 3 desc
+                                "
+                    myConn.Open()
+                Catch ex As Exception
+                    db.Log.Add(New Log With {
+                      .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .OperatoreID = "", .Operatore = "Sistema"},
+                      .Livello = TipoLogLivello.Errors,
+                      .Indirizzo = "Startup.vb",
+                      .Messaggio = "Errore Query ricerca agg. grezzi -> " & ex.Message,
+                      .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = DateTime.Now.Ticks.ToString})
+                      })
+                    db.SaveChanges()
+                End Try
+                'Parse dei dati da SQL
+                Try
+                    myReader = myCmd.ExecuteReader
+                    Do While myReader.Read()
+                        Dim ODLANN = myReader.GetString(0)
+                        Dim ODLSEZ = myReader.GetString(1)
+                        Dim ODLNMR = myReader.GetDecimal(2)
+                        Dim ODLFTC = myReader.GetDecimal(3)
+                        Dim ODLQPV = myReader.GetDecimal(4)
+                        If Not db.StoricoGrezzi.Where(Function(x) x.ODLANN = ODLANN And x.ODLSEZ = ODLSEZ And x.ODLNMR = ODLNMR).Count > 0 Then
+                            Dim articolo = db.ArticoliMagazzino.Find(l.Id)
+                            If (l.qta - Convert.ToDouble(ODLFTC)) < 0 Then
+                                db.StoricoGrezzi.Add(New StoricoGrezzi With {
+                            .ODLANN = ODLANN,
+                            .ODLNMR = ODLNMR,
+                            .ODLSEZ = ODLSEZ,
+                            .QtaAggiornata = Convert.ToDecimal(l.qta) - ODLFTC,
+                            .QtaPrecedente = l.qta,
+                            .UltimaModifica = DateTime.Now,
+                            .IdArticolo = l.Id,
+                            .Livello = TipoLogLivello.Errors
+                        })
+                                db.SaveChanges()
+                                DeleteArticolo(l.Id)
+                            Else
+                                If (l.qta - Convert.ToDouble(ODLFTC)) = 0 Then
+                                    db.StoricoGrezzi.Add(New StoricoGrezzi With {
+                                      .ODLANN = ODLANN,
+                                      .ODLNMR = ODLNMR,
+                                      .ODLSEZ = ODLSEZ,
+                                      .QtaAggiornata = Convert.ToDecimal(l.qta) - ODLFTC,
+                                      .QtaPrecedente = l.qta,
+                                      .UltimaModifica = DateTime.Now,
+                                      .IdArticolo = l.Id,
+                                      .Livello = TipoLogLivello.Warning
+                                  })
+                                    db.SaveChanges()
+                                    DeleteArticolo(l.Id)
+                                Else
+                                    l.qta = l.qta - Convert.ToDouble(ODLFTC)
+                                    db.SaveChanges()
+                                    db.StoricoGrezzi.Add(New StoricoGrezzi With {
+                                      .ODLANN = ODLANN,
+                                      .ODLNMR = ODLNMR,
+                                      .ODLSEZ = ODLSEZ,
+                                      .QtaAggiornata = Convert.ToDecimal(l.qta) - ODLFTC,
+                                      .QtaPrecedente = l.qta,
+                                      .UltimaModifica = DateTime.Now,
+                                      .IdArticolo = l.Id,
+                                      .Livello = TipoLogLivello.Info
+                                  })
+                                    db.SaveChanges()
+                                End If
+                            End If
+                            db.SaveChanges()
+                            db.Audit.Add(New Audit With {
+                           .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .OperatoreID = "", .Operatore = "Sistema"},
+                           .Livello = TipoLogLivello.Info,
+                           .Indirizzo = "Startup.vb / Grezzi",
+                           .Messaggio = "q.ta articolo mag. grezzi aggiornata correttamente",
+                           .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.idArticolo = l.Id})
+                        })
+                            db.SaveChanges()
+                        End If
+                    Loop
+                    myConn.Close()
 
+                Catch ex As Exception
+                    db.Log.Add(New Log With {
+                       .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .OperatoreID = "", .Operatore = "Sistema"},
+                       .Livello = TipoLogLivello.Errors,
+                       .Indirizzo = "Startup.vb",
+                       .Messaggio = "Errore Query agg. grezzi -> " & ex.Message,
+                       .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = DateTime.Now.Ticks.ToString})
+                       })
+                    db.SaveChanges()
+                End Try
+            End If
+        Next
+    End Function
     Function UpdateFasiProgEst() As JsonResult
         Dim listOfFasi As New List(Of String)
         Dim date1 = DateTime.Today.AddDays(-2)
@@ -513,7 +825,7 @@ Partial Public Class Startup
             myCmd.CommandText = "
                          SELECT Distinct F.pb_codice
                          FROM [Opera6010].[dbo].[Produzione], [Opera6010].[dbo].[Dipendenti] as D, [Opera6010].[dbo].[Fasi]  as F                
-                         WHERE Produzione.fa_id = F.fa_id and Produzione.di_matrico = D.di_matrico AND ma_codice = 'CNT8'"
+                         WHERE Produzione.fa_id = F.fa_id and Produzione.di_matrico = D.di_matrico AND ma_codice LIKE 'CNT%'"
             myConn.Open()
         Catch ex As Exception
 
@@ -554,5 +866,39 @@ Partial Public Class Startup
                 End If
             End If
         Next
+    End Function
+    Function DeleteArticolo(ByVal id As Integer?) As Boolean
+        If IsNothing(id) Then
+            Return False
+        End If
+        Dim OpID As String = ""
+        Dim OpName As String = ""
+        Dim CurrentDate As DateTime = Now
+        Try
+            Dim art = db.ArticoliMagazzino.Where(Function(x) x.Id = id).First
+            db.ArticoliMagazzino.Remove(art)
+            db.SaveChanges()
+            db.Audit.Add(New Audit With {
+                                        .Livello = TipoAuditLivello.Info,
+                                        .Indirizzo = "Startup.vb",
+                                        .Messaggio = "Articolo cancellato correttamente",
+                                        .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = id}),
+                                       .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                          })
+            db.SaveChanges()
+            Return True
+
+        Catch ex As Exception
+            db.Log.Add(New Log With {
+                 .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .OperatoreID = OpID, .Operatore = OpName},
+                 .Livello = TipoLogLivello.Errors,
+                 .Indirizzo = "Startup.vb",
+                 .Messaggio = "Errore Creazione Articolo -> " & ex.Message,
+                 .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.art = id})
+                 })
+            db.SaveChanges()
+            Return False
+        End Try
+
     End Function
 End Class

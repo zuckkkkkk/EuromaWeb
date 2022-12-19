@@ -840,6 +840,38 @@
       <DependentUpon>202210101146045_DocumentiPerLicenze.vb</DependentUpon>
     </Compile>
     <Compile Include="EuromaMigrations\202210101146045_DocumentiPerLicenze.vb" />
+    <Compile Include="EuromaMigrations\202211080824161_Init5.Designer.vb">
+      <DependentUpon>202211080824161_Init5.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202211080824161_Init5.vb" />
+    <Compile Include="EuromaMigrations\202211180744426_IdAttivitaDatiMacchina.Designer.vb">
+      <DependentUpon>202211180744426_IdAttivitaDatiMacchina.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202211180744426_IdAttivitaDatiMacchina.vb" />
+    <Compile Include="EuromaMigrations\202212051238068_ComputerUtenti.Designer.vb">
+      <DependentUpon>202212051238068_ComputerUtenti.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202212051238068_ComputerUtenti.vb" />
+    <Compile Include="EuromaMigrations\202212061551287_AccensioneSpegnimento.Designer.vb">
+      <DependentUpon>202212061551287_AccensioneSpegnimento.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202212061551287_AccensioneSpegnimento.vb" />
+    <Compile Include="EuromaMigrations\202212131326551_StoricoGrezzi.Designer.vb">
+      <DependentUpon>202212131326551_StoricoGrezzi.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202212131326551_StoricoGrezzi.vb" />
+    <Compile Include="EuromaMigrations\202212131327414_StoricoGrezzi_2.Designer.vb">
+      <DependentUpon>202212131327414_StoricoGrezzi_2.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202212131327414_StoricoGrezzi_2.vb" />
+    <Compile Include="EuromaMigrations\202212131331195_StoricoGrezzi_3.Designer.vb">
+      <DependentUpon>202212131331195_StoricoGrezzi_3.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202212131331195_StoricoGrezzi_3.vb" />
+    <Compile Include="EuromaMigrations\202212131349581_StoricoGrezzi_4.Designer.vb">
+      <DependentUpon>202212131349581_StoricoGrezzi_4.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202212131349581_StoricoGrezzi_4.vb" />
     <Compile Include="EuromaMigrations\Configuration.vb" />
     <Compile Include="Global.asax.vb">
       <DependentUpon>Global.asax</DependentUpon>
@@ -1183,6 +1215,30 @@
     <EmbeddedResource Include="EuromaMigrations\202210101146045_DocumentiPerLicenze.resx">
       <DependentUpon>202210101146045_DocumentiPerLicenze.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202211080824161_Init5.resx">
+      <DependentUpon>202211080824161_Init5.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202211180744426_IdAttivitaDatiMacchina.resx">
+      <DependentUpon>202211180744426_IdAttivitaDatiMacchina.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202212051238068_ComputerUtenti.resx">
+      <DependentUpon>202212051238068_ComputerUtenti.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202212061551287_AccensioneSpegnimento.resx">
+      <DependentUpon>202212061551287_AccensioneSpegnimento.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202212131326551_StoricoGrezzi.resx">
+      <DependentUpon>202212131326551_StoricoGrezzi.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202212131327414_StoricoGrezzi_2.resx">
+      <DependentUpon>202212131327414_StoricoGrezzi_2.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202212131331195_StoricoGrezzi_3.resx">
+      <DependentUpon>202212131331195_StoricoGrezzi_3.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202212131349581_StoricoGrezzi_4.resx">
+      <DependentUpon>202212131349581_StoricoGrezzi_4.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="IdentityMigrations\202111161323354_Init.resx">
       <DependentUpon>202111161323354_Init.vb</DependentUpon>
       <SubType>Designer</SubType>
@@ -1455,6 +1511,9 @@
     <Content Include="Views\Manage\CreateAssociazione.vbhtml" />
     <Content Include="Views\Manage\ModificaLicenza.vbhtml" />
     <Content Include="Views\Home\Notifiche.vbhtml" />
+    <Content Include="Views\Pezzi\AnalisiGleason.vbhtml" />
+    <Content Include="Views\Manage\Computer.vbhtml" />
+    <Content Include="Views\Manage\AddComputer.vbhtml" />
     <None Include="Views\Shared\Email_Euroma.vbhtml" />
     <Content Include="Views\Shared\Lockout.vbhtml" />
     <Content Include="Views\Shared\_LoginPartial.vbhtml" />

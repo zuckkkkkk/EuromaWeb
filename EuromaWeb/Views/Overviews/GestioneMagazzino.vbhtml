@@ -114,13 +114,29 @@ End Code
     <div class="row text-center mt-3">
         <div class="col">
             @If User.IsInRole("Magazzino") Then
-                @<button type = "button" data-type="add_articolo_magazzion" data-value="@Model.IdMag"id="Add_Art" Class="btn btn-primary w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                @<button type="button" data-type="add_articolo_magazzion" data-value="@Model.IdMag" id="Add_Art" Class="btn btn-primary w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal">
                     Aggiungi Articolo
                 </button>
+                @<button type="button" onclick="SearchArticolo()" Class="btn btn-success w-auto">
+                    Ricerca Articolo
+                </button>
+            Else
+                @<button type="button" onclick="SearchArticoloTablet()" Class="btn btn-success w-auto">
+                    Ricerca Articolo
+                </button>
             End If
-            <button type = "button"  onclick="SearchArticolo()" Class="btn btn-success w-auto">
-                Ricerca Articolo
-            </button>
+
+
         </div>
     </div>
 </div>
+
+@If User.IsInRole("MagazzinoTablet") Then
+    @<script>
+        const time = setTimeout(function () {
+            if (!swal.isVisible()) {
+                window.location.reload();
+            }
+        }, 10000)
+    </script>
+End If

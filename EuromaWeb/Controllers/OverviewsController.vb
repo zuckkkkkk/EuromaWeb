@@ -186,6 +186,14 @@ Namespace Controllers
                 Return Json(New With {.ok = False, .type = 2})
             End If
         End Function
+        'Function Opera() As ActionResult
+        '    Return PartialView()
+        'End Function
+        '<HttpPost>
+        '<ValidateAntiForgeryToken>
+        'Function Opera() As ActionResult
+        '    Return PartialView()
+        'End Function
         Function Ordine(ByVal id As String) As ActionResult
             If id.Contains("OP") Then
                 ViewBag.OP = id
@@ -491,7 +499,6 @@ Namespace Controllers
         <Authorize>
         Function GestioneMagazzino(ByVal id As Integer) As ActionResult
             Dim magazzino = db.Magazzino.Find(id)
-
             Dim scaffali = db.ScaffaliMagazzino.Where(Function(x) x.idesternoMagazzino = magazzino.Id).ToList
             Dim ListaScaffali As New List(Of GestioneScaffaliViewModel)
             For Each s In scaffali
@@ -562,7 +569,7 @@ Namespace Controllers
                 Next
             Next
             ViewBag.idSlot = New SelectList(selectSlotList, "Id", "Scaffale_Slot")
-            Return PartialView(New ArticoliMagazzino With {
+            Return View(New ArticoliMagazzino With {
                 .codArticolo = art.codArticolo,
                 .Id = art.Id,
                 .idSlot = art.idSlot,
@@ -607,18 +614,18 @@ Namespace Controllers
         End Function
         <HttpPost()>
         <ValidateAntiForgeryToken()>
-        Function EditArticolo(<Bind(Include:="Id,codArticolo,qta,noteArticolo,idSlot")> ByVal ArticoliMagazzino As ArticoliMagazzino) As JsonResult
+        Function EditArticolo(<Bind(Include:="Id,codArticolo,qta,noteArticolo")> ByVal ArticoliMagazzino As ArticoliMagazzino) As ActionResult
             If ModelState.IsValid Then
                 Dim OpID As String = vbNullString
                 Dim OpName As String = vbNullString
                 Dim CurrentDate As DateTime = Now
+                Dim idScaff = ""
                 Try
                     OpID = User.Identity.GetUserId()
                     OpName = User.Identity.GetUserName()
                     Dim art = db.ArticoliMagazzino.Find(ArticoliMagazzino.Id)
-                    If art.idSlot <> ArticoliMagazzino.idSlot Then
-                        art.idSlot = ArticoliMagazzino.idSlot
-                    End If
+                    Dim slot = db.SlotScaffale.Find(art.idSlot)
+                    idScaff = db.ScaffaliMagazzino.Find(slot.idEsternoScaffale).idesternoMagazzino
                     If art.qta <> ArticoliMagazzino.qta Then
                         art.qta = ArticoliMagazzino.qta
                     End If
@@ -636,7 +643,7 @@ Namespace Controllers
                                            .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
                               })
                     db.SaveChanges()
-                    Return Json(New With {.ok = True, .message = "Articolo aggiornato correttamente."})
+                    Return RedirectToAction("GestioneMagazzino", "Overviews", New With {.id = idScaff})
                 Catch ex As Exception
                     db.Log.Add(New Log With {
                      .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .OperatoreID = OpID, .Operatore = OpName},
@@ -646,10 +653,9 @@ Namespace Controllers
                      .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.art = ArticoliMagazzino})
                      })
                     db.SaveChanges()
-                    Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+                    Return RedirectToAction("GestioneMagazzino", "Overviews", New With {.id = idScaff})
                 End Try
             End If
-            Return Json(New With {.ok = False, .message = "Errore generico"})
         End Function
         Function RicercaArticolo(ByVal stringa As String) As JsonResult
             Dim OpID As String = vbNullString

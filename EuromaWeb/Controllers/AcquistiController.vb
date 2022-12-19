@@ -672,7 +672,7 @@ Namespace Controllers
                 Dim password = Decrypter(u.Profile.PWD_Email)
                 mySmtp.UseDefaultCredentials = False
                 mySmtp.Credentials = New System.Net.NetworkCredential(u.Email, password)
-                mySmtp.Host = "oberon.dnshigh.com"
+                mySmtp.Host = "squirtle.dnshigh.com"
                 myMail = New MailMessage()
                 myMail.From = New MailAddress(u.Email)
                 If Not lav.FlagMailAuto Then
@@ -1251,7 +1251,7 @@ Namespace Controllers
             Dim password = Decrypter(u.Profile.PWD_Email)
             mySmtp.UseDefaultCredentials = False
             mySmtp.Credentials = New System.Net.NetworkCredential(u.Email, password)
-            mySmtp.Host = "oberon.dnshigh.com"
+            mySmtp.Host = "squirtle.dnshigh.com"
             myMail = New MailMessage()
             myMail.From = New MailAddress(u.Email)
             If Not lav.FlagMailAuto Then
@@ -1810,7 +1810,7 @@ Namespace Controllers
             Dim password = Decrypter(u.Profile.PWD_Email)
             mySmtp.UseDefaultCredentials = False
             mySmtp.Credentials = New System.Net.NetworkCredential(u.Email, password)
-            mySmtp.Host = "oberon.dnshigh.com"
+            mySmtp.Host = "squirtle.dnshigh.com"
             myMail = New MailMessage()
             myMail.From = New MailAddress(u.Email)
             If Not lav.FlagMailAuto Then

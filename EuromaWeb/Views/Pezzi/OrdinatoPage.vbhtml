@@ -1,42 +1,28 @@
-﻿@Code
-    ViewData("Title") = "FatturatoPage"
-End Code
-
+﻿@ModelType EuromaWeb.OrdinatoViewModel
 
 <div class="container">
     <div class="loader"></div>
     <div class="row">
         <div class="col-md-12">
             <label for="Startdate">Data inizio:</label>
-            <input type="text" name="StartDate" id="StartDate" class="form-control" placeholder="Data inizio" autocomplete="off" />
+            @Html.EditorFor(Function(model) model.StartDate, New With {.htmlAttributes = New With {.class = "form-control", .placeholder = "Data inizio", .autocomplete = "off"}})
         </div>
 
     </div>
     <div class="row">
         <div class="col-md-12">
             <label for="EndDate">Data fine:</label>
-            <input type="text" name="EndDate" id="EndDate" class="form-control" placeholder="Data fine" autocomplete="off" />
+            @Html.EditorFor(Function(model) model.EndDate, New With {.htmlAttributes = New With {.class = "form-control", .placeholder = "Data inizio", .autocomplete = "off"}})
         </div>
-    </div>  
-    <div class="row mt-1">
-        <label for="EndDate">Seleziona dati:</label>
-        <div class="col-md-12">
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="Opzioni_OT_OC" id="Solo_OT" value="OT">
-                <label class="form-check-label" for="Solo_OT">OT</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="Opzioni_OT_OC" id="Solo_OC" value="OC">
-                <label class="form-check-label" for="Solo_OC">OC</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="Opzioni_OT_OC" id="OT_e_OC" value="OT_e_OC">
-                <label class="form-check-label" for="OT_e_OC">OT e OC</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="Opzioni_OT_OC" id="Edit_Attesa" value="Edit_Attesa">
-                <label class="form-check-label" for="Edit_Attesa">Temporaneo</label>
-            </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <label for="Agenti">Agenti:</label>
+            @Html.DropDownList("agenti", Nothing, "Non Impostato", htmlAttributes:=New With {.class = "form-control"})
+        </div>
+        <div class="col-md-6">
+            <label for="Agenti">Clienti:</label>
+            @Html.DropDownList("clienti", Nothing, "Non Impostato", htmlAttributes:=New With {.class = "form-control"})
         </div>
     </div>
     <div class="row mt-5">
@@ -47,7 +33,12 @@ End Code
 </div>
 
 <script>
-
+    $('#clienti').selectize({
+        sortField: 'text'
+    });
+    $('#agenti').selectize({
+        sortField: 'text'
+    });
     var ds = datepicker("#StartDate", {
         onSelect: instance => {
             // Show which date was selected.
@@ -158,6 +149,21 @@ End Code
         customDays: ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'],
         customMonths: ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
     });
+    $('#agenti').change(function () {
+        var value = $('#agenti :selected').val();
+        if (value == '') {
+            $('#clienti')[0].selectize.enable();
+        } else {
+            $('#clienti')[0].selectize.disable();
+        }
 
-  
+    });
+    $('#clienti').change(function () {
+        var value = $('#clienti :selected');
+        if (value == '') {
+            $('#agenti')[0].selectize.enable();
+        } else {
+            $('#agenti')[0].selectize.disable();
+        }
+    });
 </script>

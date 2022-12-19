@@ -445,7 +445,7 @@ Public Class HomeController
         Try
             myConn = New SqlConnection(ConnectionString)
             myCmd = myConn.CreateCommand
-            myCmd.CommandText = "select DISTINCT ARTCOD, CAST(SUM(MVMCVT) as INTEGER)  from MVMDET00 where ARTCOD = '" + stringa + "' AND MVMDREREV > '20210101' AND MVMDREREV < '20211231' AND MVMCAU = 'UP1' GROUP BY ARTCOD"
+            myCmd.CommandText = "select DISTINCT ARTCOD, CAST(SUM(MVMCVT) as INTEGER)  from MVMDET00 where ARTCOD = '" + stringa + "' AND MVMDREREV > '20210101' AND MVMDREREV < '20211231' AND (MVMCAU = 'UP1' OR MVMCAU = 'UC1' OR MVMCAU = 'UC6') GROUP BY ARTCOD"
             myConn.Open()
         Catch ex As Exception
 
@@ -464,7 +464,7 @@ Public Class HomeController
         Try
             myConn = New SqlConnection(ConnectionString)
             myCmd = myConn.CreateCommand
-            myCmd.CommandText = "select DISTINCT ARTCOD, CAST(SUM(MVMCVT) as INTEGER) from MVMDET00 where ARTCOD='" + stringa + "' AND MVMDREREV > '20220101' AND MVMDREREV < '20221231' AND MVMCAU = 'UP1' GROUP BY ARTCOD"
+            myCmd.CommandText = "select DISTINCT ARTCOD, CAST(SUM(MVMCVT) as INTEGER) from MVMDET00 where ARTCOD='" + stringa + "' AND MVMDREREV > '20220101' AND MVMDREREV < '20221231' AND (MVMCAU = 'UP1' OR MVMCAU = 'UC1' OR MVMCAU = 'UC6') GROUP BY ARTCOD"
             myConn.Open()
         Catch ex As Exception
 

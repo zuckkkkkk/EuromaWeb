@@ -64,6 +64,8 @@ Public Class EuromaModels
     Public Overridable Property VisualizzazioneFileNota() As DbSet(Of VisualizzazioneFileNota)
     Public Overridable Property DatiMacchina() As DbSet(Of DatiMacchina)
     Public Overridable Property Macchine() As DbSet(Of Macchine)
+    Public Overridable Property Computer() As DbSet(Of Computer)
+    Public Overridable Property StoricoGrezzi() As DbSet(Of StoricoGrezzi)
 End Class
 Public Class Disegno_Server_ViewModel
     Public Property Id As Integer
@@ -152,6 +154,15 @@ Public Class Progetti_UTViewModel
     Public Property Flag_3 As Boolean
     Public Property Priorita As Stato_Priorita
     Public Property DataRichiestaConsegna As Nullable(Of DateTime)
+End Class
+Public Class ComputerViewModel
+    Public Property Id As Integer
+    Public Property NomePC As String
+    Public Property NomeOperatore As String
+    Public Property DescrizionePC As String
+    Public Property IP As String
+    Public Property MAC As String
+    Public Property Attivo As Boolean
 End Class
 Public Class ProgettiUT_Operatore
     <Key>
@@ -489,6 +500,7 @@ End Class
 <Table("DatiMacchina")>
 Public Class DatiMacchina
     Public Property id As Integer
+    Public Property idAttività As Integer
     Public Property Macchina As String
     Public Property ModalitaMacchina As String
     Public Property FungoPremuto As Boolean
@@ -506,6 +518,18 @@ Public Class DatiMacchina
     Public Property LpTotalOperatingTime As String
     Public Property LpTotalRunningTime As String
     Public Property LpTotalSpindleRuntime As String
+End Class
+<Table("Computer")>
+Public Class Computer
+    <Key>
+    Public Property Id As Integer
+    Public Property NomePC As String
+    Public Property NomeOperatore As String
+    Public Property DescrizionePC As String
+    Public Property IP As String
+    Public Property MAC As String
+    Public Property Ora_Spegnimento As DateTime
+    Public Property Ora_Accensione As DateTime
 End Class
 <Table("FasiOC")>
 Public Class FasiOC
@@ -652,6 +676,20 @@ Public Class Tempo_Macchina
     Public Property T_Start As DateTime
     Public Property T_End As DateTime
 End Class
+<Table("StoricoGrezzi")>
+Public Class StoricoGrezzi
+    <Key>
+    Public Property Id As Integer
+    Public Property ODLANN As String
+    Public Property ODLSEZ As String
+    Public Property ODLNMR As Decimal
+    Public Property IdArticolo As Integer
+    Public Property QtaPrecedente As Decimal
+    Public Property Livello As TipoLogLivello?
+    Public Property QtaAggiornata As Decimal
+    Public Property UltimaModifica As DateTime
+End Class
+
 <Table("Log")>
 Public Class Log
     <Key>
@@ -801,6 +839,7 @@ Public Class ProgettiUT
     Public Property Flag_4 As StatoCheck
     Public Property Priorita As Stato_Priorita
     Public Property DataRichiestaConsegna As Nullable(Of DateTime)
+    Public Property Data As Nullable(Of DateTime)
 End Class
 <Table("ProgettiProd")>
 Public Class ProgettiProd

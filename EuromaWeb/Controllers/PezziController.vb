@@ -775,7 +775,7 @@ Namespace Controllers
         End Function
         <Authorize(Roles:="Commerciale_Admin, Admin")>
         <HttpGet>
-        Function Ordinato(dateTime As String, selected As String) As FileResult
+        Function Ordinato(dateTime As String, agente As String, cliente As String) As FileResult
             Dim datetimeCalc = dateTime.Split("-")
             Dim ListOrdini As New List(Of OrdineOrdinato)
             Dim ListSpese As New List(Of SpeseSecondarieViewModel)
@@ -809,18 +809,15 @@ Namespace Controllers
                 myConn = New SqlConnection(ConnectionString)
                 myCmd = myConn.CreateCommand
                 myCmd.CommandText = ""
-                Select Case selected
-                    Case "OT"
-                        myCmd.CommandText = "select ESECOD, ORCTSZ, ORCTNR, ORCZON,ORCMOV, ORCIMP, ORCUTE, DVSCOD,ORCDDCREV from ORCTES00 where ( ORCTSZ = 'OT' and ORCSTC = '040') AND ORCDDCREV >= " + datetimeCalc(0) + " and ORCDDCREV <= " + datetimeCalc(1) + " "
-                    Case "OC"
-                        myCmd.CommandText = "select ESECOD, ORCTSZ, ORCTNR, ORCZON,ORCMOV, ORCIMP, ORCUTE, DVSCOD,ORCDDCREV from ORCTES00 where (ORCTSZ = 'OC') AND ORCDDCREV >= " + datetimeCalc(0) + " and ORCDDCREV <= " + datetimeCalc(1) + " "
-                    Case "OT_e_OC"
-                        myCmd.CommandText = "SELECT DISTINCT DET.ESECOD,DET.ORDSEZ,DET.ORDNRR, DET.ORDRIG,ANA.ARTRA1, TES.DVSCOD, CLI.NAZCOD, replace(replace(replace(convert(varchar(30), DET.ORDEOR,1), ',', '|'), '.', ','), '|', '.') as Quantita, replace(replace(replace(convert(varchar(30), DET.ORDPVA * DET.ORDEOR, 1), ',', '|'), '.', ','), '|', '.')as Prezzo_Unitario,ORCDDCREV,TES.ORCMOV FROM ORCDET00 as DET, ORCTES00 as TES, CLFIND as CLI, ARTANA as ANA WHERE DET.ESECOD = TES.ESECOD AND DET.ORDSEZ = TES.ORCTSZ AND DET.ORDNRR = TES.ORCTNR AND TES.ORCCLI = CLI.CLFCOD AND CLI.CLFTIP = 'C' AND ANA.ARTCO1 = DET.ARTCOD AND TES.ORCDDCREV >= '" + datetimeCalc(0) + "' and TES.ORCDDCREV <= '" + datetimeCalc(1) + "' AND (DET.ORDSEZ = 'OC' or ( DET.ORDSEZ = 'OT' and ( ORCTNR = '37' OR ORCTNR = '40' OR ORCTNR = '41' OR ORCTNR = '42' OR ORCTNR = '43'))) order by DET.ORDNRR"
-                    Case "Edit_Attesa"
-                        myCmd.CommandText = "select ESECOD, ORCTSZ, ORCTNR, ORCZON,ORCMOV, ORCIMP, ORCUTE, DVSCOD,ORCDDCREV from ORCTES00 where (ORCTSZ = 'OC' or ( ORCTSZ = 'OT' and ORCSTC = '040' and ( ORCTNR = '37' OR ORCTNR = '40' OR ORCTNR = '41' OR ORCTNR = '42' OR ORCTNR = '43'))) and ORCDDCREV >= " + datetimeCalc(0) + " and ORCDDCREV <= " + datetimeCalc(1) + " AND ORCIMP> 0"
-                    Case Else
-                        myCmd.CommandText = "select ESECOD, ORCTSZ, ORCTNR, ORCZON,ORCMOV, ORCIMP, ORCUTE, DVSCOD,ORCDDCREV from ORCTES00 where (ORCTSZ = 'OC' or ( ORCTSZ = 'OT' and ORCSTC = '040')) AND ORCDDCREV >= " + datetimeCalc(0) + " and ORCDDCREV <= " + datetimeCalc(1) + " "
-                End Select
+                If agente = "" And cliente = "" Then
+                    myCmd.CommandText = "SELECT DISTINCT DET.ESECOD, DET.ORDSEZ, DET.ORDNRR, DET.ORDRIG, ANA.ARTRA1, TES.DVSCOD, CLI.NAZCOD, replace(replace(replace(convert(varchar(30), DET.ORDEOR,1), ',', '|'), '.', ','), '|', '.') as Quantita, replace(replace(replace(convert(varchar(30), DET.ORDPVA * DET.ORDEOR, 1), ',', '|'), '.', ','), '|', '.')as Prezzo_Unitario, ORCDDCREV, TES.ORCMOV,TES.ORCCLI FROM ORCDET00 as DET, ORCTES00 as TES, CLFIND as CLI, ARTANA as ANA WHERE DET.ESECOD = TES.ESECOD AND DET.ORDSEZ = TES.ORCTSZ AND DET.ORDNRR = TES.ORCTNR AND TES.ORCCLI = CLI.CLFCOD AND CLI.CLFTIP = 'C' AND ANA.ARTCO1 = DET.ARTCOD AND TES.ORCDDCREV >= '" + datetimeCalc(0) + "' and TES.ORCDDCREV <= '" + datetimeCalc(1) + "' AND (DET.ORDSEZ = 'OC' or ( DET.ORDSEZ = 'OT' and ( ORCTNR = '37' OR ORCTNR = '40' OR ORCTNR = '41' OR ORCTNR = '42' OR ORCTNR = '43'))) order by DET.ORDNRR"
+                Else
+                    If agente = "" Then
+                        myCmd.CommandText = "SELECT DISTINCT DET.ESECOD, DET.ORDSEZ, DET.ORDNRR, DET.ORDRIG, ANA.ARTRA1, TES.DVSCOD, CLI.NAZCOD, replace(replace(replace(convert(varchar(30), DET.ORDEOR,1), ',', '|'), '.', ','), '|', '.') as Quantita, replace(replace(replace(convert(varchar(30), DET.ORDPVA * DET.ORDEOR, 1), ',', '|'), '.', ','), '|', '.')as Prezzo_Unitario, ORCDDCREV, TES.ORCMOV,TES.ORCCLI FROM ORCDET00 as DET, ORCTES00 as TES, CLFIND as CLI, ARTANA as ANA WHERE DET.ESECOD = TES.ESECOD AND DET.ORDSEZ = TES.ORCTSZ AND DET.ORDNRR = TES.ORCTNR AND TES.ORCCLI = CLI.CLFCOD AND CLI.CLFTIP = 'C' AND ANA.ARTCO1 = DET.ARTCOD AND CLI.CLFCOD = '" + cliente + "'AND TES.ORCDDCREV >= '" + datetimeCalc(0) + "' and TES.ORCDDCREV <= '" + datetimeCalc(1) + "' AND (DET.ORDSEZ = 'OC' or ( DET.ORDSEZ = 'OT' and ( ORCTNR = '37' OR ORCTNR = '40' OR ORCTNR = '41' OR ORCTNR = '42' OR ORCTNR = '43'))) order by DET.ORDNRR"
+                    Else
+                        myCmd.CommandText = "SELECT DISTINCT DET.ESECOD, DET.ORDSEZ, DET.ORDNRR, DET.ORDRIG, ANA.ARTRA1, TES.DVSCOD, CLI.NAZCOD, replace(replace(replace(convert(varchar(30), DET.ORDEOR,1), ',', '|'), '.', ','), '|', '.') as Quantita, replace(replace(replace(convert(varchar(30), DET.ORDPVA * DET.ORDEOR, 1), ',', '|'), '.', ','), '|', '.')as Prezzo_Unitario, ORCDDCREV, TES.ORCMOV,TES.ORCCLI FROM ORCDET00 as DET, ORCTES00 as TES, CLFIND as CLI, ARTANA as ANA, ORCPRO00 as PRO WHERE DET.ESECOD = TES.ESECOD AND DET.ORDSEZ = TES.ORCTSZ AND DET.ORDNRR = TES.ORCTNR AND TES.ORCCLI = CLI.CLFCOD AND DET.ESECOD = PRO.ESECOD AND DET.ORDSEZ = PRO.ORDSEZ AND DET.ORDNRR = PRO.ORDNRR AND CLI.CLFTIP = 'C' AND ANA.ARTCO1 = DET.ARTCOD AND (ORDAG1 = '" + agente + " ' OR ORDAG2 = '" + agente + " ' OR ORDAG3 = '" + agente + " ') AND TES.ORCDDCREV >= '" + datetimeCalc(0) + "' and TES.ORCDDCREV <= '" + datetimeCalc(1) + "' AND (DET.ORDSEZ = 'OC' or ( DET.ORDSEZ = 'OT' and ( ORCTNR = '37' OR ORCTNR = '40' OR ORCTNR = '41' OR ORCTNR = '42' OR ORCTNR = '43'))) order by DET.ORDNRR"
+                    End If
+                End If
                 myConn.Open()
             Catch ex As Exception
                 'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
@@ -838,7 +835,8 @@ Namespace Controllers
                         .TipoOrd = myReader.GetString(4),
                         .Div = myReader.GetString(5),
                         .Mese = myReader.GetDecimal(9).ToString.Substring(4, 2),
-                        .TipoOrd2 = myReader.GetString(10)
+                        .TipoOrd2 = myReader.GetString(10),
+                        .Cliente = myReader.GetString(11)
                     }
                     imp = myReader.GetString(8)
                     o.ImportoOrd = Convert.ToDecimal(imp.Substring(0, imp.Length - 7))
@@ -848,7 +846,7 @@ Namespace Controllers
                 myConn.Close()
 
             Catch ex As Exception
-                'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+
             End Try
             Dim finalCosts As New Ordinato With {
                .Unistand = New Dictionary(Of String, DivisioneOrdinato),
@@ -856,13 +854,12 @@ Namespace Controllers
                 .MPA = New Dictionary(Of String, DivisioneOrdinato),
                 .Drill = New Dictionary(Of String, DivisioneOrdinato),
                 .CMT = New Dictionary(Of String, DivisioneOrdinato),
-                .Euroma = New Dictionary(Of String, DivisioneOrdinato)
+                .Euroma = New Dictionary(Of String, DivisioneOrdinato),
+                .ClientiNuovi = New Dictionary(Of String, Integer)
             }
-
             Dim totalRevenue = 0
             Dim missingImport = 0
             Dim addedSpeseDict As New List(Of String)
-
             For Each o In ListOrdini
                 Try
                     If Not addedSpeseDict.Contains(o.NumOrd) Then
@@ -879,10 +876,34 @@ Namespace Controllers
 
                 End Try
 
-                'ListSpese
+            Next
+            Dim listaClientiGiaControllati As New List(Of String)
+            For Each o In ListOrdini
+                If Not listaClientiGiaControllati.Contains(o.Cliente) Then
+                    ' query per vedere quanti ordini sono
+                    Try
+                        myConn = New SqlConnection(ConnectionString)
+                        myCmd = myConn.CreateCommand
+                        myCmd.CommandText = "select ORCCLI, COUNT(*) from ORCTES00 where ORCDUMREV < '" + datetimeCalc(0) + "'  AND ORCCLI = '" + o.Cliente + "'group by ORCCLI "
+                        myConn.Open()
+                    Catch ex As Exception
+                    End Try
+                    Try
+                        myReader = myCmd.ExecuteReader
+                        Do While myReader.Read()
+                            listaClientiGiaControllati.Add(o.Cliente)
+                        Loop
+                        myConn.Close()
+                    Catch ex As Exception
+                    End Try
+                End If
             Next
             For Each o In ListOrdini
-                'If o.TipoOrd = "UC1" Or o.TipoOrd = "UC2" Or o.TipoOrd = "UC6" Then
+                If Not listaClientiGiaControllati.Contains(o.Cliente) And Not finalCosts.ClientiNuovi.ContainsKey(o.Cliente) Then
+                    finalCosts.ClientiNuovi.Add(o.Cliente, o.Mese)
+                End If
+            Next
+            For Each o In ListOrdini
                 Try
                     Select Case o.TipoOrd
                         Case "DRILL"
@@ -1116,16 +1137,11 @@ Namespace Controllers
             'Intestazione
             Dim c = 1
             Dim countKey = finalCosts.MPA.Keys.Count
-            Select Case selected
-                Case "OT"
-                    ws.GetRow(1).GetCell(12).SetCellValue("Solo OT ")
-                Case "OC"
-                    ws.GetRow(1).GetCell(12).SetCellValue("Solo OC")
-                Case "OT_e_OC"
-                    ws.GetRow(1).GetCell(12).SetCellValue("OT e OC")
-                Case Else
-                    ws.GetRow(1).GetCell(12).SetCellValue("Default Case")
-            End Select
+            If agente = "" Then
+                ws.GetRow(1).GetCell(12).SetCellValue("Analisi cliente " + cliente)
+            Else
+                ws.GetRow(1).GetCell(12).SetCellValue("Analisi agente " + agente)
+            End If
             ws.GetRow(2).GetCell(0).SetCellValue("Mese")
             For Each k In finalCosts.MPA.Keys.OrderBy(Function(x) x)
                 Try
@@ -1315,7 +1331,7 @@ Namespace Controllers
 
                 Next
                 ws.GetRow(42).GetCell(1).SetCellValue(totalRevenue)
-
+                ws.GetRow(37).GetCell(1).SetCellValue("Nr. nuovi clienti: " & finalCosts.ClientiNuovi.Keys.Count.ToString)
                 'Evaluation totale
             Catch ex As Exception
 
@@ -1323,16 +1339,12 @@ Namespace Controllers
 
             'ms1 = ms
             Dim nomeFile = "def.xlsx"
-            Select Case selected
-                Case "OT"
-                    nomeFile = "ORDINATO_BRAND_OT_" & dateTime.ToString & ".xlsx"
-                Case "OC"
-                    nomeFile = "ORDINATO_BRAND_OC_" & dateTime.ToString & ".xlsx"
-                Case "OT_e_OC"
-                    nomeFile = "ORDINATO_BRAND_OT_e_OC_" & dateTime.ToString & ".xlsx"
-                Case Else
-                    nomeFile = "ORDINATO_BRAND_Default_" & dateTime.ToString & ".xlsx"
-            End Select
+            If agente = "" Then
+                nomeFile = "ORDINATO_BRAND_" & cliente & "_" & dateTime.ToString & ".xlsx"
+            Else
+                nomeFile = "ORDINATO_BRAND_" & agente & "_" & dateTime.ToString & ".xlsx"
+            End If
+
             Dim wsOC As XSSFSheet = workbook.GetSheetAt(1)
             Dim counter = 2
             For Each i In ListOrdini
@@ -2006,6 +2018,312 @@ Namespace Controllers
         End Function
         <Authorize>
         Function OrdinatoPage() As ActionResult
+            Dim selectSlotList As New List(Of ClienteSmallViewModel)
+            Try
+                myConn = New SqlConnection(ConnectionString)
+                myCmd = myConn.CreateCommand
+                myCmd.CommandText = "Select CLFCO1, CLFRSC from CLFANA where CLFTIP = 'C' order by CLFRSC"
+                myConn.Open()
+            Catch ex As Exception
+                'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+            End Try
+            Try
+                myReader = myCmd.ExecuteReader
+
+                Do While myReader.Read()
+                    selectSlotList.Add(New ClienteSmallViewModel With {
+                        .CodCliente = myReader.GetString(0),
+                        .NomeCliente = myReader.GetString(1)
+                    })
+
+                Loop
+                myConn.Close()
+
+            Catch ex As Exception
+                'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+            End Try
+            ViewBag.clienti = New SelectList(selectSlotList, "CodCliente", "NomeCliente")
+
+            Dim selectSlotListAgenti As New List(Of ClienteSmallViewModel)
+            Try
+                myConn = New SqlConnection(ConnectionString)
+                myCmd = myConn.CreateCommand
+                myCmd.CommandText = "select PROAGE, PRORSC from PROANA00"
+                myConn.Open()
+            Catch ex As Exception
+                'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+            End Try
+            Try
+                myReader = myCmd.ExecuteReader
+
+                Do While myReader.Read()
+                    selectSlotListAgenti.Add(New ClienteSmallViewModel With {
+                        .CodCliente = myReader.GetString(0),
+                        .NomeCliente = myReader.GetString(1)
+                    })
+
+                Loop
+                myConn.Close()
+
+            Catch ex As Exception
+                'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+            End Try
+            ViewBag.clienti = New SelectList(selectSlotList, "CodCliente", "NomeCliente")
+            ViewBag.agenti = New SelectList(selectSlotListAgenti, "CodCliente", "NomeCliente")
+
+            Return PartialView()
+        End Function
+        <Authorize>
+        Function Gleason(AQ, MQ, Z2Q, Z1Q, S, Pos) As JsonResult
+            Try
+                Dim U1
+                Dim K1
+                Dim K2
+                Dim TAB
+                Dim A1
+                Dim A2
+                Dim A3
+                Dim A4
+                Dim A5
+                Dim A6
+                Dim A7
+                Dim A8
+                Dim Pr
+                Dim H1
+                Dim H2
+                Dim D1
+                Dim D2
+                Dim D3
+                Dim D4
+                Dim B
+                Dim C1
+                Dim C2
+                Dim E1
+                Dim E2
+                Dim F1
+                Dim F2
+                Dim S1
+                Dim S2
+                Dim S3
+                Dim S4
+                Dim R1
+                Dim R2
+                Dim R3
+                Dim R4
+                Dim T1
+                Dim T2
+                Dim T3
+                Dim T4
+                Dim T5
+                Dim T6
+                Dim T7
+                Dim T8
+                Dim Q1
+                Dim Q2
+                Dim Q3
+                Dim Q4
+                Dim V1
+                Dim V2
+                Dim V3
+                Dim V4
+                Dim EsempioCalcolo
+                TAB = S
+                Dim A = Convert.ToDecimal(AQ(0))
+                Dim M = Convert.ToDecimal(MQ(0))
+                Dim Z1 = Convert.ToDecimal(Z1Q(0))
+                Dim Z2 = Convert.ToDecimal(Z2Q(0))
+                If A > 90 Then
+                    A = A - 90
+                End If
+                Dim ARad = (A * Math.PI) / 180
+                Dim ARad180 = ((180 - A) * Math.PI) / 180
+                Dim cosA = Math.Cos(ARad)
+                Dim cosA180 = Math.Cos(180 - A)
+                Dim sinA = Math.Sin(ARad)
+                Dim sinA180 = Math.Sin(180 - A)
+                sinA180 = (sinA180 * 180) / Math.PI
+                cosA180 = (cosA180 * 180) / Math.PI
+                Dim A2Rad
+                Dim A1Rad
+                If S(0) = "DX" Then
+                    K1 = "DX"
+                    K2 = "SX"
+                ElseIf S(0) = "SX" Then
+                    K1 = "SX"
+                    K2 = "DX"
+                End If
+
+                If A = 90 Then
+                    A1 = Math.Round((Int(Math.Atan(Z1 / Z2) * 10000000) / 10000000), 6)
+                    A1Rad = (A1 * 180) / Math.PI
+                    A2Rad = (A2 * 180) / Math.PI
+                    A2 = (90 - A1Rad)
+                ElseIf (A < 90) Then
+                    Dim div = Z2 / Z1
+                    If Pos(0) = "meno" Then
+                        A1 = Math.Round((Int(Math.Atan(sinA / (div - cosA)) * 10000000) / 10000000), 6)
+                    ElseIf Pos(0) = "piu" Then
+                        A1 = Math.Round((Int(Math.Atan(sinA / (div + cosA)) * 10000000) / 10000000), 6)
+                    End If
+                    A1Rad = (A1 * 180) / Math.PI
+                    A2Rad = (A2 * 180) / Math.PI
+                    A2 = (A - A1Rad)
+                ElseIf (A > 90) Then
+                    Dim div = Z2 / Z1
+                    A1 = Math.Round((Int(Math.Atan(sinA180 / (div - cosA180)) * 10000000) / 10000000), 6)
+                    A1Rad = (A1 * 180) / Math.PI
+                    A2Rad = (A2 * 180) / Math.PI
+                    A2 = (A - A1Rad)
+                End If
+                H1 = (1.7 * M)
+                H2 = (1.888 * M)
+                D1 = (Z1 * M)
+                D2 = (Z2 * M)
+                B = (Int((D2 / (2 * Math.Sin(A2)) * 1000)) / 1000)
+                C2 = Math.Round((Int(M * (0.46 + 0.39 * (Z1 / Z2) ^ 2) * 10000000) / 10000000), 6)
+                C1 = (H1 - C2)
+                E1 = (H2 - C1)
+                E2 = (H2 - C2)
+                'sT7 = ((T7 * 180) / Math.PI)
+                Dim temp = A1 / Math.PI
+                A1 = temp * 180
+                Dim gradTMP = (Math.Round(A1, 3))
+                Dim TMP = (gradTMP / 180) * Math.PI
+                Dim TMPUpper = D1 / 2
+                Try
+                    EsempioCalcolo = TMPUpper / (Math.Sin(TMP))
+                    Console.WriteLine(EsempioCalcolo)
+                Catch ex As Exception
+
+                End Try
+                A3 = (Math.Atan(E1 / EsempioCalcolo))
+                A4 = (Math.Atan(E2 / EsempioCalcolo))
+                A5 = (A1 + A4)
+                A6 = (A2 + A3)
+                A7 = (A1 - A3)
+                A8 = (A2 - A4)
+                D3 = Math.Round((Int((D1 + 2 * C1 * Math.Cos((A1 * Math.PI) / 180)) * 10000000) / 10000000), 6)
+                D4 = Math.Round((Int((D2 + 2 * C2 * Math.Cos((A2 * Math.PI) / 180)) * 10000000) / 10000000), 6)
+
+
+                If A = 90 Then
+                    F1 = Math.Round((Int((D2 / 2 - C1 * Math.Sin(A1Rad)) * 10000000) / 10000000), 6)
+                    F2 = Math.Round((Int((D1 / 2 - C2 * Math.Sin(A2Rad)) * 10000000) / 10000000), 6)
+                ElseIf A < 90 Then
+                    F1 = Math.Round((Int((EsempioCalcolo * Math.Cos(A1Rad) - C1 * Math.Sin(A1Rad)) * 10000000) / 10000000), 6)
+                    F2 = Math.Round((Int((EsempioCalcolo * Math.Cos(A2Rad) - C2 * Math.Sin(A2Rad)) * 10000000) / 10000000), 6)
+                ElseIf (A > 90) Then
+                    F1 = Math.Round((Int((EsempioCalcolo * Math.Cos(A1Rad) - C1 * Math.Sin(A1Rad)) * 10000000) / 10000000), 6)
+                    F2 = Math.Round((Int((EsempioCalcolo * Math.Cos(A2Rad) - C2 * Math.Sin(A2Rad)) * 10000000) / 10000000), 6)
+                End If
+                S1 = ((A7 - Int(A7)) * 60)
+                S2 = (Int((S1 - Int(S1)) * 60))
+                S3 = (Int(1000 * A7) / 1000)
+                S4 = (Int(S1))
+                R1 = ((A4 - Int(A4)) * 60)
+                R2 = (Int((R1 - Int(R1)) * 60))
+                R3 = (Int(1000 * A4) / 1000)
+                R4 = (Int(R1))
+                T1 = ((A3 - Int(A3)) * 60)
+                T2 = (Int((T1 - Int(T1)) * 60))
+                T3 = (Int(1000 * A3) / 1000)
+                T4 = (Int(T1))
+                T5 = ((A5 - Int(A5)) * 60)
+                T6 = (Int((T5 - Int(T5)) * 60))
+                T7 = (Int(1000 * A5) / 1000)
+                T8 = (Int(T5))
+                Q1 = ((A6 - Int(A6)) * 60)
+                Q2 = (Int((Q1 - Int(Q1)) * 60))
+                Q3 = (Int(1000 * A6) / 1000)
+                Q4 = (Int(Q1))
+                V1 = ((A8 - Int(A8)) * 60)
+                V2 = (Int((V1 - Int(V1)) * 60))
+                V3 = (Int(1000 * A8) / 1000)
+                V4 = (Int(V1))
+
+                'A1 = ((A1 * 180) / Math.PI)
+                Dim t3tmp = T3 * 180
+                T3 = t3tmp / 3.14
+                Dim t7tmp = T7 * 180
+                T7 = t7tmp / 3.14
+                Dim arctandedendum = Math.Atan(E1 / EsempioCalcolo)
+                Dim angoloDedendum = (arctandedendum / Math.PI) * 180
+                Dim arctandedendumEsterno = Math.Atan(E2 / EsempioCalcolo)
+                Dim angoloDedendumEsterno = (arctandedendumEsterno / Math.PI) * 180
+
+                Dim arctandedendumEsternoCorona = Math.Atan(E2 / EsempioCalcolo)
+                Dim angoloDedendumEsternoCorona = (arctandedendumEsternoCorona / Math.PI) * 180
+                Dim tablePign = "<table class='table'><thead><tr><th>Nome Campo</th><th>Valore</th></tr></thead><tbody>"
+                tablePign = tablePign + "<tr><td>" + "Angolo Fra Gli assi" + "</td><td>" + A.ToString + "</td></tr>"
+                tablePign = tablePign + "<tr><td>" + "Angolo di Pressione" + "</td><td>20°</td></tr>"
+                tablePign = tablePign + "<tr><td>" + "Angolo Elica" + "</td><td>35°</td></tr>"
+                tablePign = tablePign + "<tr><td>" + "Senso elica" + "</td><td>" + K1.ToString + "</td></tr>"
+                tablePign = tablePign + "<tr><td>" + "Lunghezza generatrice" + "</td><td>" + Math.Round(EsempioCalcolo, 3).ToString + "</td></tr>"
+                tablePign = tablePign + "<tr><td>" + "Modulo" + "</td><td>" + M.ToString + "</td></tr>"
+                tablePign = tablePign + "<tr><td>" + "Nr denti" + "</td><td>" + Z1.ToString + "</td></tr>"
+                tablePign = tablePign + "<tr><td>" + "Diam. Primitivo" + "</td><td>" + D1.ToString + "</td></tr>"
+                tablePign = tablePign + "<tr><td>" + "Diam. Esterno" + "</td><td>" + Math.Round(D3, 3).ToString + "</td></tr>"
+                tablePign = tablePign + "<tr><td>" + "Addendum" + "</td><td>" + Math.Round(C1, 3).ToString + "</td></tr>"
+                tablePign = tablePign + "<tr><td>" + "Dedendum" + "</td><td>" + Math.Round(E1, 3).ToString + "</td></tr>"
+                tablePign = tablePign + "<tr><td>" + "Angolo Prim." + "</td><td>" + Math.Round(A1, 3).ToString + "</td></tr>"
+                tablePign = tablePign + "<tr><td>" + "Angolo Est." + "</td><td>" + Math.Round(angoloDedendumEsterno + A1, 3).ToString + "</td></tr>"
+                tablePign = tablePign + "<tr><td>" + "Angolo Dedendum" + "</td><td>" + Math.Round(angoloDedendum, 3).ToString + "</td></tr>"
+                tablePign = tablePign + "</tbody></table>"
+                Dim tableCor = "<table class='table'><thead><tr><th>Nome Campo</th><th>Valore</th></tr></thead><tbody>"
+                tableCor = tableCor + "<tr><td>" + "Angolo Fra Gli assi" + "</td><td>" + A.ToString + "</td></tr>"
+                tableCor = tableCor + "<tr><td>" + "Angolo di Pressione" + "</td><td>20°</td></tr>"
+                tableCor = tableCor + "<tr><td>" + "Angolo Elica" + "</td><td>35°</td></tr>"
+                tableCor = tableCor + "<tr><td>" + "Senso elica" + "</td><td>" + K2.ToString + "</td></tr>"
+                tableCor = tableCor + "<tr><td>" + "Lunghezza generatrice" + "</td><td>" + Math.Round(EsempioCalcolo, 3).ToString + "</td></tr>"
+                tableCor = tableCor + "<tr><td>" + "Modulo" + "</td><td>" + M.ToString + "</td></tr>"
+                tableCor = tableCor + "<tr><td>" + "Nr denti" + "</td><td>" + Z2.ToString + "</td></tr>"
+                tableCor = tableCor + "<tr><td>" + "Diam. Primitivo" + "</td><td>" + D2.ToString + "</td></tr>"
+                tableCor = tableCor + "<tr><td>" + "Diam. Esterno" + "</td><td>" + Math.Round(D4, 3).ToString + "</td></tr>"
+                tableCor = tableCor + "<tr><td>" + "Addendum" + "</td><td>" + Math.Round(C2, 3).ToString + "</td></tr>"
+                tableCor = tableCor + "<tr><td>" + "Dedendum" + "</td><td>" + Math.Round(E2, 3).ToString + "</td></tr>"
+                tableCor = tableCor + "<tr><td>" + "Angolo Prim." + "</td><td>" + Math.Round(A2, 3).ToString + "</td></tr>"
+                tableCor = tableCor + "<tr><td>" + "Angolo Est." + "</td><td>" + Math.Round(angoloDedendum + A2, 3).ToString + "</td></tr>"
+                tableCor = tableCor + "<tr><td>" + "Angolo Dedendum" + "</td><td>" + Math.Round(angoloDedendumEsternoCorona, 3).ToString + "</td></tr>"
+                tableCor = tableCor + "</tbody></table>"
+                Dim objPign As New With {
+                  .AngoloFraGliAssi = A.ToString,
+                  .AngoloDiPressione = "20°",
+                  .AngoloElica = "35°",
+                  .SensoDellElica = K1.ToString,
+                  .LunghezzaGenEst = Math.Round(EsempioCalcolo, 3).ToString,
+                  .Modulo = M,
+                  .NDenti = Z1,
+                  .DiametroPrim = D1.ToString,
+                  .DiametroEst = D3.ToString,
+                  .Add = Math.Round(C1, 3).ToString,
+                  .Ded = Math.Round(E1, 3).ToString,
+                  .AngoloPrim = Math.Round(A1, 3).ToString,
+                  .AngoloEst = Math.Round(angoloDedendumEsterno + A1, 3).ToString,
+                  .AngoloDed = Math.Round(angoloDedendum, 3).ToString
+                }
+                Dim objCoron As New With {
+                  .AngoloFraGliAssi = A.ToString,
+                  .AngoloDiPressione = "20°",
+                  .AngoloElica = "35°",
+                  .SensoDellElica = K2.ToString,
+                  .LunghezzaGenEst = Math.Round(EsempioCalcolo, 3).ToString,
+                  .Modulo = M,
+                  .NDenti = Z2,
+                  .DiametroPrim = D2.ToString,
+                  .DiametroEst = D4.ToString,
+                  .Add = Math.Round(C2, 3).ToString,
+                  .Ded = Math.Round(E2, 3).ToString,
+                  .AngoloPrim = Math.Round(A2, 3).ToString,
+                  .AngoloEst = Math.Round(angoloDedendum + A2, 3).ToString,
+                  .AngoloDed = Math.Round(angoloDedendumEsternoCorona, 3).ToString
+                }
+                Return Json(New With {.ok = True, .message = "Calcolo Gleason effettuato correttamente", .pignone = objPign, .corona = objCoron, .tablePignone = tablePign, .tableCoron = tableCor}, JsonRequestBehavior.AllowGet)
+            Catch ex As Exception
+                Return Json(New With {.ok = False, .message = "Errore calcolo Gleason"}, JsonRequestBehavior.AllowGet)
+            End Try
+        End Function
+        <Authorize>
+        Function AnalisiGleason() As ActionResult
             Return PartialView()
         End Function
         <Authorize>

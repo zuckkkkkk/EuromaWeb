@@ -103,8 +103,6 @@ Namespace Controllers
                 Else
                     data = db.AccettazioneUC.OrderBy(Function(x) x.DataCreazione)
                 End If
-
-
                 'ricerca
                 Try
                     If Not IsNothing(PostedData.search.value) Then
@@ -822,7 +820,7 @@ Namespace Controllers
                         Dim myMail As New MailMessage()
                         mySmtp.UseDefaultCredentials = False
                         mySmtp.Credentials = New System.Net.NetworkCredential("no-reply@euromagroup.com", "yp@4d%p2AFa;")
-                        mySmtp.Host = "oberon.dnshigh.com"
+                        mySmtp.Host = "squirtle.dnshigh.com"
                         myMail = New MailMessage()
                         myMail.From = New MailAddress("no-reply@euromagroup.com")
                         myMail.Attachments.Add(New System.Net.Mail.Attachment(pathTMP))
@@ -957,7 +955,7 @@ Namespace Controllers
                     Dim myMailT As New MailMessage()
                     mySmtpT.UseDefaultCredentials = False
                     mySmtpT.Credentials = New System.Net.NetworkCredential("no-reply@euromagroup.com", "yp@4d%p2AFa;")
-                    mySmtpT.Host = "oberon.dnshigh.com"
+                    mySmtpT.Host = "squirtle.dnshigh.com"
                     myMailT = New MailMessage()
                     myMailT.From = New MailAddress("no-reply@euromagroup.com")
                     myMailT.Attachments.Add(New System.Net.Mail.Attachment(pathTMP))
@@ -993,7 +991,7 @@ Namespace Controllers
                             Dim myMail As New MailMessage()
                             mySmtp.UseDefaultCredentials = False
                             mySmtp.Credentials = New System.Net.NetworkCredential("no-reply@euromagroup.com", "yp@4d%p2AFa;")
-                            mySmtp.Host = "oberon.dnshigh.com"
+                            mySmtp.Host = "squirtle.dnshigh.com"
                             myMail = New MailMessage()
                             myMail.From = New MailAddress("no-reply@euromagroup.com")
                             myMail.Attachments.Add(New System.Net.Mail.Attachment(pathTMP))
@@ -1138,7 +1136,7 @@ Namespace Controllers
                         Dim myMail As New MailMessage()
                         mySmtp.UseDefaultCredentials = False
                         mySmtp.Credentials = New System.Net.NetworkCredential(email.Mittente, password)
-                        mySmtp.Host = "oberon.dnshigh.com"
+                        mySmtp.Host = "squirtle.dnshigh.com"
                         myMail = New MailMessage()
                         myMail.From = New MailAddress(email.Mittente)
                         For Each a In arr_Destinatari
@@ -1537,14 +1535,12 @@ Namespace Controllers
                         Dim UploadedFile As HttpPostedFileBase = Request.Files(i)
                         If UploadedFile IsNot Nothing AndAlso UploadedFile.ContentLength > 0 Then
                             pathTMP = Path.Combine(Server.MapPath("~/Content/upload_UC"), UploadedFile.FileName.ToString.Replace(" ", String.Empty))
-
                             If System.IO.File.Exists(pathTMP) Then
                                 fileSalvati.Add(pathTMP)
                             Else
                                 UploadedFile.SaveAs(pathTMP)
                                 fileSalvati.Add(pathTMP)
                             End If
-
                         End If
                     Catch ex As SystemException
                         db.Log.Add(New Log With {
@@ -1570,7 +1566,7 @@ Namespace Controllers
                     Dim myMail As New MailMessage()
                     mySmtp.UseDefaultCredentials = False
                     mySmtp.Credentials = New System.Net.NetworkCredential("no-reply@euromagroup.com", "yp@4d%p2AFa;")
-                    mySmtp.Host = "oberon.dnshigh.com"
+                    mySmtp.Host = "squirtle.dnshigh.com"
                     myMail = New MailMessage()
                     myMail.From = New MailAddress("no-reply@euromagroup.com")
                     myMail.Attachments.Add(New System.Net.Mail.Attachment(pathTMP))
@@ -1676,11 +1672,11 @@ Namespace Controllers
                         End If
                     Catch ex As SystemException
                         db.Log.Add(New Log With {
-                                                     .Livello = TipoLogLivello.Errors,
-                                                     .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
-                                                     .Messaggio = "Errore: " + ex.Message,
-                                                     .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.Disegno = "errore"}),
-                                                    .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                                                  .Livello = TipoLogLivello.Errors,
+                                                  .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                                  .Messaggio = "Errore: " + ex.Message,
+                                                  .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.Disegno = "errore"}),
+                                                  .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
                                        })
                         db.SaveChanges()
                         Return Json(New With {.ok = False, .message = "Errore: " + ex.Message})
@@ -1691,7 +1687,7 @@ Namespace Controllers
                         Dim myMail As New MailMessage()
                         mySmtp.UseDefaultCredentials = False
                         mySmtp.Credentials = New System.Net.NetworkCredential("no-reply@euromagroup.com", "yp@4d%p2AFa;")
-                        mySmtp.Host = "oberon.dnshigh.com"
+                        mySmtp.Host = "squirtle.dnshigh.com"
                         myMail = New MailMessage()
                         myMail.From = New MailAddress("no-reply@euromagroup.com")
                         If em.Profile.NotificheViaMail Then
@@ -1770,7 +1766,7 @@ Namespace Controllers
                         Dim myMail As New MailMessage()
                         mySmtp.UseDefaultCredentials = False
                         mySmtp.Credentials = New System.Net.NetworkCredential("no-reply@euromagroup.com", "yp@4d%p2AFa;")
-                        mySmtp.Host = "oberon.dnshigh.com"
+                        mySmtp.Host = "squirtle.dnshigh.com"
                         myMail = New MailMessage()
                         myMail.From = New MailAddress("no-reply@euromagroup.com")
                         If em.Profile.NotificheViaMail Then
@@ -1785,7 +1781,6 @@ Namespace Controllers
                             StrContent = StrContent.Replace("[Motivo]", "L'amministratore non ha accettato il file. <br> Causa: " + note + "  ")
                         End Using
                         myMail.Body = StrContent.ToString
-                        'myMail.Body = "Ciao " + OC.OperatoreInsert + ", <br> l'amministratore non ha accettato il file. <br> Causa: " + OC.Note.ToString + " <br><a href='http://euromaweb.com/'>Clicca qui</a>"
                         mySmtp.Send(myMail)
                     End If
                 ElseIf accettazioneUC.Accettato <> OC.Accettato Then
@@ -1802,7 +1797,7 @@ Namespace Controllers
                         Dim myMail As New MailMessage()
                         mySmtp.UseDefaultCredentials = False
                         mySmtp.Credentials = New System.Net.NetworkCredential("no-reply@euromagroup.com", "yp@4d%p2AFa;")
-                        mySmtp.Host = "oberon.dnshigh.com"
+                        mySmtp.Host = "squirtle.dnshigh.com"
                         myMail = New MailMessage()
                         myMail.From = New MailAddress("no-reply@euromagroup.com")
                         myMail.To.Add(em.Email)
@@ -1815,7 +1810,6 @@ Namespace Controllers
                             StrContent = StrContent.Replace("[Motivo]", "E' stato modificato lo stato in un'accettazione. <br> Causa: " + note + "  ")
                         End Using
                         myMail.Body = StrContent.ToString
-                        'myMail.Body = "Ciao " + OC.OperatoreInsert + ", <br> l'amministratore non ha accettato il file. <br> Causa: " + OC.Note.ToString + " <br><a href='http://euromaweb.com/'>Clicca qui</a>"
                         mySmtp.Send(myMail)
                     End If
 
@@ -1834,6 +1828,7 @@ Namespace Controllers
             End Try
 
         End Function
+
         Public Shared Function Decrypter(ByVal Text As String) As String
             Try
                 Dim bytesBuff As Byte() = Convert.FromBase64String(Text)
@@ -1856,8 +1851,6 @@ Namespace Controllers
 
             Return Text
         End Function
-
-
         Public Shared Function TextEncrypt(ByVal Text As String) As String
             Try
                 Dim bytesBuff As Byte() = Encoding.Unicode.GetBytes(Text)
@@ -1879,7 +1872,6 @@ Namespace Controllers
         End Function
         Private Function PartialToString(ByVal viewName As String, ByVal model As Object) As String
             ViewData.Model = model
-
             Using writer As IO.StringWriter = New IO.StringWriter()
                 Dim vResult As ViewEngineResult = ViewEngines.Engines.FindPartialView(ControllerContext, viewName)
                 Dim vContext As ViewContext = New ViewContext(Me.ControllerContext, vResult.View, ViewData, New TempDataDictionary(), writer)
@@ -1893,17 +1885,8 @@ Namespace Controllers
             End If
             MyBase.Dispose(disposing)
         End Sub
-        'Private Function GetNomeOperatore(ByVal id As String) As String
-        '    Try
-        '        If Not IsNothing(id) Then
-        '            Return db..Find(id).UserName
-        '        End If
-        '    Catch ex As SystemException
-
-        '    End Try
-        '    Return vbNullString
-
-        'End Function
 
     End Class
 End Namespace
+
+

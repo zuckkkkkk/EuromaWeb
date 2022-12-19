@@ -60,6 +60,12 @@ Namespace IdentityMigrations
                 manager.Create(role)
             End If
             '=========================================================================ALTRI
+            If Not context.Roles.Any(Function(r) r.Name = "MagazzinoTablet") Then
+                Dim store = New RoleStore(Of IdentityRole)(context)
+                Dim manager = New RoleManager(Of IdentityRole)(store)
+                Dim role = New IdentityRole With {.Name = "MagazzinoTablet"}
+                manager.Create(role)
+            End If
             If Not context.Roles.Any(Function(r) r.Name = "Admin") Then
                 Dim store = New RoleStore(Of IdentityRole)(context)
                 Dim manager = New RoleManager(Of IdentityRole)(store)
@@ -124,6 +130,13 @@ Namespace IdentityMigrations
                 Dim user = New ApplicationUser With {.UserName = "ProgrammazioneInterno"}
                 manager.Create(user, "Euroma.1")
                 manager.AddToRole(user.Id, "ProgrammazioneInterno")
+            End If
+            If Not context.Users.Any(Function(u) u.UserName = "Tablet") Then
+                Dim store = New UserStore(Of ApplicationUser)(context)
+                Dim manager = New UserManager(Of ApplicationUser)(store)
+                Dim user = New ApplicationUser With {.UserName = "Tablet"}
+                manager.Create(user, "Euroma.1")
+                manager.AddToRole(user.Id, "MagazzinoTablet")
             End If
             If Not context.Users.Any(Function(u) u.UserName = "valerio") Then
                 Dim store = New UserStore(Of ApplicationUser)(context)

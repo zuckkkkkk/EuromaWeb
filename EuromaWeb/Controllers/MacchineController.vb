@@ -25,6 +25,8 @@ Namespace Controllers
                 id = db.Macchine.First.Macchina
             End If
             ViewBag.idMacchina = id
+            Dim m = db.Macchine.Where(Function(x) x.Macchina = id).First
+            ViewBag.fotomacchina = m.Path_3d
             Dim lista = db.Macchine.ToList
             ViewBag.listaMacchine = New SelectList(lista, "Macchina", "Macchina")
             Return View()
@@ -33,7 +35,7 @@ Namespace Controllers
         ' GET: Macchine/Details/5
         <HttpPost>
         <Authorize>
-        Function DetailsPost(ByVal id As String) As JsonResult
+        Function DetailsPost(ByVal id As String, Optional datainizio As String = "", Optional datafine As String = "") As JsonResult
             If IsNothing(id) Then
                 Return Json(New With {.ok = False})
             End If
@@ -48,7 +50,19 @@ Namespace Controllers
             Dim ListaDisegni As New List(Of ListaDisegniViewModel)
             Dim ListaRunningTime As New Dictionary(Of String, Integer)
             Dim dataOld = DateTime.Now.AddDays(-7)
-            Dim Lista = db.DatiMacchina.Where(Function(x) x.Macchina = id And x.Data < DateTime.Now And x.Data > dataOld).ToList
+            Dim dataNew = DateTime.Now
+            Try
+                If datainizio <> "" And datainizio <> "undefined" Then
+                    dataOld = Convert.ToDateTime(datainizio.Insert(6, "/").Insert(4, "/"))
+                End If
+                If datafine <> "" And datafine <> "undefined" Then
+                    dataNew = Convert.ToDateTime(datafine.Insert(6, "/").Insert(4, "/"))
+                End If
+            Catch ex As Exception
+
+            End Try
+
+            Dim Lista = db.DatiMacchina.Where(Function(x) x.Macchina = id And x.Data < dataNew And x.Data > dataOld).ToList
             For Each disegno In Lista
                 'Lista Disegni
                 If ListaDisegni.Where(Function(x) x.CodDisegno = disegno.Programma).Count = 0 Then
@@ -95,7 +109,9 @@ Namespace Controllers
                 .DictionaryStato = DictionaryStato,
                 .ListaDisegni = ListaDisegni,
                 .Path3d = macchine.Path_3d,
-                .TempoComplessivo = ListaRunningTime
+                .TempoComplessivo = ListaRunningTime,
+                .DataFine = dataNew.ToString().Split(" ")(0),
+                .DataInizio = dataOld.ToString().Split(" ")(0)
             }
                 Return Json(New With {.ok = True, .data = macchina})
             Catch ex As Exception

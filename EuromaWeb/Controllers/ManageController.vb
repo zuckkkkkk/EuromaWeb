@@ -3,6 +3,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.AspNet.Identity
 Imports Microsoft.AspNet.Identity.Owin
 Imports Microsoft.Owin.Security
+Imports Microsoft.VisualBasic.Devices
 
 <Authorize>
 Public Class ManageController
@@ -180,6 +181,104 @@ Public Class ManageController
         Else
             Return Json(New With {.ok = False, .message = "Errore: Modello dati non valido."})
         End If
+    End Function
+    <Authorize>
+    Function Computer() As ActionResult
+        If User.IsInRole("Admin") Then
+            Dim listPC = db.Computer.ToList
+            Dim FinalListPc As New List(Of ComputerViewModel)
+            For Each pc In listPC
+                Dim attivo = IIf(My.Computer.Network.Ping(pc.IP), 1, 0)
+                Dim pcvm = New ComputerViewModel With {
+                .DescrizionePC = pc.DescrizionePC,
+                .IP = pc.IP,
+                .MAC = pc.MAC,
+                .NomeOperatore = pc.NomeOperatore,
+                .NomePC = pc.NomePC,
+                .Id = pc.Id,
+                .Attivo = attivo
+            }
+                FinalListPc.Add(pcvm)
+            Next
+            Return View(FinalListPc)
+        End If
+        Return View("Index", "Home")
+    End Function
+    Function AddComputer() As ActionResult
+        Return PartialView()
+    End Function
+    Function TurnOffPC(ByVal id As Integer) As JsonResult
+        Try
+            Dim pc = db.Computer.Find(id)
+            Dim myProcess = New System.Diagnostics.Process()
+            myProcess.StartInfo.FileName = "CMD"
+            myProcess.StartInfo.UseShellExecute = False
+            myProcess.StartInfo.RedirectStandardInput = True
+            myProcess.Start()
+            Dim myStreamWriter = myProcess.StandardInput
+            myStreamWriter.WriteLine("shutdown -m \\" + pc.IP + " -s -f")
+            Return Json(New With {.ok = True, .message = "Pc spento correttamente."}, JsonRequestBehavior.AllowGet)
+        Catch ex As Exception
+            Return Json(New With {.ok = False, .message = "Errore: impossibile spegnere il PC."}, JsonRequestBehavior.AllowGet)
+        End Try
+        Return Json(New With {.ok = False, .message = "Errore: impossibile spegnere il PC."}, JsonRequestBehavior.AllowGet)
+    End Function
+    Function TurnOnPC(ByVal id As Integer) As JsonResult
+        Try
+            Dim pc = db.Computer.Find(id)
+            Dim myProcess = New System.Diagnostics.Process()
+            myProcess.StartInfo.FileName = "CMD"
+            myProcess.StartInfo.UseShellExecute = False
+            myProcess.StartInfo.RedirectStandardInput = True
+            myProcess.Start()
+            Dim myStreamWriter = myProcess.StandardInput
+            myStreamWriter.WriteLine("\\srv2k16\D\Azienda\Utenti\Installer_Programmi\WOL\wolcmd.exe " + pc.MAC + " " + pc.IP + " 255.255.255.0")
+            Return Json(New With {.ok = True, .message = "Pc acceso correttamente."}, JsonRequestBehavior.AllowGet)
+        Catch ex As Exception
+            Return Json(New With {.ok = False, .message = "Errore: impossibile accendere il PC."}, JsonRequestBehavior.AllowGet)
+        End Try
+        Return Json(New With {.ok = False, .message = "Errore: impossibile accendere il PC."}, JsonRequestBehavior.AllowGet)
+    End Function
+    <HttpPost()>
+    Function AddComputer(<Bind(Include:="NomePC,MAC,IP,NomeOperatore,DescrizionePC")> ByVal pc As Computer) As ActionResult
+        Dim OpID As String = vbNullString
+        Dim OpName As String = vbNullString
+        Dim CurrentDate As DateTime = Now
+        Try
+            OpID = User.Identity.GetUserId()
+            OpName = User.Identity.GetUserName()
+            If ModelState.IsValid Then
+                db.Computer.Add(New Computer With {
+                    .IP = pc.IP,
+                    .DescrizionePC = pc.DescrizionePC,
+                    .MAC = pc.MAC,
+                    .NomeOperatore = pc.NomeOperatore,
+                    .NomePC = pc.NomePC
+                })
+                db.SaveChanges()
+                db.Audit.Add(New Audit With {
+                    .Livello = TipoAuditLivello.Info,
+                    .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                    .Messaggio = "PC aggiunto correttamente",
+                    .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.PC = pc.NomePC, .OP = pc.NomeOperatore}),
+                    .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                               })
+                db.SaveChanges()
+                Return Json(New With {.ok = True, .message = "Pc correttamente aggiunto."})
+            End If
+            Return Json(New With {.ok = False, .message = "Errore: Modello dati non valido."})
+        Catch ex As Exception
+            db.Log.Add(New Log With {
+                   .Livello = TipoLogLivello.Errors,
+                   .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                   .Messaggio = "Impossibile creare PC",
+                   .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.Subject = pc.NomePC}),
+                   .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+             })
+            db.SaveChanges()
+            Return Json(New With {.ok = False, .message = "Errore: """})
+        End Try
+        Return PartialView()
     End Function
     <HttpPost()>
     <ValidateInput(False)>

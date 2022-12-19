@@ -305,8 +305,6 @@ Namespace Controllers
                 Dim result As New List(Of Object)
                 Dim data As IQueryable(Of OrdiniDiProduzione)
                 data = db.OrdiniDiProduzione.Where(Function(y) y.Accettato = Stato_Ordine_Di_Produzione_Esterno.Completato).OrderBy(Function(x) x.Priorita).OrderBy(Function(y) y.DataRichiestaConsegna)
-
-
                 'ricerca
                 Try
                     If Not IsNothing(PostedData.search.value) Then
@@ -527,7 +525,7 @@ Namespace Controllers
                                 .DT_RowData = New With {.value = Acc.Id},
                                 .DT_RowId = "row_" & Acc.Id,
                                 .Id = Acc.Id,
-                                .OC = Acc.OP.ToString + notificheFile + notificheNote,
+                                .OC = Acc.OP.ToString + "(" + Acc.Articolo + ")" + notificheFile + notificheNote,
                                 .Operatore = Acc.OperatoreInsert,
                                 .StatoProgetto = StatoProgetto,
                                 .Priorita = Priorita,
@@ -570,6 +568,62 @@ Namespace Controllers
                 Dim op = db.OrdiniDiProduzione.Where(Function(x) x.OP = id).First
                 op.Accettato = Stato_Ordine_Di_Produzione_Esterno.Completato_Esterno
                 db.SaveChanges()
+                Try
+                    myConn = New SqlConnection(ConnectionString)
+                    myCmd = myConn.CreateCommand
+                    myCmd.CommandText = "
+                        select ODLMOP00.ODLANN, 
+                        ODLMOP00.ODLSEZ, 
+                        ODLMOP00.ODLNMR, 
+                        ODLTES00.ODLALP, 
+                        ODLPDP, 
+                        ODLPPR, 
+                        ODLFSE, 
+                        OPRDES,
+                        ODLCMC from 
+                        ODLMOP00,
+                        TABOPR00,
+                        ODLTES00 
+                        where ODLMOP00.ODLOPR =  TABOPR00.OPRCO1  
+                        AND ODLMOP00.ODLANN = '" + op.OP.ToString.Split("-")(0) + "' 
+                        AND ODLMOP00.ODLSEZ = '" + op.OP.ToString.Split("-")(1) + "' 
+                        AND ODLMOP00.ODLNMR = '" + op.OP.ToString.Split("-")(2) + "'
+                        AND ODLMOP00.ODLANN = ODLTES00.ODLANN 
+                        AND ODLMOP00.ODLSEZ = ODLTES00.ODLSEZ 
+                        AND ODLMOP00.ODLNMR = ODLTES00.ODLNMR
+                        "
+                    myConn.Open()
+                    Try
+                        myReader = myCmd.ExecuteReader
+                        Do While myReader.Read()
+                            Dim OPCode = myReader.GetString(0).ToString + "-" + myReader.GetString(1).ToString + "-" + myReader.GetDecimal(2).ToString
+                            Dim Fa = myReader.GetDecimal(6)
+                            Dim Art = myReader.GetString(3)
+                            Dim count = db.FasiOC.Where(Function(x) x.OP = OPCode And x.Fase = Fa And x.Articolo = Art).Count
+
+                            If count = 0 Then
+                                db.FasiOC.Add(New FasiOC With {
+                                         .OP = OPCode,
+                                         .Articolo = myReader.GetString(3),
+                                         .Qta_Da_Produrre = myReader.GetDecimal(4),
+                                         .Qta_Prodotta = myReader.GetDecimal(5),
+                                         .Fase = myReader.GetDecimal(6),
+                                         .Descrizione_Fase = myReader.GetString(7),
+                                         .OC = "",
+                                         .Completata = False,
+                                         .Macchina = myReader.GetString(8)
+                                       })
+                                db.SaveChanges()
+                            End If
+                        Loop
+                        myConn.Close()
+
+                        db.SaveChanges()
+                    Catch ex As Exception
+
+                    End Try
+                Catch ex As Exception
+                End Try
                 db.Audit.Add(New Audit With {
                                          .Livello = TipoAuditLivello.Info,
                                          .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
@@ -590,6 +644,81 @@ Namespace Controllers
                 db.SaveChanges()
                 Return Json(New With {.ok = False, .messaggio = "Errore conclusione attività"}, JsonRequestBehavior.AllowGet)
             End Try
+        End Function
+        Function StartFasiOPFrancesco() As JsonResult
+            For Each op In db.OrdiniDiProduzione.ToList
+                Try
+                    myConn = New SqlConnection(ConnectionString)
+                    myCmd = myConn.CreateCommand
+                    myCmd.CommandText = "
+                        select ODLMOP00.ODLANN, 
+                        ODLMOP00.ODLSEZ, 
+                        ODLMOP00.ODLNMR, 
+                        ODLTES00.ODLALP, 
+                        ODLPDP, 
+                        ODLPPR, 
+                        ODLFSE, 
+                        OPRDES,
+                        ODLCMC from 
+                        ODLMOP00,
+                        TABOPR00,
+                        ODLTES00 
+                        where ODLMOP00.ODLOPR =  TABOPR00.OPRCO1  
+                        AND ODLMOP00.ODLANN = '" + op.OP.ToString.Split("-")(0) + "' 
+                        AND ODLMOP00.ODLSEZ = '" + op.OP.ToString.Split("-")(1) + "' 
+                        AND ODLMOP00.ODLNMR = '" + op.OP.ToString.Split("-")(2) + "'
+                        AND ODLMOP00.ODLANN = ODLTES00.ODLANN 
+                        AND ODLMOP00.ODLSEZ = ODLTES00.ODLSEZ 
+                        AND ODLMOP00.ODLNMR = ODLTES00.ODLNMR
+                        "
+                    myConn.Open()
+                    Try
+                        myReader = myCmd.ExecuteReader
+                        Do While myReader.Read()
+                            Dim OPCode = myReader.GetString(0).ToString + "-" + myReader.GetString(1).ToString + "-" + myReader.GetDecimal(2).ToString
+                            Dim Fa = myReader.GetDecimal(6)
+                            Dim Art = myReader.GetString(3)
+                            Dim count = db.FasiOC.Where(Function(x) x.OP = OPCode And x.Fase = Fa And x.Articolo = Art).Count
+
+                            If count = 0 Then
+                                db.FasiOC.Add(New FasiOC With {
+                                         .OP = OPCode,
+                                         .Articolo = myReader.GetString(3),
+                                         .Qta_Da_Produrre = myReader.GetDecimal(4),
+                                         .Qta_Prodotta = myReader.GetDecimal(5),
+                                         .Fase = myReader.GetDecimal(6),
+                                         .Descrizione_Fase = myReader.GetString(7),
+                                         .OC = "",
+                                         .Completata = False,
+                                         .Macchina = myReader.GetString(8)
+                                       })
+                                db.SaveChanges()
+                            End If
+                        Loop
+                        myConn.Close()
+                        db.SaveChanges()
+                    Catch ex As Exception
+                        db.Log.Add(New Log With {
+                   .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .OperatoreID = "", .Operatore = ""},
+                   .Livello = TipoLogLivello.Errors,
+                   .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                   .Messaggio = "Errore fasi OP -> " & ex.Message,
+                   .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.OP = op.OP})
+                   })
+                        db.SaveChanges()
+                    End Try
+                Catch ex As Exception
+                    db.Log.Add(New Log With {
+                   .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .OperatoreID = "", .Operatore = ""},
+                   .Livello = TipoLogLivello.Errors,
+                   .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                   .Messaggio = "Errore fasi OP -> " & ex.Message,
+                   .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.OP = op.OP})
+                   })
+                    db.SaveChanges()
+                End Try
+            Next
+            Return Json(New With {.ok = True, .messaggio = "Attività correttamente salvate per OP"}, JsonRequestBehavior.AllowGet)
         End Function
         ' GET: ProgettiUT
         'DATATABLES
@@ -769,9 +898,9 @@ Namespace Controllers
                         Dim cliente = db.AccettazioneUC.Where(Function(x) x.OC = Acc.OC_Riferimento).First.Cliente
                         Select Case Acc.StatoProgetto
                             Case 0
-                                StatoProgetto = "<div Class='progress-bar bg-danger progress-bar-striped progress-bar-animated' role='progressbar' style='width:  20%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>0%</div>"
+                                StatoProgetto = "<div Class='progress-bar bg-danger progress-bar-striped progress-bar-animated' role='progressbar' style='width:  18%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>0%</div>"
                             Case 5
-                                StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  20%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>5%</div>"
+                                StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  20%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>10%</div>"
                             Case 10
                                 StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  20%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>10%</div>"
                             Case 25
@@ -783,7 +912,7 @@ Namespace Controllers
                             Case 50
                                 StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  50%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>50%</div>"
                             Case 75
-                                StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  50%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>75%</div>"
+                                StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  75%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>75%</div>"
 
                             Case 90
                                 StatoProgetto = "<div Class='progress-bar bg-info progress-bar-striped progress-bar-animated' role='progressbar' style='width:  90%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>90%</div>"
@@ -838,7 +967,8 @@ Namespace Controllers
                                 .StatoProgetto = StatoProgetto,
                                 .Priorita = Priorita,
                                 .Flag_Invio_Materiali = flagInvio,
-                                .DataRichConsegna = Acc.DataRichiestaConsegna.ToString.Split(" ")(0)
+                                .DataRichConsegna = Acc.DataRichiestaConsegna,'.ToString.Split(" ")(0),
+                                .DataInserimento = Convert.ToDateTime(CercaDataInserimento(Acc.OC_Riferimento).ToString.Insert(6, "/").Insert(4, "/"))'.ToString.Split(" ")(0)
                            })
 
                     Catch ex As SystemException
@@ -1043,11 +1173,11 @@ Namespace Controllers
                         Dim cliente = db.AccettazioneUC.Where(Function(x) x.OC = Acc.OC_Riferimento).First.Cliente
                         Select Case Acc.StatoProgetto
                             Case 0
-                                StatoProgetto = "<div Class='progress-bar bg-danger progress-bar-striped progress-bar-animated' role='progressbar' style='width:  20%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>0%</div>"
+                                StatoProgetto = "<div Class='progress-bar bg-danger progress-bar-striped progress-bar-animated' role='progressbar' style='width:  18%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>0%</div>"
                             Case 5
                                 StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  20%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>5%</div>"
                             Case 10
-                                StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  20%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>10%</div>"
+                                StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  23%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>10%</div>"
                             Case 25
                                 StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  25%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>25%</div>"
                             Case 35
@@ -1058,10 +1188,8 @@ Namespace Controllers
                                 StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  50%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>50%</div>"
                             Case 75
                                 StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  50%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>75%</div>"
-
                             Case 90
                                 StatoProgetto = "<div Class='progress-bar bg-info progress-bar-striped progress-bar-animated' role='progressbar' style='width:  90%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>90%</div>"
-
                             Case 100
                                 StatoProgetto = "<div Class='progress-bar bg-success progress-bar-striped progress-bar-animated' role='progressbar' style='width:  100%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>100%</div>"
 
@@ -1102,7 +1230,8 @@ Namespace Controllers
                                 .StatoProgetto = StatoProgetto,
                                 .Priorita = Priorita,
                                 .Flag_Invio_Materiali = flagInvio,
-                                .DataRichConsegna = Acc.DataRichiestaConsegna.ToString.Split(" ")(0)
+                                .DataRichConsegna = Acc.DataRichiestaConsegna,'.ToString.Split(" ")(0),
+                                .DataInserimento = Convert.ToDateTime(CercaDataInserimento(Acc.OC_Riferimento).ToString.Insert(6, "/").Insert(4, "/"))'.ToString.Split(" ")(0)
                            })
 
                     Catch ex As SystemException
@@ -1487,7 +1616,7 @@ Namespace Controllers
                         Dim myMailT As New MailMessage()
                         mySmtpT.UseDefaultCredentials = False
                         mySmtpT.Credentials = New System.Net.NetworkCredential("no-reply@euromagroup.com", "yp@4d%p2AFa;")
-                        mySmtpT.Host = "oberon.dnshigh.com"
+                        mySmtpT.Host = "squirtle.dnshigh.com"
                         myMailT = New MailMessage()
                         myMailT.From = New MailAddress("no-reply@euromagroup.com")
                         'myMailT.Attachments.Add(New System.Net.Mail.Attachment(Cliente.File))
@@ -2027,12 +2156,41 @@ Namespace Controllers
             Select Case Column
                 Case Nothing : Return Function(x) x.Priorita
                 Case 1 : Return Function(x) x.Priorita
-                Case 2 : Return Function(x) x.DataRichiestaConsegna
-                Case 3 : Return Function(x) x.OC_Riferimento
-                Case 4 : Return Function(x) x.Operatore
-                Case 5 : Return Function(x) x.StatoProgetto
+                Case 3 : Return Function(x) x.DataRichiestaConsegna
+                Case 4 : Return Function(x) x.OC_Riferimento
+                Case 5 : Return Function(x) x.Operatore
+                Case 6 : Return Function(x) x.StatoProgetto
                 Case Else : Return Function(x) x.DataRichiestaConsegna
             End Select
+        End Function
+        Private Function CercaDataInserimento(OC As String)
+            Dim SplittedOC = OC.Split("-")
+            Dim data
+            myConn = New SqlConnection(ConnectionString)
+            myCmd = myConn.CreateCommand
+            myCmd.CommandText = "select ORCDDCREV from ORCTES00 where ESECOD = '" + SplittedOC(0).ToString + "' and ORCTSZ ='" + SplittedOC(1).ToString + "' and ORCTNR = '" + SplittedOC(2).ToString + "'"
+            myConn.Open()
+            Dim OpID As String = vbNullString
+            Dim OpName As String = vbNullString
+            Try
+                OpID = User.Identity.GetUserId()
+                OpName = User.Identity.GetUserName()
+                myReader = myCmd.ExecuteReader
+                Do While myReader.Read()
+                    data = myReader.GetDecimal(0)
+                Loop
+                myConn.Close()
+                Return data
+            Catch ex As SystemException
+                db.Log.Add(New Log With {
+                                          .Livello = TipoLogLivello.Errors,
+                                          .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                          .Messaggio = "Errore: " + ex.Message,
+                                          .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.SendToUT = "errore"}),
+                                         .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                            })
+                db.SaveChanges()
+            End Try
         End Function
         Private Function MakeWhereExpressionEsterno(Search As String) As Expressions.Expression(Of Func(Of OrdiniDiProduzione, Boolean))
             Return Function(x) x.OP.Contains(Search) Or
@@ -2041,11 +2199,11 @@ Namespace Controllers
         Private Function MakeOrderExpressionEsterno(Column As Integer) As Expressions.Expression(Of Func(Of OrdiniDiProduzione, String))
             Select Case Column
                 Case Nothing : Return Function(x) x.Priorita
-                Case 1 : Return Function(x) x.Priorita
-                Case 2 : Return Function(x) x.DataRichiestaConsegna
-                Case 3 : Return Function(x) x.OP
-                Case 4 : Return Function(x) x.OperatoreInsert
-                Case 5 : Return Function(x) x.Accettato
+                Case 0 : Return Function(x) x.Priorita
+                Case 1 : Return Function(x) x.DataRichiestaConsegna
+                Case 2 : Return Function(x) x.OP
+                Case 3 : Return Function(x) x.OperatoreInsert
+                Case 4 : Return Function(x) x.Accettato
                 Case Else : Return Function(x) x.DataRichiestaConsegna
             End Select
         End Function

@@ -147,7 +147,7 @@ Namespace Controllers
                     Dim myMail As New MailMessage()
                     mySmtp.UseDefaultCredentials = False
                     mySmtp.Credentials = New System.Net.NetworkCredential("no-reply@euromagroup.com", "yp@4d%p2AFa;")
-                    mySmtp.Host = "oberon.dnshigh.com"
+                    mySmtp.Host = "squirtle.dnshigh.com"
                     myMail = New MailMessage()
                     myMail.From = New MailAddress("no-reply@euromagroup.com")
                     myMail.To.Add("m.zucchini@euromagroup.com")

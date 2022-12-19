@@ -19,6 +19,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.4/umd/popper.min.js" integrity="sha512-+Tn2V/oN9O/kiaJg/1o5bETqyS35pMDJzkhkf8uvCzxmRox69AsWkSpBSMEGEe4EZp07Nunw712J3Xvh5Tti0w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-darkmode@0.9.1/css/darktheme.css" />
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="~/Scripts/css/DatePicker_A.css">
     <link rel="stylesheet" href="~/Content/jtimeline.css">
@@ -29,6 +30,7 @@
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/fcmam5/nightly.js@v1.0/dist/nightly.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.15.2/js/selectize.min.js" integrity="sha512-IOebNkvA/HZjMM7MxL0NYeLYEalloZ8ckak+NDtOViP7oiYzG5vn6WVXyrJDiJPhl4yRdmNAG49iuLmhkUdVsQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     @*<script src="~/Scripts/jquery.fn.gantt.js"></script>*@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js" integrity="sha512-HyGTvFEibBWxuZkDsE2wmy0VQ0JRirYgGieHp0pUmmwyrcFkAbn55kZrSXzCgKga04SIti5jZQVjbTSzFpzMlg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css" integrity="sha512-57KPd8WI3U+HC1LxsxWPL2NKbW82g0BH+0PuktNNSgY1E50mnIc0F0cmWxdnvrWx09l8+PU2Kj+Vz33I+0WApw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -46,8 +48,8 @@
         background-color: lightgray;
         transition: .2s linear;
     }
-    .darkmode--activated *{
-        color:white!important;
+    .darkmode--activated * {
+        color: white !important;
     }
     .darkmode-layer, .darkmode-toggle {
         z-index: 500;
@@ -149,7 +151,19 @@
     .openBtn:hover {
         background: #bbb;
     }
-
+    #agenti-selectized:focus-visible, #clienti-selectized:focus-visible {
+        outline: none !important;
+    }
+    .selectize-dropdown{
+        border: none!important; 
+    }
+    #agenti-selectized, #clienti-selectized {
+        border: none !important;
+    }
+    .selectize-dropdown{
+        height:250px;
+        overflow: scroll!important;
+    }
     .overlay {
         height: 100%;
         width: 100%;
@@ -265,12 +279,29 @@
                 /*when hovering an item:*/
                 background-color: #e9e9e9;
             }
-
+    .swal2-overflow {
+        overflow-x: visible;
+        overflow-y: visible;
+    }
+    .swal2-html-container{
+        overflow: visible!important;
+        z-index:100!important;
+    }
     .autocomplete {
         /*the container must be positioned relative:*/
         position: relative;
         display: inline-block;
         width: 100%;
+    }
+    #Change_Date {
+        border-radius: 100px !important;
+        height: 37px !important;
+        width: 37px !important;
+        position: fixed;
+        right: 32px;
+        bottom: 60px;
+        overflow: hidden;
+        padding: 6px !important;
     }
     #Hide_Navbar {
         border-radius: 100px !important;
@@ -328,136 +359,152 @@
     }
 </style>
 <body class="d-flex flex-column min-vh-100" style="overflow-x:hidden;">
-    
-    @If User.Identity.IsAuthenticated Then
+    <script src="https://unpkg.com/bootstrap-darkmode@0.9.1/bundles/bootstrap-darkmode.umd.js"></script>
+    <script>
+        //const bootstrapDarkmode = window['bootstrap-darkmode'];
+        //const ThemeConfig = bootstrapDarkmode.ThemeConfig;
+        //const writeDarkSwitch = bootstrapDarkmode.writeDarkSwitch;
+        //const themeConfig = new ThemeConfig();
+        //// place customizations here
+        //themeConfig.initTheme();
+        //const darkSwitch = writeDarkSwitch(themeConfig);
+    </script>
+    @If User.Identity.IsAuthenticated And Not User.IsInRole("MagazzinoTablet") Then
         @<nav class="navbar navbar-expand-lg navbar-dark bg-dark" style="padding: 0!important;">
-             <div class="container-fluid">
-                 <a class="navbar-brand" href="@Url.Action("Index", "Home")"><img src="~/Asset/img/euromagroup-logo-negativo.svg" height="50" /></a>
-                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                     <span class="navbar-toggler-icon"></span>
-                 </button>
-                 <div class="collapse navbar-collapse" id="navbarNav">
-                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                         <!-- Ufficio Commerciale -->
-                         @If User.IsInRole("Admin") Or User.IsInRole("Commerciale_Admin") Or User.IsInRole("Commerciale_Utente") Or User.IsInRole("Commerciale") Then
-                             @<li Class="nav-item">
-                                 <a Class="nav-link" href="@Url.Action("Index", "AccettazioneUC", New With {.id = 1})"> Commerciale</a>
-                             </li>
-                         End If
-                         <!-- Ufficio Tecnico -->
-                         @If User.IsInRole("TecnicoVisualizzazione") Or User.IsInRole("Admin") Or User.IsInRole("TecnicoAdmin") Or User.IsInRole("Tecnico") Or User.IsInRole("ProgrammazioneEsterno") Or User.IsInRole("ProgrammazioneInterno") Then
-                             @<li Class="nav-item">
-                                 <a Class="nav-link" href="@Url.Action("Index", "ProgettiUT", New With {.id = 1})"> Tecnico</a>
-                             </li>
-                         End If
-                         @If User.IsInRole("Admin") Or User.IsInRole("ProduzioneController") Or User.IsInRole("Produzione") Then
-                             @<li Class="nav-item">
-                                 <a Class="nav-link" href="@Url.Action("Index", "ProgettiProd", New With {.id = 1})"> Produzione</a>
-                             </li>
-                         End If
-                         @If User.IsInRole("Admin") Or User.IsInRole("Magazzino") Then
-                             @<li Class="nav-item">
-                                 <a Class="nav-link" href="@Url.Action("Schedulatore", "ProgettiProd")"> Gestione</a>
-                             </li>
-                         End If
-                         @If User.IsInRole("Admin") Then
-                             @<li Class="nav-item">
-                                 <a Class="nav-link" href="@Url.Action("Index", "Macchine")"> Macchine</a>
-                             </li>
-                         End If
-                         <!-- Analisi Costi -->
-                         @If User.IsInRole("Admin") Or User.IsInRole("Commerciale_Admin") Or User.IsInRole("ProduzioneController") Or User.IsInRole("Produzione") Or User.IsInRole("Tecnico") Or User.IsInRole("TecnicoAdmin") Then
-                             @<li Class="nav-item dropdown">
-                                 <a href="@Url.Action("Index", "Pezzi")" Class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Utilities</a>
+            <div class="container-fluid">
+                <a class="navbar-brand" href="@Url.Action("Index", "Home")"><img src="~/Asset/img/euromagroup-logo-negativo.svg" height="50" /></a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <!-- Ufficio Commerciale -->
+                        @If User.IsInRole("Admin") Or User.IsInRole("Commerciale_Admin") Or User.IsInRole("Commerciale_Utente") Or User.IsInRole("Commerciale") Then
+                            @<li Class="nav-item">
+                                <a Class="nav-link" href="@Url.Action("Index", "AccettazioneUC", New With {.id = 1})"> Commerciale</a>
+                            </li>
+                        End If
+                        <!-- Ufficio Tecnico -->
+                        @If User.IsInRole("TecnicoVisualizzazione") Or User.IsInRole("Admin") Or User.IsInRole("TecnicoAdmin") Or User.IsInRole("Tecnico") Or User.IsInRole("ProgrammazioneEsterno") Or User.IsInRole("ProgrammazioneInterno") Then
+                            @<li Class="nav-item">
+                                <a Class="nav-link" href="@Url.Action("Index", "ProgettiUT", New With {.id = 1})"> Tecnico</a>
+                            </li>
+                        End If
+                        @If User.IsInRole("Admin") Or User.IsInRole("ProduzioneController") Or User.IsInRole("Produzione") Then
+                            @<li Class="nav-item">
+                                <a Class="nav-link" href="@Url.Action("Index", "ProgettiProd", New With {.id = 1})"> Produzione</a>
+                            </li>
+                        End If
+                        @If User.IsInRole("Admin") Or User.IsInRole("Magazzino") Then
+                            @<li Class="nav-item">
+                                <a Class="nav-link" href="@Url.Action("Schedulatore", "ProgettiProd")"> Gestione</a>
+                            </li>
+                        End If
+                        @If User.IsInRole("Admin") Then
+                            @<li Class="nav-item">
+                                <a Class="nav-link" href="@Url.Action("Index", "Macchine")"> Macchine</a>
+                            </li>
+                        End If
+                        <!-- Analisi Costi -->
+                        @If User.IsInRole("Admin") Or User.IsInRole("Commerciale_Admin") Or User.IsInRole("ProduzioneController") Or User.IsInRole("Produzione") Or User.IsInRole("Tecnico") Or User.IsInRole("TecnicoAdmin") Then
+                            @<li Class="nav-item dropdown">
+                                <a href="@Url.Action("Index", "Pezzi")" Class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Utilities</a>
 
-                                 <ul Class="dropdown-menu">
-                                     <li>
-                                         @If User.IsInRole("Produzione") Or User.IsInRole("ProduzioneController") Then
-                                             @<button Class="btn  w-auto" onclick="SearchLotto()" style="box-shadow:none!important;">
-                                                 Ricerca Lotti
-                                             </button>
-                                             @<a href="@Url.Action("Index", "Pezzi")" Class="dropdown-item">Articoli</a>
-                                             @<a href="@Url.Action("Index", "ChangeLog")" Class="dropdown-item">Changelog</a>
-                                             @<a href="@Url.Action("LavorazioniEsterne", "Acquisti", New With {.id = 1})" Class="dropdown-item">C/O</a>
-                                             @<a href="@Url.Action("GestioneMagazzino", "Overviews", New With {.id = 1})" Class="dropdown-item">Magazzino 60</a>
-                                             @<a href="@Url.Action("GestioneMagazzino", "Overviews", New With {.id = 2})" Class="dropdown-item">Magazzino 70</a>
+                                <ul Class="dropdown-menu">
+                                    <li>
+                                        @If User.IsInRole("Produzione") Or User.IsInRole("ProduzioneController") Then
+                                            @<button Class="btn  w-auto" onclick="SearchLotto()" style="box-shadow:none!important;">
+                                                Ricerca Lotti
+                                            </button>
+                                            @<a href="@Url.Action("Index", "Pezzi")" Class="dropdown-item">Articoli</a>
+                                            @<a href="@Url.Action("Index", "ChangeLog")" Class="dropdown-item">Changelog</a>
+                                            @<a href="@Url.Action("LavorazioniEsterne", "Acquisti", New With {.id = 1})" Class="dropdown-item">C/O</a>
+                                            @<a href="@Url.Action("Opera", "Overviews")" Class="dropdown-item">Analisi Opera</a>
+                                            @<a href="@Url.Action("GestioneMagazzino", "Overviews", New With {.id = 1})" Class="dropdown-item">Magazzino 60</a>
+                                            @<a href="@Url.Action("GestioneMagazzino", "Overviews", New With {.id = 2})" Class="dropdown-item">Magazzino 70</a>
 
-                                         ElseIf User.IsInRole("Admin") Or User.IsInRole("TecnicoAdmin") Then
-                                             @<a href="@Url.Action("Index", "Pezzi")" Class="dropdown-item">Costi</a>
-                                             @<a href="@Url.Action("GestioneMagazzino", "Overviews", New With {.id = 1})" Class="dropdown-item">Magazzino 60</a>
-                                             @<a href="@Url.Action("GestioneMagazzino", "Overviews", New With {.id = 2})" Class="dropdown-item">Magazzino 70</a>
-                                         ElseIf User.IsInRole("GestioneLicenze") Or User.IsInRole("Admin") Then
-                                             @<a href="@Url.Action("GestioneUtenti", "Manage")" Class="dropdown-item">Utenti</a>
-                                         End If
-                                     </li>
-                                     <li>
-                                         @If User.IsInRole("Admin") Then
-                                             @<a href="@Url.Action("LavorazioniEsterne", "Acquisti", New With {.id = 1})" Class="dropdown-item">C/O</a>
-                                             @<a href="@Url.Action("Index", "ChangeLog")" Class="dropdown-item">Changelog</a>
-                                             @<button data-type="downloadFatturato" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
-                                                 Fatturato
-                                             </button>
-                                             @<button data-type="downloadOrdinato" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
-                                                 Ordinato
-                                             </button>
-                                             @<button data-type="downloadCompOrdinato" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
-                                                 Prev. Ordinato
-                                             </button>
-                                         End If
-                                     </li>
-                                     <li>
+                                        ElseIf User.IsInRole("Admin") Or User.IsInRole("TecnicoAdmin") Then
+                                            @<a href="@Url.Action("Index", "Pezzi")" Class="dropdown-item">Costi</a>
+                                            @<a href="@Url.Action("GestioneMagazzino", "Overviews", New With {.id = 1})" Class="dropdown-item">Magazzino 60</a>
+                                            @<a href="@Url.Action("GestioneMagazzino", "Overviews", New With {.id = 2})" Class="dropdown-item">Magazzino 70</a>
+                                        ElseIf User.IsInRole("GestioneLicenze") Or User.IsInRole("Admin") Then
+                                            @<a href="@Url.Action("GestioneUtenti", "Manage")" Class="dropdown-item">Utenti</a>
+                                        End If
+                                    </li>
+                                    <li>
+                                        @If User.IsInRole("Admin") Then
+                                            @<a href="@Url.Action("LavorazioniEsterne", "Acquisti", New With {.id = 1})" Class="dropdown-item">C/O</a>
+                                            @<a href="@Url.Action("Index", "ChangeLog")" Class="dropdown-item">Changelog</a>
+                                            @<button data-type="downloadFatturato" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
+                                                Fatturato
+                                            </button>
+                                            @<button data-type="downloadOrdinato" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
+                                                Ordinato
+                                            </button>
+                                            @<button data-type="downloadCompOrdinato" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
+                                                Prev. Ordinato
+                                            </button>
+                                        End If
+                                    </li>
+                                    <li>
+                                        @If User.IsInRole("Tecnico") Then
+                                            @<button data-type="analisiGleason" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
+                                                Gleason
+                                            </button>
+                                        End If
+                                    </li>
+                                    <li>
+                                        @If User.IsInRole("Commerciale_Admin") Then
+                                            @<button data-type="downloadPriorita" Class="btn  w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                                OC Priorita
+                                            </button>
+                                            @<button data-type="downloadCompOrdinato" Class="btn  w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                                Prev. Ordinato
+                                            </button>
+                                            @<a href="@Url.Action("Index", "ChangeLog")" Class="dropdown-item">Changelog</a>
+                                        End If
+                                        @If User.IsInRole("Tecnico") Or User.IsInRole("TecnicoAdmin") Then
+                                            @<a href="@Url.Action("Index", "ChangeLog")" Class="dropdown-item">Changelog</a>
+                                        End If
+                                    </li>
 
-                                         @If User.IsInRole("Commerciale_Admin") Then
-                                             @<button data-type="downloadPriorita" Class="btn  w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                                                 OC Priorita
-                                             </button>
-                                             @<button data-type="downloadCompOrdinato" Class="btn  w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                                                 Prev. Ordinato
-                                             </button>
-                                             @<a href="@Url.Action("Index", "ChangeLog")" Class="dropdown-item">Changelog</a>
-                                         End If
-                                         @If User.IsInRole("Tecnico") Or User.IsInRole("TecnicoAdmin") Then
-                                             @<a href="@Url.Action("Index", "ChangeLog")" Class="dropdown-item">Changelog</a>
-                                         End If
-                                     </li>
+                                </ul>
+                            </li>
+                        End If
 
-                                 </ul>
-                             </li>
-                         End If
+                        <li Class="nav-item">
+                            <a Class="nav-link" href="@Url.Action("Index", "HelpDesks")">Ticket</a>
+                        </li>
+                        <li Class="nav-item">
 
-                         <li Class="nav-item">
-                             <a Class="nav-link" href="@Url.Action("Index", "HelpDesks")">Ticket</a>
-                         </li>
-                         <li Class="nav-item">
-                            
-                         </li>
-                     </ul>
-                     @If Not User.IsInRole("ProgrammazioneEsterno") Then
-                         @<div Class="d-flex" style="margin: 0!important;">
-                              <div id="btn_notifiche"style="position: relative;">
-                                  <btn Class="nav-link" style="display: flex; height: 100%; align-items: center;" href="@Url.Action("Index", "HelpDesks")">
-                                      <button type="button" class="btn position-relative" style="color: white;">
-                                          <i class="fa-solid fa-bell">
-                                          </i>
-                                          <span id="conteggioNotifiche"class="position-absolute top-0 start-100 translate-middle badge rounded-pill">
-                                          </span>
-                                      </button>
-                                  </btn>
-                                  
-                              </div>
-                     
+                        </li>
+                    </ul>
+                    @If Not User.IsInRole("ProgrammazioneEsterno") Then
+                        @<div Class="d-flex" style="margin: 0!important;">
+                            <div id="btn_notifiche" style="position: relative;">
+                                <btn Class="nav-link" style="display: flex; height: 100%; align-items: center;" href="@Url.Action("Index", "HelpDesks")">
+                                    <button type="button" class="btn position-relative" style="color: white;">
+                                        <i class="fa-solid fa-bell">
+                                        </i>
+                                        <span id="conteggioNotifiche" class="position-absolute top-0 start-100 translate-middle badge rounded-pill">
+                                        </span>
+                                    </button>
+                                </btn>
+
+                            </div>
+
                             <input id="RicercaOC" Class="form-control me-2" type="search" placeholder="2022-OC-1234" aria-label="Search">
                             <Button id="btnRicercaOC" Class="btn btn-outline-success" type="submit">Cerca</Button>
                         </div>
-                     End If
+                    End If
 
-                     <Span Class="navbar-text">
+                    <Span Class="navbar-text">
 
-                         @Html.Partial("_LoginPartial")
-                     </Span>
-                 </div>
-                
-             </div>
+                        @Html.Partial("_LoginPartial")
+                    </Span>
+                </div>
+
+            </div>
         </nav>
 
     End If
@@ -469,6 +516,8 @@
     </div>
 
     <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.11.3/af-2.3.7/b-2.0.1/cr-1.5.5/date-1.1.1/fc-4.0.1/fh-3.2.0/sb-1.3.0/datatables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://editor.datatables.net/extensions/Editor/js/dataTables.editor.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/1.4.0/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/1.4.0/js/buttons.flash.min.js"></script>
@@ -492,28 +541,12 @@
     <script src="~/Scripts/Cleave.js"></script>
 
     @RenderSection("scripts", required:=False)
-<script defer>
+    <script defer>
     $('body').on('click', function (e) {
         if ($(".notifiche").length > 0) {
             $(".notifiche").remove();
         }
     });
-
-    //const options = {
-    //    bottom: '32px', // default: '32px'
-    //    right: '32px', // default: '32px'
-    //    left: 'unset', // default: 'unset'
-    //    time: '0.5s', // default: '0.3s'
-    //    mixColor: '#fff', // default: '#fff'
-    //    backgroundColor: '#fff',  // default: '#fff'
-    //    buttonColorDark: '#100f2c',  // default: '#100f2c'
-    //    buttonColorLight: '#fff', // default: '#fff'
-    //    saveInCookies: true, // default: true,
-    //    label: '🌓', // default: ''
-    //    autoMatchOsTheme: true // default: true
-    //}
-    //const darkmode = new Darkmode(options);
-    //darkmode.showWidget();
     updateNots();
         setInterval(updateNots, 5000);
         function updateNots() {
@@ -664,6 +697,7 @@
         var endpoint = '/Pezzi/Fatturato?datetime=';
         var endpointComplessivoOrdinato = '/Pezzi/ComplessivoOrdinatoCalcolo?datetime=';
         var endpointOrdinato = '/Pezzi/Ordinato?datetime=';
+        var endpointGleason= '/Pezzi/Gleason?';
         var endpointCommessa = '/Pezzi/Commessa?OP=';
         var endpointPriorita = '/Pezzi/OrdiniPerImportanza?datetime=';
         var isChildOpen = false;
@@ -681,7 +715,23 @@
         function closeSearch() {
             document.getElementById("myOverlay").style.display = "none";
         }
-    $(document).ready(function () {
+        $(document).ready(function () {
+            //const options = {
+            //    bottom: '32px', // default: '32px'
+            //    right: '32px', // default: '32px'
+            //    left: 'unset', // default: 'unset'
+            //    time: '0.5s', // default: '0.3s'
+            //    mixColor: '#fff', // default: '#fff'
+            //    backgroundColor: '#fff',  // default: '#fff'
+            //    buttonColorDark: '#100f2c',  // default: '#100f2c'
+            //    buttonColorLight: '#fff', // default: '#fff'
+            //    saveInCookies: true, // default: true,
+            //    label: '🌓', // default: ''
+            //    autoMatchOsTheme: true // default: true
+            //}
+
+            //const darkmode = new Darkmode(options);
+            //darkmode.showWidget();
         //function addDarkmodeWidget() {
         //    new Darkmode().showWidget();
         //}
@@ -730,16 +780,33 @@
     $('body').on('click', '#BtnDownloadDiretto', function (e) {
         var d = $('#NomeDisegno').val();
         d = d.replace(".", "_-_");
-        var type = $(this).data('value');
-        window.location = '/Home/DownloadDiretto/'+ d.toString();
+        if (d == "") {
+            Swal.fire({
+                icon: 'error',
+                title: 'Attento!',
+                text: 'Per effettuare la ricerca di un disegno, inserisci un criterio di ricerca (che sia il codice del disegno o il cliente).'
+            });
+        } else {
+            var type = $(this).data('value');
+            window.location = '/Home/DownloadDiretto/' + d.toString();
+        }
+    });
+    $('body').on('click', '#BtnDownloadDirettoEuroma', function (e) {
+        var d = $('#NomeDisegno').val();
+        d = d.replace(".", "_-_");
+        if (d == "") {
+            Swal.fire({
+                icon: 'error',
+                title: 'Attento!',
+                text: 'Per effettuare la ricerca di un disegno, inserisci un criterio di ricerca (che sia il codice del disegno o il cliente).'
+            });
+        } else {
+            var type = $(this).data('value');
+
+            window.open('http://192.168.100.50:120/?search=' + d.toString());
+        }
     });
 
-        //$('#btnRicercaOC').on('click', function (e) {
-        //    console.log("active");
-        //var d = $('#RicercaOC').val();
-        //    console.log(d);
-        //    window.location = '/Overviews/Ordine/' + d.toString();
-        //});
     async function SearchLotto() {
         const { value: text } = await Swal.fire({
             input: 'text',
@@ -900,6 +967,7 @@
                 columns: [
                     { data: null, orderable: true, class: "details-control", defaultContent: '<i class="fas fa-plus-circle"></i>' },
                     { data: "Priorita", orderable: true },
+                    { data: "DataInserimento", orderable: true },
                     { data: "DataRichConsegna", orderable: true },
                     { data: "OC", orderable: true },
                     { data: "Operatore", orderable: true},
@@ -911,6 +979,21 @@
                        "searchable": true
                    }
             ],
+            "columnDefs": [{
+                "targets": [2, 3],    // column index, 0 is the first column
+                "type": "date",
+                "render": function (data) {
+                    // US English uses month-day-year order
+                    if (data != null) {
+                        console.log(data)
+                        var cc = data.replace("/", "").replace("(", "").replace(")", "").replace("/", "").replace("Date", "");
+                        var date = new Date(parseInt(cc));
+                        console.log(date);
+                        return date.toLocaleDateString('it-IT'); // 4/25/2018
+                    }
+                    return '';
+                }
+            }],
                select: {
                    targets: 0,
                    data: null,
@@ -1173,7 +1256,6 @@
             window.location = '/Home/RicercaDisegni/' + type + "+" + d.toString();
         }
     });
-    var DisegniMacchina = $("#DisegniMacchinaTable").DataTable();
     function ChangeComplessivo(id, macchina) {
         $.ajax({
         url: '/Macchine/DetailsPostComplessivo?id=' + id + "&macchina=" + macchina,
@@ -1327,11 +1409,9 @@
                             $.notify({ message: result.message }, { type: 'success' });
                             window.location.reload();
                         }
-                        else {
                             console.log(result);
                             $.notify({ message: result.message }, { type: 'danger' });
-                        }
-                    },
+                        },
                     error: function (result) {
                         console.log(result);
                         $.notify({ message: result.message }, { type: 'danger' });
@@ -1495,6 +1575,17 @@
                     $(this).find('.SaveClose').hide();
                     $(this).find('.modal-body').html('').load('/Pezzi/PrioritaPage/');
                     break;
+                    
+                case 'analisiGleason':
+                    $(this).find('.modal-title').removeClass('text-danger').html('Analisi Gleason');
+                    $(this).data('reload', false);
+                    $(this).find('.Send').hide();
+                    $(this).find('.Add').hide();
+                    $(this).find('.Delete').hide();
+                    $(this).find('.Save').hide();
+                    $(this).find('.SaveClose').hide();
+                    $(this).find('.modal-body').html('').load('/Pezzi/AnalisiGleason/');
+                    break;
                 case 'downloadOrdinato':
                     $(this).find('.modal-title').removeClass('text-danger').html('Scarica Ordinato');
                     $(this).data('reload', false);
@@ -1525,6 +1616,16 @@
                     $(this).find('.SaveClose').hide();
                     $(this).find('.modal-body').html('').load('/AccettazioneUC/Create', function () {
                     });
+                    break;
+                case 'add_computer':
+                    $(this).find('.modal-title').removeClass('text-danger').html('Aggiungi PC');
+                    $(this).data('reload', true);
+                    $(this).find('.Send').hide();
+                    $(this).find('.Add').show();
+                    $(this).find('.Delete').hide();
+                    $(this).find('.Save').hide();
+                    $(this).find('.SaveClose').hide();
+                    $(this).find('.modal-body').html('').load('/Manage/AddComputer/');
                     break;
                 case 'add_articolo_magazzion':
                     $(this).find('.modal-title').removeClass('text-danger').html('Aggiungi Articolo');
@@ -2105,7 +2206,7 @@
                                 }
             });
     $(document).ready(function () {
-
+     
             /* Plugin API method to determine is a column is sortable */
             $.fn.dataTable.Api.register('column().searchable()', function () {
                 var ctx = this.context[0];
@@ -2205,17 +2306,30 @@
                 columns: [
                     { data: null, orderable: false, class: "details-control", defaultContent: '<i class="fas fa-plus-circle"></i>' },
                     { data: "Priorita", orderable: true },
+                    { data: "DataInserimento", orderable: true },
                     { data: "DataRichConsegna", orderable: true },
                     { data: "OC", orderable: true },
                     { data: "Operatore", orderable: true},
                     { data: "StatoProgetto", searchable: true}
-               ],
+            ],
                "columnDefs": [
                    {
                        "targets": [0,3],
-                       "searchable": true
+                       "searchable": true,
+                       "type": "num-html"
                    }
             ],
+            "columnDefs": [{
+                "targets": [2,3],    // column index, 0 is the first column
+                "type": "date",
+                "render": function (data) {
+                    // US English uses month-day-year order
+                    var cc = data.replace("/", "").replace("(", "").replace(")", "").replace("/", "").replace("Date", "");
+                    var date = new Date(parseInt(cc));
+                    console.log(date);
+                    return date.toLocaleDateString('it-IT'); // 4/25/2018
+                }
+            }],
                select: {
                    targets: 0,
                    data: null,
@@ -2901,6 +3015,30 @@
         $(".loader").hide();
 
     });
+        function turnoff(id) {
+            $.ajax({
+                method: "GET",
+                url: "/Manage/TurnOffPC/"+id,
+                success: function (data) {
+                    $.notify({ message: data.message }, { type: 'success' });
+                },
+                error: function (error_data) {
+                    $.notify({ message: error_data.message }, { type: 'error' });
+                }
+            });
+        }
+        function turnon(id) {
+            $.ajax({
+                method: "GET",
+                url: "/Manage/TurnOnPC/" + id,
+                success: function (data) {
+                    $.notify({ message: data.message }, { type: 'success' });
+                },
+                error: function (error_data) {
+                    $.notify({ message: error_data.message }, { type: 'error' });
+                }
+            });
+        }
     $('body').on('click', '#SearchComplessivoOrdinato', function (e) {
         $(".loader").show();
         var start = $("#StartDate")[0].value;
@@ -2952,12 +3090,42 @@
             $(".loader").show();
             var start = $("#StartDate")[0].value;
             var end = $("#EndDate")[0].value;
-            var selected = $('input[name=Opzioni_OT_OC]:checked').val()
-            console.log(endpointOrdinato + start + "-" + end);
-            window.open(endpointOrdinato + start + "-" + end + '&selected=' + selected, '_blank').focus();
+            var agente = $('#agenti :selected').val();
+            var cliente = $('#clienti :selected').val();
+            window.open(endpointOrdinato + start + "-" + end + '&agente=' + agente + '&cliente=' + cliente, '_blank').focus();
             $(".loader").hide();
 
     });
+        $('body').on('click', '#CalcolaGleason', function (e) {
+            $(".loader").show();
+            var Angolo = $("#Angolo")[0].value;
+            var Modulo = $("#Modulo")[0].value;
+            var DentiPign = $("#DentiPign")[0].value;
+            var DentiCor = $("#DentiCor")[0].value;
+            var Senso = $("#Senso")[0].value;
+            var PosNeg = $("#PosNeg")[0].value;
+            console.log(PosNeg)
+            var link = endpointGleason + "AQ=" + Angolo + "&MQ=" + Modulo + "&Z1Q=" + DentiPign + "&Z2Q=" + DentiCor + "&S=" + Senso + "&Pos=" +PosNeg
+            console.log(link);
+            $.ajax({
+                method: "GET",
+                url: link,
+                success: function (data) {
+                    $.notify({ message: data.message }, { type: 'success' });
+                    console.log(data)
+                    $("#RisultatoTablePignone").empty();
+                    $("#RisultatoTableCorona").empty();
+                    $("#RisultatoTablePignone").append("<h2>Tabella Pignone</h2>")
+                    $("#RisultatoTablePignone").append(data.tablePignone)
+                    $("#RisultatoTableCorona").append("<h2>Tabella Corona</h2>")
+                    $("#RisultatoTableCorona").append(data.tableCoron)
+                },
+                error: function (error_data) {
+                    $.notify({ message: error_data.message }, { type: 'error' });
+                }
+            });
+            $(".loader").hide();
+        });
     $('body').on('click', '#SearchPriorita', function (e) {
         $(".loader").show();
         var start = $("#StartDate")[0].value;
@@ -3261,25 +3429,6 @@
             }
         });
     }
-    function ModificaArticolo(id) {
-
-        Swal.fire({
-            title: 'Modifica articolo',
-            icon: 'info',
-            html:'',
-            showCloseButton: true,
-            showCancelButton: true,
-            focusConfirm: false,
-            confirmButtonText:
-                '<i class="fa fa-thumbs-up"></i> Great!',
-            confirmButtonAriaLabel: 'Thumbs up, great!',
-            cancelButtonText:
-                '<i class="fa fa-thumbs-down"></i>',
-            cancelButtonAriaLabel: 'Thumbs down'
-        })
-        $(this).find('.swal2-html-container').html('').load('/Overviews/EditArticolo'+ id, function () {
-        });
-    }
     function visualizzaArticolo(id) {
         $.ajax({
             url: "/Overviews/VisualizzaArticolo/" + id,
@@ -3299,8 +3448,55 @@
                 $.notify({ icon: ' fa-solid fa-xmark', message: result.message }, { type: 'danger' });
             }
         });
-    }
-    async function SearchArticolo() {
+        }
+        
+        async function SearchArticoloTablet() {
+            const { value: text } = await Swal.fire({
+                input: 'text',
+                inputLabel: 'Ricerca Articolo',
+                inputPlaceholder: 'Inserisci qui il codice...',
+                inputAttributes: {
+                    'aria-label': 'Inserisci qui il codice'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Cerca',
+                cancelButtonText: 'Cancella'
+            })
+
+            if (text) {
+                var id = 0;
+                $.ajax({
+                    url: '/Overviews/RicercaArticolo',
+                    type: 'POST',
+                    data: { stringa: text },
+                    dataType: 'json',
+                    success: function (result) {
+                        if (result.ok) {
+                            id = result.id;
+                            console.log(result);
+                            Swal.fire({
+                                title: 'Articolo ' + result.codart,
+                                text: "L'articolo si trova nello scaffale " + result.scaffale + " e nello slot lettera " + result.slot + ".",
+                                icon: 'question',
+                                showCancelButton: false,
+                                showDenyButton: false,
+                                confirmButtonText: 'Ok!',
+                                confirmButtonColor: '#26a360'
+                            })
+                        }
+                        else {
+                            console.log(result);
+                            $.notify({ message: result.message }, { type: 'danger' });
+                        }
+                    },
+                    error: function (result) {
+                        console.log(result);
+                        $.notify({ message: result.message }, { type: 'danger' });
+                    }
+                });
+            }
+        }
+           async function SearchArticolo() {
         const { value: text } = await Swal.fire({
             input: 'text',
             inputLabel: 'Ricerca Articolo',
@@ -3843,7 +4039,7 @@
         });
     }
 
-</script>
+    </script>
 </body>
 
 </html>

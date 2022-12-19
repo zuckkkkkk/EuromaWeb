@@ -1,8 +1,9 @@
 ﻿<style>
     .card {
         border: none !important;
-        box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+        box-shadow: rgba(0, 0, 0, 0.1) 0px 3px 8px;
         border-radius: 14px;
+        padding-bottom: 16px;
     }
 
     #Titolo_Macchina {
@@ -29,7 +30,7 @@
             </div>
             <div class="row p-3">
                 <div class="col-md-6">
-                    <img src="https://img.directindustry.it/images_di/photo-g/26786-10682596.webp" style="max-width:100%;" />
+                    <img src="@ViewBag.fotomacchina" style="max-width:100%;" />
                 </div>
                 <div class="col-md-6">
                     <h3 id="Titolo_Macchina"></h3>
@@ -118,7 +119,7 @@
     <div class="col-md-6">
             <div class="containerTabella card m-2">
                 <h3 id="Titolo_Chart">Storico Programmi</h3>
-                <table id="DisegniMacchinaTable" class="table table-striped">
+                <table id="DisegniMacchinaTable" class="table table-striped" style="overflow: scroll!important;">
                     <thead>
                         <tr>
                             <td>
@@ -165,13 +166,275 @@
         </div>
     </div>
 </div>
-
+    <Button type="button" id="Change_Date" onclick="ChangeDate()" Class="btn btn-primary w-auto">
+        <i id="CalendayDays" class="fa-solid fa-calendar-days"></i>
+       </Button>
 <Button type="button" id="Hide_Navbar" onclick="ToggleNavbar()" Class="btn btn-primary w-auto">
     <i id="ToggleEye"class="fa-solid fa-eye"></i>
 </Button>
 
 <script defer>
+    function ChangeDate() {
+        Swal.fire({
+            title: 'Seleziona date',
+            html: `<input type="text" id="DataInizio" class="swal2-input" placeholder="Data inizio" autocomplete="off">
+                    <input type="text" id="DataFine" class="swal2-input" placeholder="Data fine" autocomplete="off">`,
+            confirmButtonText: 'Modifica ricerca',
+            onReady: creaDatePicker(),
+            focusConfirm: true,
+            preConfirm: () => {
+                const datainizio = Swal.getPopup().querySelector('#DataInizio').value
+                const datafine = Swal.getPopup().querySelector('#DataFine').value
+                if (!datainizio || !datafine) {
+                    Swal.showValidationMessage(`Per favore, compila entrambi i campi data`)
+                }
+                return { datafine: datafine, datainizio: datainizio }
+            }
+        }).then((result) => {
+            console.log(result);
+         $.ajax({
+        url: '/Macchine/DetailsPost?id=@ViewBag.idMacchina&datainizio='+result.value.datainizio+"&datafine="+result.value.datafine ,
+        type: 'POST',
+        success: function (result) {
+            if (result.ok) {
+                console.log(result);
+                $('#Titolo_Macchina').text(result.data.CodMacchina);
+                $('#Descrizione_Macchina').text(result.data.DescMacchina);
+                $('#Programma_Macchina').text(result.data.ActualProgram);
+                $('#Descrizione_Programma_Macchina').text(result.data.ActualProgramDesc);
+                $('#Status_Macchina').text(result.data.ActualState);
+                $('#UltimoAggiornamento').text("Ultimo aggiornamento: " + result.data.LastUpdate + "\n" + "Dati del periodo: " + result.data.DataInizio + "-" + result.data.DataFine);
+                $('#DisegniMacchinaTable tr').remove();
+                result.data.ListaDisegni.forEach(function (disegno) {
+                    $('#DisegniMacchinaTable').append('<tr><td>' + disegno.CodDisegno + '</td><td>' + disegno.FirstStart + '</td><td>' + disegno.LastStart + '</td></tr>')
+                });
+                var DisegniMacchina = $("#DisegniMacchinaTable").DataTable();
+                var kmkLabel = Object.keys(result.data.DicitonaryMacchina)
+                var kmkData = Object.values(result.data.DicitonaryMacchina)
+                $("#ChartTempi").remove();
+                $('#ContainerTempi').append('<canvas id="ChartTempi"></canvas>');
+                window.ChartTempi = new Chart(document.getElementById("ChartTempi"), {
+                    type: 'pie',
+                    data: {
+                        labels: kmkLabel,
+                        datasets: [
+                            {
+                                label: "# Tempo",
+                                backgroundColor: ["#3e95cd", "#8e5ea2", "#3cba9f", "#e8c3b9", "#c45850"],
+                                data: kmkData
+                            }
+                        ]
+                    },
+                    options: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Predicted world population (millions) in 2050'
+                        },
+                    }
+                });
+                var kmkLabelOperatore = Object.keys(result.data.DictionaryOperatore)
+                var kmkDataOperatore = Object.values(result.data.DictionaryOperatore)
+                $("#ChartTempiOperatore").remove();
+                $('#ContainerTempiOperatore').append('<canvas id="ChartTempiOperatore"></canvas>');
+                window.ChartTempiOperatore = new Chart(document.getElementById("ChartTempiOperatore"), {
+                    type: 'pie',
+                    data: {
+                        labels: kmkLabelOperatore,
+                        datasets: [
+                            {
+                                label: "# Tempo",
+                                backgroundColor: ["#3e95cd", "#8e5ea2", "#3cba9f", "#e8c3b9", "#c45850"],
+                                data: kmkDataOperatore
+                            }
+                        ]
+                    },
+                    options: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Predicted world population (millions) in 2050'
+                        },
+                    }
+                });
+                var kmkLabelStato = Object.keys(result.data.DictionaryStato)
+                var kmkDataStato = Object.values(result.data.DictionaryStato)
+                $("#ChartStato").slice(1).remove();
+                $('#ContainerStato').append('<canvas id="ChartStato"></canvas>');
+                window.ChartTempiOperatore = new Chart(document.getElementById("ChartStato"), {
+                    type: 'pie',
+                    data: {
+                        labels: kmkLabelStato,
+                        datasets: [
+                            {
+                                label: "# Tempo",
+                                backgroundColor: ["#3e95cd", "#8e5ea2", "#3cba9f", "#e8c3b9", "#c45850"],
+                                data: kmkDataStato
+                            }
+                        ]
+                    },
+                    options: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Predicted world population (millions) in 2050'
+                        },
+                    }
+                });
+                var kmkLabelComplessivo = Object.keys(result.data.TempoComplessivo)
+                var kmkDataComplessivo = Object.values(result.data.TempoComplessivo)
+                $("#ChartComplessivo").remove();
+                $('#ContainerComplessivo').append('<canvas id="ChartComplessivo"></canvas>');
+                window.ChartComplessivo = new Chart(document.getElementById("ChartComplessivo"), {
+                    type: 'line',
+                    data: {
+                        labels: kmkLabelComplessivo,
+                        datasets: [
+                            {
+                                label: "# Tempo",
+                                backgroundColor: ["#3e95cd", "#8e5ea2", "#3cba9f", "#e8c3b9", "#c45850"],
+                                data: kmkDataComplessivo
+                            }
+                        ]
+                    },
+                    options: {
+                        bezierCurve: true,
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Predicted world population (millions) in 2050'
+                        },
+                    }
+                });
+            }
+            else {
+                console.log(result);
+                $.notify({ message: result.message }, { type: 'danger' });
+            }
+        },
+        error: function (result) {
+            console.log(result);
+            $.notify({ message: result.message }, { type: 'danger' });
+        }
+    });
+        })
+    }
+    function creaDatePicker() {
+        setTimeout(function () {
+            var ds = datepicker("#DataInizio", {
+                onSelect: instance => {
+                    // Show which date was selected.
+                    console.log(instance.dateSelected)
+                },
+                formatter: (input, date, instance) => {
+                    // This will display the date as `1/1/2019`.
+                    var arr = date.toString().split(" ");
+                    switch (arr[1]) {
+                        case 'Jan':
+                            arr[1] = "01"
+                            break;
+                        case 'Feb':
+                            arr[1] = "02"
+                            break;
+                        case 'Mar':
+                            arr[1] = "03"
+                            break;
+                        case 'Apr':
+                            arr[1] = "04"
+                            break;
+                        case 'May':
+                            arr[1] = "05"
+                            break;
+                        case 'Jun':
+                            arr[1] = "06"
+                            break;
+                        case 'Jul':
+                            arr[1] = "07"
+                            break;
+                        case 'Aug':
+                            arr[1] = "08"
+                            break;
+                        case 'Sep':
+                            arr[1] = "09"
+                            break;
+                        case 'Oct':
+                            arr[1] = "10"
+                            break;
+                        case 'Nov':
+                            arr[1] = "11"
+                            break;
+                        case 'Dec':
+                            arr[1] = "12"
+                            break;
+
+                        default:
+                            console.log(`Sorry, we are out of ${expr}.`);
+                    }
+
+                    input.value = arr[3] + "" + arr[1] + "" + arr[2]
+                },
+                startDay: 1,
+                customDays: ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'],
+                customMonths: ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
+            });
+            var es = datepicker("#DataFine", {
+                formatter: (input, date, instance) => {
+                    // This will display the date as `1/1/2019`.
+                    var arr = date.toString().split(" ");
+                    switch (arr[1]) {
+                        case 'Jan':
+                            arr[1] = "01"
+                            break;
+                        case 'Feb':
+                            arr[1] = "02"
+                            break;
+                        case 'Mar':
+                            arr[1] = "03"
+                            break;
+                        case 'Apr':
+                            arr[1] = "04"
+                            break;
+                        case 'May':
+                            arr[1] = "05"
+                            break;
+                        case 'Jun':
+                            arr[1] = "06"
+                            break;
+                        case 'Jul':
+                            arr[1] = "07"
+                            break;
+                        case 'Aug':
+                            arr[1] = "08"
+                            break;
+                        case 'Sep':
+                            arr[1] = "09"
+                            break;
+                        case 'Oct':
+                            arr[1] = "10"
+                            break;
+                        case 'Nov':
+                            arr[1] = "11"
+                            break;
+                        case 'Dec':
+                            arr[1] = "12"
+                            break;
+
+                        default:
+                            console.log(`Sorry, we are out of ${expr}.`);
+                    }
+
+                    input.value = arr[3] + "" + arr[1] + "" + arr[2]
+                },
+                startDay: 1,
+                customDays: ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'],
+                customMonths: ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
+            });
+        }, 500)
+    }
     $("#SelectMacchina option[value='@ViewBag.idMacchina']").attr('selected', 'selected')
+    $("#SelectMacchina").change(function () {
+        document.location = "/Macchine/Index?id=" + this.value;
+    });
     $.ajax({
         url: '/Macchine/DetailsPost?id=@ViewBag.idMacchina' ,
         type: 'POST',
@@ -183,10 +446,11 @@
                 $('#Programma_Macchina').text(result.data.ActualProgram);
                 $('#Descrizione_Programma_Macchina').text(result.data.ActualProgramDesc);
                 $('#Status_Macchina').text(result.data.ActualState);
-                $('#UltimoAggiornamento').text("Ultimo aggiornamento: " + result.data.LastUpdate);
+                $('#UltimoAggiornamento').text("Ultimo aggiornamento: " + result.data.LastUpdate + "\n" + "Dati del periodo: "+ result.data.DataInizio + "-"+result.data.DataFine);
                 result.data.ListaDisegni.forEach(function (disegno) {
                     $('#DisegniMacchinaTable').append('<tr><td>' + disegno.CodDisegno + '</td><td>' + disegno.FirstStart + '</td><td>' + disegno.LastStart + '</td></tr>')
                 });
+                var DisegniMacchina = $("#DisegniMacchinaTable").DataTable();
                 var kmkLabel = Object.keys(result.data.DicitonaryMacchina)
                 var kmkData = Object.values(result.data.DicitonaryMacchina)
                 $("#ChartTempi").remove();

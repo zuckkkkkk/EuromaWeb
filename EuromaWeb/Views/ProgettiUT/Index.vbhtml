@@ -93,6 +93,9 @@ End Code
                     Priorita
                 </th>
                 <th>
+                    Data Ins.
+                </th>
+                <th>
                     Data Rich. Cons.
                 </th>
                 <th>
@@ -105,8 +108,8 @@ End Code
                     Stato progetto
                 </th>
                 @*<th>
-                        Richiesta Materiali
-                    </th>*@
+            Richiesta Materiali
+        </th>*@
 
             </tr>
         </thead>
@@ -151,6 +154,9 @@ End Code
                 </th>
                 <th>
                     Priorita
+                </th>
+                <th>
+                    Data Ins.
                 </th>
                 <th>
                     Data Rich. Cons.
@@ -208,6 +214,7 @@ End If
                 <th>
                     Priorita
                 </th>
+
                 <th>
                     Data Rich. Cons.
                 </th>

@@ -61,6 +61,8 @@ Public Enum Stato_Ordine_Di_Produzione_Esterno As Byte
     Completato_Esterno = 3
     <Display(Name:="Conclusa fase macchina")>
     Completato = 5
+    <Display(Name:="Finito")>
+    Finito = 99
 End Enum
 Public Enum Stato_UC As Byte
     Vuoto = Costanti.EnumVuotoValore

@@ -27,6 +27,7 @@
         <button id="overlayBtnMPA" data-value="06 - MPA"><i class="fa fa-search"></i></button>
     </div>
 </div>
+
 @If Not ViewBag.local Then
     @<div Class="text-center" style="position: absolute; bottom:16px; left:0; width: 100vw;">
         <a Class="btn btn-info" href="https://euroma.eu.ngrok.io">Ambiente di prova <i class="fa-solid fa-code-compare"></i></a>
@@ -39,7 +40,6 @@ End If
     </div>
     <div Class="col-md-6">
         <h2 style="margin-top: 1rem;"> Ricerca disegni</h2>
-
     </div>
     <div Class="col-md-3">
 
@@ -73,7 +73,7 @@ End If
                         <Button data-value="06 - MPA" Class="btn btn-primary w-100" type="button" id="BtnDisegni"><p style="margin: 0!important" ;>Cerca disegni MPA</p></Button>
                     </div>
                     @<div class="col">
-                        <Button Class="btn btn-primary w-100" type="button" id="BtnDownloadDiretto"><p style="margin: 0!important" ;>Download Diretto</p></Button>
+                        <Button Class="btn btn-primary w-100" type="button" id="BtnDownloadDiretto"><p style="margin: 0!important" ;>Ricerca storico MPA</p></Button>
                     </div>
                 Else
                     @<div Class="col">
@@ -104,14 +104,21 @@ End If
                     </div>
                 End If
             </div>
+            @If ViewBag.divPermessi_MPA Then
+                @<div class="row mt-2">
+                     <div class="col-md-12">
+                         <Button Class="btn btn-success w-100" type="button" id="BtnDownloadDirettoEuroma"><p style="margin: 0!important" ;>Ricerca disegni Server Euroma</p></Button>
+                     </div>
+                </div>
+            End if
         </div>
         <div class="col-md-3">
 
         </div>
     </div>
 </div>
-@If ViewBag.divPermessi_MPA Then
-    If Not User.IsInRole("Tecnico") Then
+        @If ViewBag.divPermessi_MPA Then
+                    If Not User.IsInRole("Tecnico") Then
         @<section id="counter" class="sec-padding">
             <div class="container">
                 <div class="row">
@@ -136,7 +143,7 @@ End If
             </div>
         </section>
 
-    Else
+            Else
         @<section id="counter" class="sec-padding">
             <div class="container">
                 <div class="row">
@@ -161,13 +168,13 @@ End If
             </div>
         </section>
 
-    End If
+            End If
 
-End If
-<div Class="input-group" style="margin-right: 32px;">
+                    End If
+        <div Class="input-group" style="margin-right: 32px;">
 
 </div>
-@*<div class="container" style="display: flex; align-content: center; justify-content:center;">
+        @*<div class="container" style="display: flex; align-content: center; justify-content:center;">
                 <img src = "/Asset/img/logo-nero.png" />
     </div>*@
 

@@ -21,6 +21,8 @@ Public Class MacchinaViewModel
     Public Property DictionaryStato As Dictionary(Of String, Integer)
     Public Property TempoComplessivo As Dictionary(Of String, Integer)
     Public Property LastUpdate As String
+    Public Property DataInizio As String
+    Public Property DataFine As String
 End Class
 Public Class GestioneUtentiViewModel
     Public Property ListaUtenti As List(Of UserListViewModel)
@@ -32,6 +34,16 @@ Public Class NotificheViewModel
     Public Property ElapsedTime As String
     Public Property Link As String
     Public Property DataAzione As DateTime
+End Class
+Public Class ClienteSmallViewModel
+    Public Property CodCliente As String
+    Public Property NomeCliente As String
+End Class
+Public Class OrdinatoViewModel
+    Public Property StartDate As String
+    Public Property EndDate As String
+    Public Property Agente As String
+    Public Property Cliente As String
 End Class
 'End Section Macchine
 Public Class ClienteViewModel
@@ -120,6 +132,7 @@ Public Class Ordinato
     Public Property CMT As New Dictionary(Of String, DivisioneOrdinato)
     Public Property ISA As New Dictionary(Of String, DivisioneOrdinato)
     Public Property Euroma As New Dictionary(Of String, DivisioneOrdinato)
+    Public Property ClientiNuovi As Dictionary(Of String, Integer)
 End Class
 Public Class OverviewOrdineViewModel
     Public Property id As Integer
@@ -152,6 +165,7 @@ Public Class DivisioneOrdinato
 
     Public Property Italia_Ricambio As Integer
     Public Property Estero_Ricambio As Integer
+
 End Class
 Public Class OverviewViewModel
     Public Property Matricola As Integer

@@ -29,9 +29,9 @@
                 <td>
                     @m.noteArticolo
                 </td>
-                <td style="text-align:right; width: 30%!important;">
+                <td style="text-align:right; width: 40%!important;">
                     <btn class="btn btn-primary" onclick="editPosizioneArticolo(@ViewBag.idMagazzino,@m.Id )"><i class="fa-solid fa-arrows"></i></btn>
-                    
+                    <a href="/Overviews/EditArticolo/@m.Id" class="btn btn-success"><i class="fa-solid fa-edit"></i></a>
                     <btn class="btn btn-success" onclick="visualizzaArticolo(@m.Id)"><i class="fa-solid fa-file"></i></btn>
                     <a Target="_blank" href="/Pezzi/StampaEtichetta?id=@m.codArticolo&fromMagazzino=True" class="btn btn-info"><i class="fa-solid fa-print"></i></a>
                     <btn class="btn btn-danger" onclick="DeleteArticolo(@m.Id)"><i class="fa-solid fa-trash"></i></btn>
@@ -41,6 +41,7 @@
     </tbody>
 </table>
 <script>
+ 
     $("#mainDataTableArticoliMagazzino").DataTable({
         dom: 'Blfrtip',
         buttons: [
