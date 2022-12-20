@@ -455,10 +455,13 @@
                                     </li>
                                     <li>
                                         @If User.IsInRole("Commerciale_Admin") Then
-                                            @<button data-type="downloadPriorita" Class="btn  w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                            @<button data-type="downloadOrdinato" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
+                                                Ordinato
+                                            </button>
+                                            @<button data-type="downloadPriorita" Class="btn  w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
                                                 OC Priorita
                                             </button>
-                                            @<button data-type="downloadCompOrdinato" Class="btn  w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                            @<button data-type="downloadCompOrdinato" Class="btn  w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
                                                 Prev. Ordinato
                                             </button>
                                             @<a href="@Url.Action("Index", "ChangeLog")" Class="dropdown-item">Changelog</a>

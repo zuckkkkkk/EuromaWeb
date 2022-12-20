@@ -1208,7 +1208,6 @@ Namespace Controllers
                     Catch ex As Exception
 
                     End Try
-
                 Next
                 'Isa
                 i = 1
@@ -1232,7 +1231,6 @@ Namespace Controllers
                     Catch ex As Exception
 
                     End Try
-
                 Next
                 'cmt
                 i = 1
@@ -1256,7 +1254,6 @@ Namespace Controllers
                     Catch ex As Exception
 
                     End Try
-
                 Next
                 'UNISTAND
                 i = 1
@@ -1280,7 +1277,6 @@ Namespace Controllers
                     Catch ex As Exception
 
                     End Try
-
                 Next
                 'MPA
                 i = 1
