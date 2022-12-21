@@ -815,7 +815,7 @@ Namespace Controllers
                     If agente = "" Then
                         myCmd.CommandText = "SELECT DISTINCT DET.ESECOD, DET.ORDSEZ, DET.ORDNRR, DET.ORDRIG, ANA.ARTRA1, TES.DVSCOD, CLI.NAZCOD, replace(replace(replace(convert(varchar(30), DET.ORDEOR,1), ',', '|'), '.', ','), '|', '.') as Quantita, replace(replace(replace(convert(varchar(30), DET.ORDPVA * DET.ORDEOR, 1), ',', '|'), '.', ','), '|', '.')as Prezzo_Unitario, ORCDDCREV, TES.ORCMOV,TES.ORCCLI FROM ORCDET00 as DET, ORCTES00 as TES, CLFIND as CLI, ARTANA as ANA WHERE DET.ESECOD = TES.ESECOD AND DET.ORDSEZ = TES.ORCTSZ AND DET.ORDNRR = TES.ORCTNR AND TES.ORCCLI = CLI.CLFCOD AND CLI.CLFTIP = 'C' AND ANA.ARTCO1 = DET.ARTCOD AND CLI.CLFCOD = '" + cliente + "'AND TES.ORCDDCREV >= '" + datetimeCalc(0) + "' and TES.ORCDDCREV <= '" + datetimeCalc(1) + "' AND (DET.ORDSEZ = 'OC' or ( DET.ORDSEZ = 'OT' and ( ORCTNR = '37' OR ORCTNR = '40' OR ORCTNR = '41' OR ORCTNR = '42' OR ORCTNR = '43'))) order by DET.ORDNRR"
                     Else
-                        myCmd.CommandText = "SELECT DISTINCT DET.ESECOD, DET.ORDSEZ, DET.ORDNRR, DET.ORDRIG, ANA.ARTRA1, TES.DVSCOD, CLI.NAZCOD, replace(replace(replace(convert(varchar(30), DET.ORDEOR,1), ',', '|'), '.', ','), '|', '.') as Quantita, replace(replace(replace(convert(varchar(30), DET.ORDPVA * DET.ORDEOR, 1), ',', '|'), '.', ','), '|', '.')as Prezzo_Unitario, ORCDDCREV, TES.ORCMOV,TES.ORCCLI FROM ORCDET00 as DET, ORCTES00 as TES, CLFIND as CLI, ARTANA as ANA, ORCPRO00 as PRO WHERE DET.ESECOD = TES.ESECOD AND DET.ORDSEZ = TES.ORCTSZ AND DET.ORDNRR = TES.ORCTNR AND TES.ORCCLI = CLI.CLFCOD AND DET.ESECOD = PRO.ESECOD AND DET.ORDSEZ = PRO.ORDSEZ AND DET.ORDNRR = PRO.ORDNRR AND CLI.CLFTIP = 'C' AND ANA.ARTCO1 = DET.ARTCOD AND (ORDAG1 = '" + agente + " ' OR ORDAG2 = '" + agente + " ' OR ORDAG3 = '" + agente + " ') AND TES.ORCDDCREV >= '" + datetimeCalc(0) + "' and TES.ORCDDCREV <= '" + datetimeCalc(1) + "' AND (DET.ORDSEZ = 'OC' or ( DET.ORDSEZ = 'OT' and ( ORCTNR = '37' OR ORCTNR = '40' OR ORCTNR = '41' OR ORCTNR = '42' OR ORCTNR = '43'))) order by DET.ORDNRR"
+                        myCmd.CommandText = "SELECT DISTINCT DET.ESECOD, DET.ORDSEZ, DET.ORDNRR, DET.ORDRIG, ANA.ARTRA1, TES.DVSCOD, CLI.NAZCOD, replace(replace(replace(convert(varchar(30), DET.ORDEOR,1), ',', '|'), '.', ','), '|', '.') as Quantita, replace(replace(replace(convert(varchar(30), DET.ORDPVA * DET.ORDEOR, 1), ',', '|'), '.', ','), '|', '.')as Prezzo_Unitario, ORCDDCREV, TES.ORCMOV, TES.ORCCLI FROM ORCDET00 as DET, ORCTES00 as TES, CLFIND as CLI, ARTANA as ANA, ORCPRO00 as PRO WHERE DET.ESECOD = TES.ESECOD AND DET.ORDSEZ = TES.ORCTSZ AND DET.ORDNRR = TES.ORCTNR AND TES.ORCCLI = CLI.CLFCOD AND DET.ESECOD = PRO.ESECOD AND DET.ORDSEZ = PRO.ORDSEZ AND DET.ORDNRR = PRO.ORDNRR AND CLI.CLFTIP = 'C' AND ANA.ARTCO1 = DET.ARTCOD AND (DET.ORDSTC = '080' OR DET.ORDSTC= '090') AND (ORDAG1 LIKE '" + agente + "%' OR ORDAG2 LIKE '" + agente + "%' OR ORDAG3 LIKE '" + agente + "%') AND TES.ORCDDCREV >= '" + datetimeCalc(0) + "' and TES.ORCDDCREV <= '" + datetimeCalc(1) + "' AND (DET.ORDSEZ = 'OC' or ( DET.ORDSEZ = 'OT' and ( ORCTNR = '37' OR ORCTNR = '40' OR ORCTNR = '41' OR ORCTNR = '42' OR ORCTNR = '43'))) order by DET.ORDNRR"
                     End If
                 End If
                 myConn.Open()
@@ -955,7 +955,7 @@ Namespace Controllers
                             End If
                         Case "A/R  "
                             Select Case o.Div
-                                Case "01"
+                                Case "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"
                                     If Not finalCosts.Drill.ContainsKey(o.Mese) Then
                                         finalCosts.Drill.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
                                     End If
@@ -964,48 +964,12 @@ Namespace Controllers
                                     Else
                                         finalCosts.Drill(o.Mese).Estero_Ricambio = finalCosts.Drill(o.Mese).Estero_Ricambio + o.ImportoOrd
                                     End If
-                                Case "02"
-                                    If Not finalCosts.CMT.ContainsKey(o.Mese) Then
-                                        finalCosts.CMT.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
-                                    End If
-                                    If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
-                                        finalCosts.CMT(o.Mese).Italia_Ricambio = finalCosts.CMT(o.Mese).Italia_Ricambio + o.ImportoOrd
-                                    Else
-                                        finalCosts.CMT(o.Mese).Estero_Ricambio = finalCosts.CMT(o.Mese).Estero_Ricambio + o.ImportoOrd
-                                    End If
-                                Case "03"
-                                    If Not finalCosts.ISA.ContainsKey(o.Mese) Then
-                                        finalCosts.ISA.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
-                                    End If
-                                    If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
-                                        finalCosts.ISA(o.Mese).Italia_Ricambio = finalCosts.ISA(o.Mese).Italia_Ricambio + o.ImportoOrd
-                                    Else
-                                        finalCosts.ISA(o.Mese).Estero_Ricambio = finalCosts.ISA(o.Mese).Estero_Ricambio + o.ImportoOrd
-                                    End If
-                                Case "04"
-                                    If Not finalCosts.Unistand.ContainsKey(o.Mese) Then
-                                        finalCosts.Unistand.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
-                                    End If
-                                    If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
-                                        finalCosts.Unistand(o.Mese).Italia_Ricambio = finalCosts.Unistand(o.Mese).Italia_Ricambio + o.ImportoOrd
-                                    Else
-                                        finalCosts.Unistand(o.Mese).Estero_Ricambio = finalCosts.Unistand(o.Mese).Estero_Ricambio + o.ImportoOrd
-                                    End If
-                                Case "05"
-                                    If Not finalCosts.MPA.ContainsKey(o.Mese) Then
-                                        finalCosts.MPA.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
-                                    End If
-                                    If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
-                                        finalCosts.MPA(o.Mese).Italia_Ricambio = finalCosts.MPA(o.Mese).Italia_Ricambio + o.ImportoOrd
-                                    Else
-                                        finalCosts.MPA(o.Mese).Estero_Ricambio = finalCosts.MPA(o.Mese).Estero_Ricambio + o.ImportoOrd
-                                    End If
                             End Select
 
 
                         Case Else
                             Select Case o.Div
-                                Case "01"
+                                Case "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"
                                     If Not finalCosts.Drill.ContainsKey(o.Mese) Then
                                         finalCosts.Drill.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
                                     End If
@@ -1022,74 +986,7 @@ Namespace Controllers
                                             finalCosts.Drill(o.Mese).Estero_Nuovo = finalCosts.Drill(o.Mese).Estero_Nuovo + o.ImportoOrd
                                         End If
                                     End If
-                                Case "02"
-                                    If Not finalCosts.CMT.ContainsKey(o.Mese) Then
-                                        finalCosts.CMT.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
-                                    End If
-                                    If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
-                                        If o.TipoOrd2 = "UC2" Or o.TipoOrd2 = "UC6" Then
-                                            finalCosts.CMT(o.Mese).Italia_Ricambio = finalCosts.CMT(o.Mese).Italia_Ricambio + o.ImportoOrd
-                                        Else
-                                            finalCosts.CMT(o.Mese).Italia_Nuovo = finalCosts.CMT(o.Mese).Italia_Nuovo + o.ImportoOrd
-                                        End If
-                                    Else
-                                        If o.TipoOrd2 = "UC2" Or o.TipoOrd2 = "UC6" Then
-                                            finalCosts.CMT(o.Mese).Estero_Ricambio = finalCosts.CMT(o.Mese).Estero_Ricambio + o.ImportoOrd
-                                        Else
-                                            finalCosts.CMT(o.Mese).Estero_Nuovo = finalCosts.CMT(o.Mese).Estero_Nuovo + o.ImportoOrd
-                                        End If
-                                    End If
-                                Case "03"
-                                    If Not finalCosts.ISA.ContainsKey(o.Mese) Then
-                                        finalCosts.ISA.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
-                                    End If
-                                    If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
-                                        If o.TipoOrd2 = "UC2" Or o.TipoOrd2 = "UC6" Then
-                                            finalCosts.ISA(o.Mese).Italia_Ricambio = finalCosts.ISA(o.Mese).Italia_Ricambio + o.ImportoOrd
-                                        Else
-                                            finalCosts.ISA(o.Mese).Italia_Nuovo = finalCosts.ISA(o.Mese).Italia_Nuovo + o.ImportoOrd
-                                        End If
-                                    Else
-                                        If o.TipoOrd2 = "UC2" Or o.TipoOrd2 = "UC6" Then
-                                            finalCosts.ISA(o.Mese).Estero_Ricambio = finalCosts.ISA(o.Mese).Estero_Ricambio + o.ImportoOrd
-                                        Else
-                                            finalCosts.ISA(o.Mese).Estero_Nuovo = finalCosts.ISA(o.Mese).Estero_Nuovo + o.ImportoOrd
-                                        End If
-                                    End If
-                                Case "04"
-                                    If Not finalCosts.Unistand.ContainsKey(o.Mese) Then
-                                        finalCosts.Unistand.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
-                                    End If
-                                    If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
-                                        If o.TipoOrd2 = "UC2" Or o.TipoOrd2 = "UC6" Then
-                                            finalCosts.Unistand(o.Mese).Italia_Ricambio = finalCosts.Unistand(o.Mese).Italia_Ricambio + o.ImportoOrd
-                                        Else
-                                            finalCosts.Unistand(o.Mese).Italia_Nuovo = finalCosts.Unistand(o.Mese).Italia_Nuovo + o.ImportoOrd
-                                        End If
-                                    Else
-                                        If o.TipoOrd2 = "UC2" Or o.TipoOrd2 = "UC6" Then
-                                            finalCosts.Unistand(o.Mese).Estero_Ricambio = finalCosts.Unistand(o.Mese).Estero_Ricambio + o.ImportoOrd
-                                        Else
-                                            finalCosts.Unistand(o.Mese).Estero_Nuovo = finalCosts.Unistand(o.Mese).Estero_Nuovo + o.ImportoOrd
-                                        End If
-                                    End If
-                                Case "05"
-                                    If Not finalCosts.MPA.ContainsKey(o.Mese) Then
-                                        finalCosts.MPA.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
-                                    End If
-                                    If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
-                                        If o.TipoOrd2 = "UC2" Or o.TipoOrd2 = "UC6" Then
-                                            finalCosts.MPA(o.Mese).Italia_Ricambio = finalCosts.MPA(o.Mese).Italia_Ricambio + o.ImportoOrd
-                                        Else
-                                            finalCosts.MPA(o.Mese).Italia_Nuovo = finalCosts.MPA(o.Mese).Italia_Nuovo + o.ImportoOrd
-                                        End If
-                                    Else
-                                        If o.TipoOrd2 = "UC2" Or o.TipoOrd2 = "UC6" Then
-                                            finalCosts.MPA(o.Mese).Estero_Ricambio = finalCosts.MPA(o.Mese).Estero_Ricambio + o.ImportoOrd
-                                        Else
-                                            finalCosts.MPA(o.Mese).Estero_Nuovo = finalCosts.MPA(o.Mese).Estero_Nuovo + o.ImportoOrd
-                                        End If
-                                    End If
+
                                 Case Else
                                     missingImport = missingImport + o.ImportoOrd
 
@@ -1142,42 +1039,6 @@ Namespace Controllers
             Else
                 ws.GetRow(1).GetCell(12).SetCellValue("Analisi agente " + agente)
             End If
-            ws.GetRow(2).GetCell(0).SetCellValue("Mese")
-            For Each k In finalCosts.MPA.Keys.OrderBy(Function(x) x)
-                Try
-                    ws.GetRow(2).GetCell(c).CellStyle = styleIntestazione
-                    Select Case k.ToString
-                        Case "01"
-                            ws.GetRow(2).GetCell(c).SetCellValue("01 - Gennaio")
-                        Case "02"
-                            ws.GetRow(2).GetCell(c).SetCellValue("02 - Febbraio")
-                        Case "03"
-                            ws.GetRow(2).GetCell(c).SetCellValue("03 - Marzo")
-                        Case "04"
-                            ws.GetRow(2).GetCell(c).SetCellValue("04 - Aprile")
-                        Case "05"
-                            ws.GetRow(2).GetCell(c).SetCellValue("05 - Maggio")
-                        Case "06"
-                            ws.GetRow(2).GetCell(c).SetCellValue("06 - Giugno")
-                        Case "07"
-                            ws.GetRow(2).GetCell(c).SetCellValue("07 - Luglio")
-                        Case "08"
-                            ws.GetRow(2).GetCell(c).SetCellValue("08 - Agosto")
-                        Case "09"
-                            ws.GetRow(2).GetCell(c).SetCellValue("09 - Settembre")
-                        Case "10"
-                            ws.GetRow(2).GetCell(c).SetCellValue("10 - Ottobre")
-                        Case "11"
-                            ws.GetRow(2).GetCell(c).SetCellValue("11 - Novembre")
-                        Case "12"
-                            ws.GetRow(2).GetCell(c).SetCellValue("12 - Dicembre")
-                    End Select
-                    c = c + 4
-                Catch ex As Exception
-
-                End Try
-
-            Next
             'Start Pop
             Dim baserow As IRow = ws.GetRow(0)
             'Dim baserow As IRow = ws.GetRow(2)
@@ -2378,8 +2239,6 @@ Namespace Controllers
                         .Diff = myReader.GetDecimal(6).ToString
                     }
                     listOfPezzi.Add(cliente)
-                    'results = results & myReader.GetString(0) & vbTab &
-                    'myReader.GetString(1) & vbLf
                 Loop
             Catch ex As Exception
 
@@ -2387,6 +2246,8 @@ Namespace Controllers
 
             Return View(listOfPezzi)
         End Function
+
+
         Private Function GetCellValue(row As IRow, col As Integer, Optional OpID As String = vbNullString, Optional OpName As String = vbNullString) As Object
             Dim result As String = vbNullString
             Try
