@@ -1,8 +1,8 @@
 ﻿@ModelType List(Of EuromaWeb.NotificheViewModel)
 <div class="notifiche" style="z-index:10000;border-radius: 8px; height: 360px; width: 270px; position: absolute; bottom: 0; left: 0; box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px; background-color:white; top: 40px; left: 30px; overflow-y: scroll;">
     <div class="row" style=" width: 100%; padding: 0; margin: 0; border-radius:8px 8px 0px 0px; overflow:hidden;">
-        <div class="col-md-12 bg-primary py-2" style="color: white; color: white; position: fixed; width: 270px; z-index: 1000; border-radius: 8px 8px 0px 0px;">
-            NOTIFICHE
+        <div class="col-md-10 bg-primary py-2" style="display:flex;justify-content:space-between;color: white; color: white; position: fixed; width: 270px; z-index: 1000; border-radius: 8px 8px 0px 0px;">
+            NOTIFICHE  <i class="fa-solid fa-trash" onclick="LeggiTutteNot()"style="display: flex;justify-content: center; align-items: center;"></i>
         </div>
     </div>
     <div style="height:40px;">

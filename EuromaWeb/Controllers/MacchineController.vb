@@ -11,7 +11,6 @@ Imports EuromaWeb
 Imports Microsoft.AspNet.Identity
 Imports NPOI.SS.UserModel
 Imports NPOI.XSSF.UserModel
-
 Namespace Controllers
     Public Class MacchineController
         Inherits System.Web.Mvc.Controller

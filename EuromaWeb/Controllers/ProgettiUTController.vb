@@ -292,6 +292,188 @@ Namespace Controllers
             End Try
             Return Json(New With {PostedData.draw, .recordsTotal = db.OrdiniDiProduzione.Count, .recordsFiltered = 0})
         End Function
+        Function CreaRichiesta() As ActionResult
+            Return PartialView()
+        End Function
+        <HttpPost()>
+        <ValidateInput(False)>
+        Function ServerProcessingRichieste(PostedData As DataTableAjaxPostModel) As JsonResult
+            Dim OpID As String = vbNullString
+            Dim OpName As String = vbNullString
+            Dim CurrentDate As DateTime = Now
+            Try
+                OpID = User.Identity.GetUserId()
+                OpName = User.Identity.GetUserName()
+
+                Dim result As New List(Of Object)
+                Dim data As IQueryable(Of ArticoliErrati)
+                data = db.ArticoliErrati.OrderBy(Function(x) x.UltimaModifica.Data)
+                'ricerca
+                Try
+                    If Not IsNothing(PostedData.search.value) Then
+                        If Not PostedData.search.value.Contains(" ") Then 'singola parola
+                            Dim search As String = PostedData.search.value
+                            Dim w As Expressions.Expression(Of Func(Of ArticoliErrati, Boolean)) = MakeWhereExpressionRichieste(search)
+                            w.Compile()
+                            data = data.Where(w)
+                        Else 'multiple
+                            For Each term As String In PostedData.search.value.Split(" ")
+                                Dim wpartial As Expressions.Expression(Of Func(Of ArticoliErrati, Boolean)) = MakeWhereExpressionRichieste(term)
+                                wpartial.Compile()
+                                data = data.Where(wpartial)
+                            Next
+                        End If
+                    End If
+                Catch ex As SystemException
+                    db.Log.Add(New Log With {
+                      .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},
+                      .Livello = TipoLogLivello.Errors,
+                      .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                      .Messaggio = "Errore Ricerca -> " & ex.Message,
+                      .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {PostedData})
+                      })
+                    db.SaveChanges()
+                End Try
+                'paginazione
+                Dim filtered As Integer = 0
+                Try
+                    filtered = data.Count
+                    If PostedData.length > 0 Then
+                        data = data.Skip(PostedData.start).Take(PostedData.length)
+                    End If
+                Catch ex As SystemException
+                    db.Log.Add(New Log With {
+                                         .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},
+                                         .Livello = TipoLogLivello.Errors,
+                                         .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                         .Messaggio = "Errore Paginazione -> " & ex.Message,
+                                         .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {PostedData})
+                                         })
+                    db.SaveChanges()
+                End Try
+                Try
+                    If PostedData.order.Count = 0 Then
+                        Dim o As Expressions.Expression(Of Func(Of ArticoliErrati, String))
+                        o = MakeOrderExpressionRichieste(Nothing) 'default
+                        o.Compile()
+                        data = data.OrderBy(o)
+                    ElseIf PostedData.order.Count = 1 Then 'singolo
+                        Dim o As Expressions.Expression(Of Func(Of ArticoliErrati, String)) = MakeOrderExpressionRichieste(PostedData.order(0).column)
+                        o.Compile()
+                        Select Case PostedData.order(0).dir
+                            Case "asc"
+                                data = data.OrderBy(o)
+                            Case "desc"
+                                data = data.OrderByDescending(o)
+                        End Select
+                    ElseIf PostedData.order.Count = 2 Then 'doppio
+                        Dim o As Expressions.Expression(Of Func(Of ArticoliErrati, String)) = MakeOrderExpressionRichieste(PostedData.order(0).column)
+                        o.Compile()
+
+                        Dim o2 As Expressions.Expression(Of Func(Of ArticoliErrati, String)) = MakeOrderExpressionRichieste(PostedData.order(1).column)
+                        o2.Compile()
+
+                        Select Case PostedData.order(0).dir
+                            Case "asc"
+                                Select Case PostedData.order(1).dir
+                                    Case "asc"
+                                        data = data.OrderBy(o).ThenBy(o2)
+                                    Case "desc"
+                                        data = data.OrderBy(o).ThenByDescending(o2)
+                                End Select
+
+                            Case "desc"
+                                Select Case PostedData.order(1).dir
+                                    Case "asc"
+                                        data = data.OrderByDescending(o).ThenBy(o2)
+                                    Case "desc"
+                                        data = data.OrderByDescending(o).ThenByDescending(o2)
+                                End Select
+                        End Select
+                    Else 'solo i primi tre
+                        Dim o As Expressions.Expression(Of Func(Of ArticoliErrati, String)) = MakeOrderExpressionRichieste(PostedData.order(0).column)
+                        o.Compile()
+
+                        Dim o2 As Expressions.Expression(Of Func(Of ArticoliErrati, String)) = MakeOrderExpressionRichieste(PostedData.order(1).column)
+                        o2.Compile()
+
+                        Dim o3 As Expressions.Expression(Of Func(Of ArticoliErrati, String)) = MakeOrderExpressionRichieste(PostedData.order(2).column)
+                        o3.Compile()
+
+                        Select Case PostedData.order(0).dir
+                            Case "asc"
+                                Select Case PostedData.order(1).dir
+                                    Case "asc"
+                                        Select Case PostedData.order(2).dir
+                                            Case "asc"
+                                                data = data.OrderBy(o).ThenBy(o2).ThenBy(o3)
+                                            Case "desc"
+                                                data = data.OrderBy(o).ThenBy(o2).ThenByDescending(o3)
+                                        End Select
+                                    Case "desc"
+                                        Select Case PostedData.order(2).dir
+                                            Case "asc"
+                                                data = data.OrderBy(o).ThenByDescending(o2).ThenBy(o3)
+                                            Case "desc"
+                                                data = data.OrderBy(o).ThenByDescending(o2).ThenByDescending(o3)
+                                        End Select
+                                End Select
+
+                            Case "desc"
+                                Select Case PostedData.order(1).dir
+                                    Case "asc"
+                                        Select Case PostedData.order(2).dir
+                                            Case "asc"
+                                                data = data.OrderByDescending(o).ThenBy(o2).ThenBy(o3)
+                                            Case "desc"
+                                                data = data.OrderByDescending(o).ThenBy(o2).ThenByDescending(o3)
+                                        End Select
+                                    Case "desc"
+                                        Select Case PostedData.order(2).dir
+                                            Case "asc"
+                                                data = data.OrderByDescending(o).ThenByDescending(o2).ThenBy(o3)
+                                            Case "desc"
+                                                data = data.OrderByDescending(o).ThenByDescending(o2).ThenByDescending(o3)
+                                        End Select
+                                End Select
+                        End Select
+                    End If
+                Catch ex As SystemException
+                    db.Log.Add(New Log With {
+                     .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},
+                     .Livello = TipoLogLivello.Errors,
+                     .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                     .Messaggio = "Errore Ordinamento -> " & ex.Message,
+                     .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {PostedData})
+                     })
+                    db.SaveChanges()
+                End Try
+                For Each a As ArticoliErrati In data
+                    result.Add(New With {
+                                .DT_RowData = New With {.value = a.Id},
+                                    .DT_RowId = "row_" & a.Id,
+                                    .Id = a.Id,
+                                    .OC = a.Cod_OC,
+                                    .DataInserimento = a.UltimaModifica.Data.ToString.Split(" ")(0),
+                                    .OP = a.Cod_OP,
+                                    .Articolo = a.Articolo,
+                                    .Fase = a.Fase_OP,
+                                    .Stato = IIf(a.RichiestaCompletata, "<i class='fa-solid fa-check'></i>", "<i class='fa-solid fa-xmark'></i>")
+                               })
+                Next
+                Return Json(New With {PostedData.draw, .recordsTotal = db.ArticoliErrati.Count, .recordsFiltered = filtered, .data = result})
+            Catch ex As SystemException
+                db.Log.Add(New Log With {
+                     .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},
+                     .Livello = TipoLogLivello.Errors,
+                     .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                     .Messaggio = "Errore Generico -> " & ex.Message,
+                     .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {PostedData})
+                     })
+                db.SaveChanges()
+            End Try
+            Return Json(New With {PostedData.draw, .recordsTotal = db.ArticoliErrati.Count, .recordsFiltered = 0})
+        End Function
         <HttpPost()>
         <ValidateInput(False)>
         Function ServerProcessingEsterniCompletati(PostedData As DataTableAjaxPostModel) As JsonResult
@@ -1327,6 +1509,26 @@ Namespace Controllers
             End Try
         End Function
         ' GET: ProgettiUT/Details/5
+        Function DetailsRichiesta(ByVal id As Integer?) As JsonResult
+            If IsNothing(id) Then
+                Return Json(New With {.ok = False, .message = "Errore: Dettagli richiesta -> " & id & ". Impossibile recuperare i dati."})
+            End If
+            Dim richiesta = db.ArticoliErrati.Find(id)
+            Dim putVM As New RichiesteViewModel With {
+              .UltimaModifica = richiesta.UltimaModifica,
+              .Note_UT = richiesta.Note_UT,
+              .Articolo = richiesta.Articolo,
+              .Cod_OC = richiesta.Cod_OC,
+              .Cod_OP = richiesta.Cod_OP,
+              .Fase_OP = richiesta.Fase_OP,
+              .Id = richiesta.Id,
+              .Note_Produzione = richiesta.Note_Produzione,
+              .OperatoreCompletamento = richiesta.OperatoreCompletamento,
+              .RichiestaCompletata = richiesta.RichiestaCompletata
+            }
+            Return Json(New With {.ok = True, .message = PartialToString("DetailsRichiesta", putVM)})
+        End Function
+        ' GET: ProgettiUT/Details/5
         Function Details(ByVal id As Integer?) As JsonResult
             If IsNothing(id) Then
                 Return Json(New With {.ok = False, .message = "Errore: Dettagli Progetto -> " & id & ". Impossibile recuperare i dati."})
@@ -1464,6 +1666,89 @@ Namespace Controllers
             Return PartialView(ProgettiUTOperatore)
         End Function
 
+        Function CheckOP(id As String) As JsonResult
+            Dim anno = ""
+            Dim sez = ""
+            Dim nmr = ""
+            Dim Articolo = ""
+            Dim Cod_OC = ""
+            Try
+                If id.Length = 19 Then
+                    anno = id.Substring(1, 4)
+                    sez = id.Substring(5, 2)
+                    nmr = id.Substring(7, 7)
+                ElseIf id.Length = 13 Then
+                    anno = id.Substring(0, 4)
+                    sez = id.Substring(4, 2)
+                    nmr = id.Substring(6, 7)
+                End If
+                myConn = New SqlConnection(ConnectionString)
+                myCmd = myConn.CreateCommand
+                myCmd.CommandText = "select ODLCOM,ODLALP from ODLTES00 where ODLANN = '" + anno + "' AND ODLSEZ = '" + sez + "' AND ODLNMR = '" + nmr + "'"
+                myConn.Open()
+                Try
+                    myReader = myCmd.ExecuteReader
+                    Do While myReader.Read()
+                        Articolo = myReader.GetString(1)
+                        Cod_OC = myReader.GetString(0)
+                    Loop
+                    myConn.Close()
+
+                    db.SaveChanges()
+                Catch ex As Exception
+                End Try
+            Catch ex As Exception
+            End Try
+            Return Json(New With {.ok = True, .messaggio = "Trovati dati per OP correttamente", .Articolo = Articolo, .Cod_OC = Cod_OC}, JsonRequestBehavior.AllowGet)
+        End Function
+        <HttpPost>
+        <ValidateAntiForgeryToken()>
+        Function CreaRichiesta(<Bind(Include:="Cod_OP,Cod_OC,Articolo,Note_Produzione")> ByVal Art As ArticoliErrati) As JsonResult
+            Dim OpID As String = vbNullString
+            Dim OpName As String = vbNullString
+            If ModelState.IsValid Then
+                Try
+                    OpID = User.Identity.GetUserId()
+                    OpName = User.Identity.GetUserName()
+                    If db.ArticoliErrati.Where(Function(x) x.Cod_OC = Art.Cod_OC).Count = 0 Then
+                        db.ArticoliErrati.Add(New ArticoliErrati With {
+                        .Articolo = Art.Articolo,
+                        .Cod_OC = Art.Cod_OC,
+                        .Cod_OP = Art.Cod_OP,
+                        .Fase_OP = "",
+                        .Note_Produzione = Art.Note_Produzione,
+                        .UltimaModifica = New TipoUltimaModifica With {
+                        .Data = DateTime.Now,
+                        .Operatore = OpName,
+                        .OperatoreID = OpID
+                    }
+                    })
+                        db.SaveChanges()
+                        db.Audit.Add(New Audit With {
+                                                .Livello = TipoAuditLivello.Info,
+                                                .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                                .Messaggio = "Inserita richiesta per UT correttamente.",
+                                                .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.OP = Art.Cod_OP}),
+                                               .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                                  })
+                        db.SaveChanges()
+                        Return Json(New With {.ok = True, .messaggio = "Richiesta inviata correttamente"}, JsonRequestBehavior.AllowGet)
+                    Else
+                        Return Json(New With {.ok = False, .messaggio = "Richiesta per OC già esistente"}, JsonRequestBehavior.AllowGet)
+                    End If
+
+                Catch ex As Exception
+                    db.Log.Add(New Log With {
+                                                     .Livello = TipoLogLivello.Errors,
+                                                     .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                                     .Messaggio = "Errore: " + ex.Message,
+                                                     .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.richiesta_OP = Art.Cod_OP}),
+                                                    .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                                       })
+                    db.SaveChanges()
+                End Try
+            End If
+        End Function
         ' POST: ProgettiUT/Edit/5
         'Per la protezione da attacchi di overposting, abilitare le proprietà a cui eseguire il binding. 
         'Per altri dettagli, vedere https://go.microsoft.com/fwlink/?LinkId=317598.
@@ -1687,6 +1972,10 @@ Namespace Controllers
                 If exist > 0 Then
                     db.ProgettiProd.Where(Function(x) x.OC_Riferimento = OC.OC).First.StatoProgetto = Stato_Prod.Ritorno_Da_UT
                     db.SaveChanges()
+                    OC.Accettato = Stato_UC.Inviato_Prod
+                    db.SaveChanges()
+                    OC_Proj.StatoProgetto = Stato_UT.Inviato
+                    db.SaveChanges()
                     Return Json(New With {.ok = True, .message = "Progetto già esistente. Aggiornamento stato"}, JsonRequestBehavior.AllowGet)
                 End If
                 Dim Progetto As New ProgettiProd With {
@@ -1699,6 +1988,7 @@ Namespace Controllers
                 db.SaveChanges()
                 OC.Accettato = Stato_UC.Inviato_Prod
                 OC_Proj.StatoProgetto = Stato_UT.Inviato
+                db.SaveChanges()
                 db.Audit.Add(New Audit With {
                                       .Livello = TipoAuditLivello.Info,
                                       .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
@@ -1780,7 +2070,6 @@ Namespace Controllers
                         myReader = myCmd.ExecuteReader
                         Do While myReader.Read()
                             ODPEstFinal.Priorita = myReader.GetDecimal(1)
-
                         Loop
                         myConn.Close()
                         db.OrdiniDiProduzione.Add(ODPEstFinal)
@@ -1800,6 +2089,11 @@ Namespace Controllers
 
                 Else
                     Dim OC = db.AccettazioneUC.Where(Function(x) x.OC = OC_Codice.OC).First
+
+                    If db.OrdiniDiProduzione.Where(Function(X) X.OP = id).Count > 0 Then
+                        Return Json(New With {.ok = False, .message = "ODP esterno già esistente."}, JsonRequestBehavior.AllowGet)
+                    End If
+
                     Dim ODPEst As New OrdiniDiProduzione With {
                         .Accettato = 0,
                         .Cartella = "",
@@ -1848,7 +2142,7 @@ Namespace Controllers
                 Dim OC = db.AccettazioneUC.Where(Function(x) x.OC = OC_Proj.OC_Riferimento).First
                 Dim exist = db.ProgettiProd.Where(Function(x) x.OC_Riferimento = OC.OC And x.StatoProgetto <> Stato_Prod.Ritorno_Da_UT).Count
                 If exist > 0 Then
-                    Return Json(New With {.ok = False, .message = "Progetto già esistente."}, JsonRequestBehavior.AllowGet)
+                    Return Json(New With {.ok = False, .message = "Progetto già esistente. Aggiornamento stato."}, JsonRequestBehavior.AllowGet)
                 End If
                 If db.ProgettiProd.Where(Function(x) x.OC_Riferimento = OC.OC).Count > 0 Then
                     If db.ProgettiProd.Where(Function(x) x.OC_Riferimento = OC.OC).First.StatoProgetto = Stato_Prod.Ritorno_Da_UT Then
@@ -2020,6 +2314,73 @@ Namespace Controllers
             End If
             Return PartialView(OrdiniDiProduzione)
         End Function
+        Function EditRichiesta(ByVal id As Integer?) As ActionResult
+            If IsNothing(id) Then
+                Return New HttpStatusCodeResult(HttpStatusCode.BadRequest)
+            End If
+            Dim articolo = db.ArticoliErrati.Find(id)
+            If IsNothing(articolo) Then
+                Return HttpNotFound()
+            End If
+            Return PartialView(articolo)
+        End Function
+        <HttpPost()>
+        <ValidateAntiForgeryToken()>
+        Function EditRichiesta(<Bind(Include:="Id,Cod_OP,Cod_OC,Note_Produzione,Note_UT,RichiestaCompletata")> ByVal Articolo As ArticoliErrati) As JsonResult
+            Dim OpID As String = vbNullString
+            Dim OpName As String = vbNullString
+            Try
+                OpID = User.Identity.GetUserId()
+                OpName = User.Identity.GetUserName()
+                If ModelState.IsValid Then
+                    'Ricerca username
+                    Dim art = db.ArticoliErrati.Find(Articolo.Id)
+                    If Articolo.Cod_OP <> art.Cod_OP Then
+                        art.Cod_OP = Articolo.Cod_OP
+                        db.SaveChanges()
+                    End If
+                    If Articolo.Cod_OC <> art.Cod_OC Then
+                        art.Cod_OC = Articolo.Cod_OC
+                        db.SaveChanges()
+                    End If
+                    If Articolo.Articolo <> art.Articolo Then
+                        art.Articolo = Articolo.Articolo
+                        db.SaveChanges()
+                    End If
+                    If Articolo.Note_UT <> art.Note_UT Then
+                        art.Note_UT = Articolo.Note_UT
+                        db.SaveChanges()
+                    End If
+                    If Articolo.RichiestaCompletata Then
+                        art.RichiestaCompletata = True
+                        db.SaveChanges()
+                        art.OperatoreCompletamento = OpName
+                        db.SaveChanges()
+                        db.Audit.Add(New Audit With {
+                                         .Livello = TipoAuditLivello.Info,
+                                         .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                         .Messaggio = "Completamento richiesta modifica disegno/distinta",
+                                         .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id_Art = Articolo.Id}),
+                                        .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                           })
+                        db.SaveChanges()
+                        Return Json(New With {.ok = True, .message = "Richiesta correttamente completata."})
+                    End If
+                End If
+                Return Json(New With {.ok = False, .message = "Errore nell'aggiornamento della richiesta."})
+            Catch ex As Exception
+                db.Log.Add(New Log With {
+                                                  .Livello = TipoLogLivello.Errors,
+                                                  .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                                  .Messaggio = "Errore: " + ex.Message,
+                                                  .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.richiesta = Articolo.Id, .errore = ex.Message}),
+                                                 .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                                    })
+                db.SaveChanges()
+                Return Json(New With {.ok = False, .message = "Errore nell'aggiornamento della richiesta."})
+            End Try
+            Return Json(New With {.ok = False, .message = "Errore nell'aggiornamento della richiesta."})
+        End Function
         <HttpPost()>
         <ValidateAntiForgeryToken()>
         Function EditEsterno(<Bind(Include:="Id,tre_dim_Presente,due_dim_Presente,note_presenti")> ByVal OrdiniDiProduzione As OrdiniDiProduzione) As JsonResult
@@ -2147,6 +2508,20 @@ Namespace Controllers
             db.ProgettiUT.Remove(progettiUT)
             db.SaveChanges()
             Return RedirectToAction("Index")
+        End Function
+        Private Function MakeWhereExpressionRichieste(Search As String) As Expressions.Expression(Of Func(Of ArticoliErrati, Boolean))
+            Return Function(x) x.Cod_OC.Contains(Search) Or
+                        x.Cod_OC.Contains(Search)
+        End Function
+        Private Function MakeOrderExpressionRichieste(Column As Integer) As Expressions.Expression(Of Func(Of ArticoliErrati, String))
+            Select Case Column
+                Case Nothing : Return Function(x) x.UltimaModifica.Data
+                Case 1 : Return Function(x) x.UltimaModifica.Data
+                Case 3 : Return Function(x) x.Cod_OC
+                Case 4 : Return Function(x) x.Cod_OP
+                Case 5 : Return Function(x) x.Articolo
+                Case Else : Return Function(x) x.Articolo
+            End Select
         End Function
         Private Function MakeWhereExpression(Search As String) As Expressions.Expression(Of Func(Of ProgettiUT, Boolean))
             Return Function(x) x.OC_Riferimento.Contains(Search) Or

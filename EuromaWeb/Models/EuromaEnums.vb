@@ -161,6 +161,8 @@ Public Enum Stato_Prod As Byte
     Ritorno_Da_UT = 5
     <Display(Name:="In attesa maggiori informazioni")>
     Maggiori_Info_Necessarie = 25
+    <Display(Name:="Modificata su Alnus")>
+    Stato_Modificato = 40
     <Display(Name:="In Lavorazione")>
     In_Lavorazione = 50
     <Display(Name:="Completato")>

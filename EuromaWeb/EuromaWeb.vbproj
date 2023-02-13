@@ -872,6 +872,18 @@
       <DependentUpon>202212131349581_StoricoGrezzi_4.vb</DependentUpon>
     </Compile>
     <Compile Include="EuromaMigrations\202212131349581_StoricoGrezzi_4.vb" />
+    <Compile Include="EuromaMigrations\202301181043368_ArticoliErrati.Designer.vb">
+      <DependentUpon>202301181043368_ArticoliErrati.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202301181043368_ArticoliErrati.vb" />
+    <Compile Include="EuromaMigrations\202301181049419_ArticoliErrati1.Designer.vb">
+      <DependentUpon>202301181049419_ArticoliErrati1.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202301181049419_ArticoliErrati1.vb" />
+    <Compile Include="EuromaMigrations\202301181051254_ArticoliErrati2.Designer.vb">
+      <DependentUpon>202301181051254_ArticoliErrati2.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202301181051254_ArticoliErrati2.vb" />
     <Compile Include="EuromaMigrations\Configuration.vb" />
     <Compile Include="Global.asax.vb">
       <DependentUpon>Global.asax</DependentUpon>
@@ -1139,6 +1151,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="EuromaMigrations\202208011133211_StoricoOC1.resx">
       <DependentUpon>202208011133211_StoricoOC1.vb</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="EuromaMigrations\202208030734458_DocumentiPerOC.resx">
       <DependentUpon>202208030734458_DocumentiPerOC.vb</DependentUpon>
@@ -1163,6 +1176,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="EuromaMigrations\202209051343527_FasiOC_Articolo.resx">
       <DependentUpon>202209051343527_FasiOC_Articolo.vb</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="EuromaMigrations\202209090850341_TempiAttivita.resx">
       <DependentUpon>202209090850341_TempiAttivita.vb</DependentUpon>
@@ -1239,6 +1253,15 @@
     <EmbeddedResource Include="EuromaMigrations\202212131349581_StoricoGrezzi_4.resx">
       <DependentUpon>202212131349581_StoricoGrezzi_4.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202301181043368_ArticoliErrati.resx">
+      <DependentUpon>202301181043368_ArticoliErrati.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202301181049419_ArticoliErrati1.resx">
+      <DependentUpon>202301181049419_ArticoliErrati1.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202301181051254_ArticoliErrati2.resx">
+      <DependentUpon>202301181051254_ArticoliErrati2.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="IdentityMigrations\202111161323354_Init.resx">
       <DependentUpon>202111161323354_Init.vb</DependentUpon>
       <SubType>Designer</SubType>
@@ -1309,6 +1332,8 @@
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\datepicker.min.css" />
+    <Content Include="Content\dll\Everything32.dll" />
+    <Content Include="Content\dll\Everything64.dll" />
     <Content Include="Content\font-awesome.css" />
     <Content Include="Content\icons\Doc_UT.png" />
     <Content Include="Content\Firme\Firma.png" />
@@ -1373,7 +1398,6 @@
     <Content Include="tessdata\osd.traineddata" />
     <Content Include="tessdata\pdf.ttf" />
     <Content Include="Content\Template\Euroma_Fatturato.xlsx" />
-    <Content Include="Content\Template\Euroma_Ordinato.xlsx" />
     <Content Include="Content\datatable.min.css" />
     <Content Include="Content\Template\OffertaFornitore.pdf" />
     <Content Include="Content\Template\OffertaFornitoreDDT.pdf" />
@@ -1382,6 +1406,12 @@
     <Content Include="Content\Template\Lotti_Template.xlsx" />
     <Content Include="Content\Macchine\Template_Macchine.xlsx" />
     <Content Include="Content\Macchine\Template_Macchine_Complessivo.xlsx" />
+    <Content Include="Content\Template\Euroma_Ordinato.xlsx" />
+    <Content Include="Content\Template\Clienti_Nuovi.xlsx" />
+    <Content Include="Content\Template\PrimeNote.xlsx" />
+    <Content Include="Content\Template\FatturatoFornitori.xlsx" />
+    <Content Include="Content\Template\Supplier_Turnover_Template.xlsx" />
+    <Content Include="Content\Template\Euroma_Offerto.xlsx" />
     <None Include="My Project\Application.myapp">
       <Generator>MyApplicationCodeGenerator</Generator>
       <LastGenOutput>Application.Designer.vb</LastGenOutput>
@@ -1514,6 +1544,12 @@
     <Content Include="Views\Pezzi\AnalisiGleason.vbhtml" />
     <Content Include="Views\Manage\Computer.vbhtml" />
     <Content Include="Views\Manage\AddComputer.vbhtml" />
+    <Content Include="Views\Pezzi\PrimaNotaPage.vbhtml" />
+    <Content Include="Views\ProgettiUT\CreaRichiesta.vbhtml" />
+    <Content Include="Views\ProgettiUT\DetailsRichiesta.vbhtml" />
+    <Content Include="Views\ProgettiUT\EditRichiesta.vbhtml" />
+    <Content Include="Views\Pezzi\FatturatoFornitoriPage.vbhtml" />
+    <Content Include="Views\Pezzi\OffertoPage.vbhtml" />
     <None Include="Views\Shared\Email_Euroma.vbhtml" />
     <Content Include="Views\Shared\Lockout.vbhtml" />
     <Content Include="Views\Shared\_LoginPartial.vbhtml" />

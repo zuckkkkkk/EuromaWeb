@@ -328,7 +328,7 @@ Namespace Controllers
                 artListString = artListString + ")"
                 myConn = New SqlConnection(ConnectionString)
                 myCmd = myConn.CreateCommand
-                myCmd.CommandText = "SELECT DISTINCT PREB.BAMNRR, BAMTES.BOLNRR, BAMTES.BAMCTR, BAMTES.BAMUTE FROM BAMDET00 AS PREB, ORFDET00 AS ORDIN, BAMTES00 as BAMTES WHERE PREB.BAMCCD = ORDIN.COMCOD AND BAMTES.BAMNRR = PREB.BAMNRR AND PREB.ORCCLI = ORDIN.ORFCLF AND ORDIN.ORFSEZ = 'OL' AND ORDIN.ESECOD = '2022' AND PREB.ESECOD = '2022' " + artListString
+                myCmd.CommandText = "SELECT DISTINCT PREB.BAMNRR, BAMTES.BOLNRR, BAMTES.BAMCTR, BAMTES.BAMUTE FROM BAMDET00 AS PREB, ORFDET00 AS ORDIN, BAMTES00 as BAMTES WHERE PREB.BAMCCD = ORDIN.COMCOD AND BAMTES.BAMNRR = PREB.BAMNRR AND PREB.ORCCLI = ORDIN.ORFCLF AND ORDIN.ORFSEZ = 'OL' AND ORDIN.ESECOD = '2023' AND PREB.ESECOD = '2023' AND BAMCTR = 'Trasferimento c/l fase (No mov.mag)' AND BAMTES.ESECOD = '2023' " + artListString
                 myConn.Open()
             Catch ex As Exception
                 db.Log.Add(New Log With {

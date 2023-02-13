@@ -597,6 +597,8 @@ Namespace Controllers
                                 StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  15%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>5%</div>"
                             Case 25
                                 StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  25%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>25%</div>"
+                            Case 40
+                                StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  25%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>40%</div>"
                             Case 50
                                 StatoProgetto = "<div Class='progress-bar bg-warning progress-bar-striped progress-bar-animated' role='progressbar' style='width:  50%;border-radius: 8px;' aria-valuenow='@item.StatoProgetto' aria-valuemin='0' aria-valuemax='100'>50%</div>"
                             Case 90

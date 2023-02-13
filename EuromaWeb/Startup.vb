@@ -29,7 +29,7 @@ Partial Public Class Startup
     Private myReader As SqlDataReader
     Private results As String
     Private Iterator Function GetHangfireServers() As IEnumerable(Of IDisposable) '127.0.0.1 
-        GlobalConfiguration.Configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage("Server=(localdb)\MSSQLLocalDB; Database=HangFire; Integrated Security=True;", New SqlServerStorageOptions With { ' 127.0.0.1
+        GlobalConfiguration.Configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage("Server=(localdb)\MSSQLLocalDB; Database=HangFire; Integrated Security=True;", New SqlServerStorageOptions With { '127.0.0.1
             .CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
             .SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
             .QueuePollInterval = TimeSpan.Zero,
@@ -38,6 +38,7 @@ Partial Public Class Startup
         })
         Yield New BackgroundJobServer()
     End Function
+
     Public Sub Configuration(app As IAppBuilder)
         ConfigureAuth(app)
         app.UseHangfireAspNet(AddressOf GetHangfireServers)
@@ -48,9 +49,10 @@ Partial Public Class Startup
         RecurringJob.AddOrUpdate(Sub() UpdateTempiOpera(), Cron.HourInterval(2))
         RecurringJob.AddOrUpdate(Sub() UpdateFasiEst(), Cron.HourInterval(2))
         RecurringJob.AddOrUpdate(Sub() UpdateFasiProgEst(), Cron.MinuteInterval(15))
-        RecurringJob.AddOrUpdate(Sub() CheckPCOff(), Cron.HourInterval(1))
-        RecurringJob.AddOrUpdate(Sub() CheckPCOn(), Cron.HourInterval(6))
+        RecurringJob.AddOrUpdate(Sub() CheckPCOff(), Cron.MinuteInterval(6))
+        RecurringJob.AddOrUpdate(Sub() CheckPCOn(), Cron.MinuteInterval(6))
         RecurringJob.AddOrUpdate(Sub() CheckMagGrezzi(), Cron.MinuteInterval(1))
+        RecurringJob.AddOrUpdate(Sub() CheckOPModificati(), Cron.MinuteInterval(5))
     End Sub
     Public Function CheckPCOff()
         For Each pc In db.Computer
@@ -746,7 +748,7 @@ Partial Public Class Startup
                         Dim ODLQPV = myReader.GetDecimal(4)
                         If Not db.StoricoGrezzi.Where(Function(x) x.ODLANN = ODLANN And x.ODLSEZ = ODLSEZ And x.ODLNMR = ODLNMR).Count > 0 Then
                             Dim articolo = db.ArticoliMagazzino.Find(l.Id)
-                            If (l.qta - Convert.ToDouble(ODLFTC)) < 0 Then
+                            If (l.qta - Convert.ToDouble(ODLQPV)) < 0 Then
                                 db.StoricoGrezzi.Add(New StoricoGrezzi With {
                             .ODLANN = ODLANN,
                             .ODLNMR = ODLNMR,
@@ -760,7 +762,7 @@ Partial Public Class Startup
                                 db.SaveChanges()
                                 DeleteArticolo(l.Id)
                             Else
-                                If (l.qta - Convert.ToDouble(ODLFTC)) = 0 Then
+                                If (l.qta - Convert.ToDouble(ODLQPV)) = 0 Then
                                     db.StoricoGrezzi.Add(New StoricoGrezzi With {
                                       .ODLANN = ODLANN,
                                       .ODLNMR = ODLNMR,
@@ -774,7 +776,7 @@ Partial Public Class Startup
                                     db.SaveChanges()
                                     DeleteArticolo(l.Id)
                                 Else
-                                    l.qta = l.qta - Convert.ToDouble(ODLFTC)
+                                    l.qta = l.qta - Convert.ToDouble(ODLQPV)
                                     db.SaveChanges()
                                     db.StoricoGrezzi.Add(New StoricoGrezzi With {
                                       .ODLANN = ODLANN,
@@ -864,6 +866,60 @@ Partial Public Class Startup
                            })
                     db.SaveChanges()
                 End If
+            End If
+        Next
+    End Function
+    Function CheckOPModificati()
+        Dim listaOP = db.ProgettiProd.Where(Function(x) x.StatoProgetto = Stato_Prod.Rilasciato).ToList
+        For Each l In listaOP
+            If Not l.StatoProgetto = Stato_Prod.Stato_Modificato Then
+                Try
+                    Dim OC = l.OC_Riferimento.Split("-")
+                    myConn = New SqlConnection(ConnectionString)
+                    myCmd = myConn.CreateCommand
+                    myCmd.CommandText = "select ORCSTC from ORCTES00 where ORCTSZ = 'OC' and ESECOD = '" + OC(0) + "' and ORCTNR = '" + OC(2) + "'"
+                    myConn.Open()
+                Catch ex As Exception
+
+                End Try
+                'Parse dei dati da SQL
+                Try
+                    myReader = myCmd.ExecuteReader
+                    Do While myReader.Read()
+                        If myReader.GetString(0) = "040" Then
+                            Dim ToBeChangedOP = db.ProgettiProd.Where(Function(x) x.Id = l.Id).First
+                            ToBeChangedOP.StatoProgetto = Stato_Prod.Stato_Modificato
+                            db.SaveChanges()
+                            db.StoricoOC.Add(New StoricoOC With {
+                               .Descrizione = "Ritorno stato 040 " + ToBeChangedOP.OC_Riferimento,
+                               .OC = ToBeChangedOP.OC_Riferimento,
+                               .Titolo = "Ritorno stato 040",
+                               .Ufficio = TipoUfficio.Produzione,
+                               .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = "", .Operatore = "Sistema", .Data = DateTime.Now}
+                           })
+                            db.SaveChanges()
+                            db.Audit.Add(New Audit With {
+                                       .Livello = TipoAuditLivello.Info,
+                                       .Indirizzo = "Startup.vb",
+                                       .Messaggio = "OC in stato modificato",
+                                       .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = l.Id, .OC = l.OC_Riferimento}),
+                                      .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = "", .Operatore = "Sistema", .Data = DateTime.Now}
+                         })
+                            db.SaveChanges()
+                        End If
+                    Loop
+                    myConn.Close()
+
+                Catch ex As Exception
+                    db.Log.Add(New Log With {
+                       .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .OperatoreID = "", .Operatore = "Sistema"},
+                       .Livello = TipoLogLivello.Errors,
+                       .Indirizzo = "Startup.vb",
+                       .Messaggio = "Errore Query ricerca OP modificati -> " & ex.Message,
+                       .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = DateTime.Now.Ticks.ToString})
+                       })
+                    db.SaveChanges()
+                End Try
             End If
         Next
     End Function

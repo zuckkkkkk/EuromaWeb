@@ -13,9 +13,15 @@ Namespace Controllers
         Private db As New EuromaModels
 
         Private Const ConnectionString As String = "Persist Security Info=True;Password=ALNUSAD;User ID=ALNUSAD;Initial Catalog=ALNEUMA;Data Source=192.168.100.50"
+        Private Const ConnectionStringBI As String = "Persist Security Info=True;Password=ALNUSAD;User ID=ALNUSAD;Initial Catalog=DWAlnus;Data Source=192.168.100.50"
         Private myConn As SqlConnection
         Private myCmd As SqlCommand
         Private myReader As SqlDataReader
+
+        Private myConnBI As SqlConnection
+        Private myCmdBI As SqlCommand
+        Private myReaderBI As SqlDataReader
+
         Private results As String
         <Authorize(Roles:="Commerciale_Admin, Admin")>
         <HttpGet>
@@ -773,12 +779,1153 @@ Namespace Controllers
 
             'Return Json(New With {.tot = finalCosts, .anticipi = anticipi, .miss = totalMissing, .totRev = totalRevenue}, JsonRequestBehavior.AllowGet) '.tmpf = tmpF, .codList = codList, .tmp = dict,, .FD = fattureDrill, .CD = contiDrill
         End Function
+        <Authorize(Roles:="Commerciale_Admin, Admin, Produzione")>
+        <HttpGet>
+        Function FatturatoFornitori(datetime As String) As FileResult
+            Dim datetimeCalc = datetime.Split("-")
+            Dim m1 = datetimeCalc(0).ToString.Substring(4, 2)
+            Dim m2 = datetimeCalc(1).ToString.Substring(4, 2)
+            Dim listSpM As New List(Of SpeseMensili)
+            Dim listPNVarie As New List(Of PrimeNote)
+            Dim listPN As New List(Of PrimeNote)
+            Dim ff As New List(Of FatturatoFornitoriViewModel)
+            Try
+                myConn = New SqlConnection(ConnectionString)
+                myCmd = myConn.CreateCommand
+                myCmd.CommandText = "select 
+                                        PNCOCF + ' - '+ CLFNMG as CodCliFor,
+                                        SUM(IVIMBE) as Importo,
+										SUBSTRING(cast(PNDTDOREV as nvarchar), 5, 2)
+                                        from CGMPNO00,
+                                        CLFANA,
+										CGMIVA00
+										where PNDTDOREV >= '" + datetimeCalc(0) + "'
+                                        AND PNDTDOREV <= '" + datetimeCalc(1) + "'
+                                        And PNSNUM = 'FP'
+										AND  PNCLFO = 'F'
+                                        AND (PNCCAU = 'FF1' or PNCCAU = 'FF2')
+										AND CLFTIP = 'F'
+										AND CLFCO1 = PNCOCF
+										and IVESER = PNESEC
+										and IVSNUM = PNSNUM
+										AND IVNRRE = PNNRRE
+									group by PNCOCF, CLFNMG,SUBSTRING(cast(PNDTDOREV as nvarchar), 5, 2)
+"
+                myConn.Open()
+            Catch ex As Exception
+                'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+            End Try
+            Try
+                myReader = myCmd.ExecuteReader
+
+                Do While myReader.Read()
+                    Dim fornitore = myReader.GetString(0)
+
+                    If ff.Where(Function(x) x.Fornitore = fornitore).Count = 0 Then
+                        ff.Add(New FatturatoFornitoriViewModel With {
+                        .Fornitore = myReader.GetString(0),
+                        .TypeFornitore = "S",
+                        .Fatturato = New MesiFatturatoViewModel With {
+                            .Fatturato_Gennaio = 0,
+                            .Fatturato_Febbraio = 0,
+                            .Fatturato_Marzo = 0,
+                            .Fatturato_Aprile = 0,
+                            .Fatturato_Maggio = 0,
+                            .Fatturato_Giugno = 0,
+                            .Fatturato_Luglio = 0,
+                            .Fatturato_Agosto = 0,
+                            .Fatturato_Settembre = 0,
+                            .Fatturato_Ottobre = 0,
+                            .Fatturato_Novembre = 0,
+                            .Fatturato_Dicembre = 0
+                        }
+                    })
+                    End If
+                    Dim f = ff.Where(Function(x) x.Fornitore = myReader.GetString(0)).First
+                        Select Case myReader.GetString(2)
+                            Case "01"
+                                f.Fatturato.Fatturato_Gennaio = f.Fatturato.Fatturato_Gennaio + myReader.GetDecimal(1)
+                            Case "02"
+                                f.Fatturato.Fatturato_Febbraio = f.Fatturato.Fatturato_Febbraio + myReader.GetDecimal(1)
+                            Case "03"
+                                f.Fatturato.Fatturato_Marzo = f.Fatturato.Fatturato_Marzo + myReader.GetDecimal(1)
+                            Case "04"
+                                f.Fatturato.Fatturato_Aprile = f.Fatturato.Fatturato_Aprile + myReader.GetDecimal(1)
+                            Case "05"
+                                f.Fatturato.Fatturato_Maggio = f.Fatturato.Fatturato_Maggio + myReader.GetDecimal(1)
+                            Case "06"
+                                f.Fatturato.Fatturato_Giugno = f.Fatturato.Fatturato_Giugno + myReader.GetDecimal(1)
+                            Case "07"
+                                f.Fatturato.Fatturato_Luglio = f.Fatturato.Fatturato_Luglio + myReader.GetDecimal(1)
+                            Case "08"
+                                f.Fatturato.Fatturato_Agosto = f.Fatturato.Fatturato_Agosto + myReader.GetDecimal(1)
+                            Case "09"
+                                f.Fatturato.Fatturato_Settembre = f.Fatturato.Fatturato_Settembre + myReader.GetDecimal(1)
+                            Case "10"
+                                f.Fatturato.Fatturato_Ottobre = f.Fatturato.Fatturato_Ottobre + myReader.GetDecimal(1)
+                            Case "11"
+                                f.Fatturato.Fatturato_Novembre = f.Fatturato.Fatturato_Novembre + myReader.GetDecimal(1)
+                            Case "12"
+                                f.Fatturato.Fatturato_Dicembre = f.Fatturato.Fatturato_Dicembre + myReader.GetDecimal(1)
+                        End Select
+
+                    '.DataCompetenza = Convert.ToDateTime(myReader.GetDecimal(3).ToString),
+                Loop
+                myConn.Close()
+
+            Catch ex As Exception
+                'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+            End Try
+
+            Dim fs As New FileStream(Server.MapPath("\Content\Template\Supplier_Turnover_Template.xlsx"), FileMode.Open, FileAccess.ReadWrite)
+            Dim workbook As XSSFWorkbook = New XSSFWorkbook(fs)
+            Dim ws As XSSFSheet = workbook.GetSheetAt(1)
+            Dim fontIntestazione As XSSFFont = CType(workbook.CreateFont(), XSSFFont)
+            fontIntestazione.FontHeightInPoints = CShort(12)
+            fontIntestazione.FontName = "Arial"
+            fontIntestazione.IsBold = True
+            fontIntestazione.IsItalic = False
+            fontIntestazione.FontHeightInPoints = 11
+            Dim styleIntestazione As XSSFCellStyle = CType(workbook.CreateCellStyle(), XSSFCellStyle)
+            styleIntestazione.FillBackgroundColor = FillPattern.SolidForeground
+            styleIntestazione.SetFont(fontIntestazione)
+            Dim nomefile = "Periodo_" + datetimeCalc(0) + "-" + datetimeCalc(1) + "_Supplier_Turnover.xlsx"
+            'For p As Integer = 0 To 12
+
+            'Base data
+            Dim ms As New MemoryStream
+            Dim ms1 As New MemoryStream
+            Dim counter = 2
+            Dim wsCli As XSSFSheet = workbook.GetSheetAt(1)
+            Try
+                wsCli.GetRow(1).GetCell(1).SetCellValue("Fatturato Fornitori dal '" + datetimeCalc(0) + "' al '" + datetimeCalc(1) + "'")
+                'Date 
+                wsCli.GetRow(2).GetCell(3).SetCellValue("01")
+                wsCli.GetRow(2).GetCell(4).SetCellValue("02")
+                wsCli.GetRow(2).GetCell(5).SetCellValue("03")
+                wsCli.GetRow(2).GetCell(6).SetCellValue("04")
+                wsCli.GetRow(2).GetCell(6).SetCellValue("05")
+                wsCli.GetRow(2).GetCell(8).SetCellValue("06")
+                wsCli.GetRow(2).GetCell(9).SetCellValue("07")
+                wsCli.GetRow(2).GetCell(10).SetCellValue("08")
+                wsCli.GetRow(2).GetCell(11).SetCellValue("09")
+                wsCli.GetRow(2).GetCell(12).SetCellValue("10")
+                wsCli.GetRow(2).GetCell(13).SetCellValue("11")
+                wsCli.GetRow(2).GetCell(14).SetCellValue("12")
+                Dim i = 3
+                For Each f In ff
+                    Try
+                        wsCli.GetRow(i).GetCell(2).SetCellValue(f.Fornitore)
+                        wsCli.GetRow(i).GetCell(3).SetCellValue(f.Fatturato.Fatturato_Gennaio)
+                        wsCli.GetRow(i).GetCell(4).SetCellValue(f.Fatturato.Fatturato_Febbraio)
+                        wsCli.GetRow(i).GetCell(5).SetCellValue(f.Fatturato.Fatturato_Marzo)
+                        wsCli.GetRow(i).GetCell(6).SetCellValue(f.Fatturato.Fatturato_Aprile)
+                        wsCli.GetRow(i).GetCell(7).SetCellValue(f.Fatturato.Fatturato_Maggio)
+                        wsCli.GetRow(i).GetCell(8).SetCellValue(f.Fatturato.Fatturato_Giugno)
+                        wsCli.GetRow(i).GetCell(9).SetCellValue(f.Fatturato.Fatturato_Luglio)
+                        wsCli.GetRow(i).GetCell(10).SetCellValue(f.Fatturato.Fatturato_Agosto)
+                        wsCli.GetRow(i).GetCell(11).SetCellValue(f.Fatturato.Fatturato_Settembre)
+                        wsCli.GetRow(i).GetCell(12).SetCellValue(f.Fatturato.Fatturato_Ottobre)
+                        wsCli.GetRow(i).GetCell(13).SetCellValue(f.Fatturato.Fatturato_Novembre)
+                        wsCli.GetRow(i).GetCell(14).SetCellValue(f.Fatturato.Fatturato_Dicembre)
+                        i = i + 1
+                    Catch ex As Exception
+
+                    End Try
+                Next
+
+            Catch ex As Exception
+
+            End Try
+
+            workbook.GetCreationHelper().CreateFormulaEvaluator().EvaluateAll()
+            workbook.Write(ms1)
+            Return File(ms1.ToArray, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", nomefile)
+
+        End Function
+
         <Authorize(Roles:="Commerciale_Admin, Admin")>
         <HttpGet>
-        Function Ordinato(dateTime As String, agente As String, cliente As String) As FileResult
+        Function PrimaNota(datetime As String) As FileResult
+            Dim datetimeCalc = datetime.Split("-")
+            Dim m1 = datetimeCalc(0).ToString.Substring(4, 2)
+            Dim m2 = datetimeCalc(1).ToString.Substring(4, 2)
+            Dim listSpM As New List(Of SpeseMensili)
+            Dim listPNVarie As New List(Of PrimeNote)
+            If m1 = m2 Then
+                Dim listPN As New List(Of PrimeNote)
+                Dim SpM As New SpeseMensili With {
+                    .OneriBanc = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .Bonifici = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .SBF = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .AF = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .Finanziamento = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .Affitto = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .Assicurazioni = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .CartaCredito = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .Finanziamenti = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .Fornitori = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .Insoluti = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .INAIL = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .INPS = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .IRPEF = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .IVA = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .Leasing = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .RA = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .Stipendi = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .EntiDIP = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .Varie = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .Tasse = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .IntPass = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .EntiDipendenti = New CostiPN With {.Avere = 0, .Dare = 0},
+                    .Mese = Convert.ToInt32(m1)
+                }
+                Try
+                    myConn = New SqlConnection(ConnectionString)
+                    myCmd = myConn.CreateCommand
+                    myCmd.CommandText = "select PNESER as Esercizio, 
+                                        PNSNUM As PrimaNota, 
+                                        PNNRRE as Numero_PN, 
+                                        PNDTCOREV as DataCompetenza, 
+                                        PNIMOE as Importo, 
+                                        PNCON1 as Conto, 
+                                        PNCCAU as Causale,
+                                        PNSEGN as Segno,
+                                        PNCLFO as FlagCF,
+                                        PNCOCF as CodCliFor
+                                        from CGMPNO00
+                                        where PNDTREREV >= '" + datetimeCalc(0) + "'
+                                        AND PNDTREREV <= '" + datetimeCalc(1) + "'
+                                        And PNSNUM = 'PN'
+                                        AND (PNCCAU = 'ACC' OR PNCCAU = 'ADD' OR PNCCAU = 'PAG' OR PNCCAU = 'GC' OR PNCCAU = 'INS'OR PNCCAU = 'INC' OR PNCCAU = 'RIC' OR PNCCAU = 'DEF' OR PNCCAU = 'ANT' OR PNCCAU = 'EST')
+                                    "
+                    myConn.Open()
+                Catch ex As Exception
+                    'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+                End Try
+                Try
+                    myReader = myCmd.ExecuteReader
+
+                    Do While myReader.Read()
+                        listPN.Add(New EuromaWeb.PrimeNote With {
+                            .Anno = myReader.GetString(0),
+                            .CodPN = myReader.GetString(1),
+                            .NumPN = myReader.GetDecimal(2),
+                            .Importo = myReader.GetDecimal(4),
+                            .Conto = myReader.GetString(5),
+                            .Causale = myReader.GetString(6),
+                            .Segno = myReader.GetString(7),
+                            .FlagCF = myReader.GetString(8),
+                            .CodCLIFOR = myReader.GetString(9)
+                        })
+
+                        '.DataCompetenza = Convert.ToDateTime(myReader.GetDecimal(3).ToString),
+                    Loop
+                    myConn.Close()
+
+                Catch ex As Exception
+                    'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+                End Try
+                Dim sum = 0
+                'Calcolo  PrimeNote
+                For Each p In listPN
+                    Select Case p.Conto.Replace(" ", "")
+                        Case “122000” 'Incassi ->Qui ci sono gli insoluti che sono “INS” e “RIC”
+                            sum = sum + p.Importo
+                            If p.FlagCF = "C" Then
+                                Select Case p.Causale
+                                    Case "INS"
+                                        SpM.Insoluti.Dare = SpM.Insoluti.Dare + p.Importo
+                                    Case "RIC"
+                                        SpM.Insoluti.Dare = SpM.Insoluti.Dare + p.Importo
+                                    Case "INC"
+                                        SpM.Bonifici.Avere = SpM.Bonifici.Avere + p.Importo
+                                    Case Else
+                                        listPNVarie.Add(p)
+                                        SpM.Bonifici.Avere = SpM.Bonifici.Avere + p.Importo
+                                End Select
+                            Else
+                                listPNVarie.Add(p)
+                                SpM.Bonifici.Avere = SpM.Bonifici.Avere + p.Importo
+                            End If
+                        Case "122011", "122012", "122013", "122014", "122015", "122016", "122017", "122018", "122019", "122020"
+                            If p.Causale = "DEF" Then
+                                SpM.SBF.Avere = SpM.SBF.Avere + p.Importo
+                            End If
+                        Case “251311”, “251312”, “251313”, “251314”, “251315”, “251316”, “251317”, “251318”, “251319”, “251320”, “251321”, “251322”, “251323”, “251324”, “251325”, “251326”, “251327”, “251328” ''ANT EST
+                            If p.Segno = "D" Then
+                                SpM.AF.Avere = SpM.AF.Avere - p.Importo
+                            Else
+                                SpM.AF.Avere = SpM.AF.Avere + p.Importo
+                            End If
+                        Case “251330”, “251331”, “251332”, “251333”, “251334”, “251335”, “251336”, “251337”, “251338”, “251339”, “251340”, “251341”, “251342”, “251343”, “251344”, “251345”, “251346”, “251347”, “251348”, “251349”, “251350”, “251351”, “251352”, “251353”, “251354”, “251355”, “251356”, “251357”, “251358”, “251359”, “251360”, “251361”, “251362”, “251363”  'Finanziamenti
+                            If p.Causale = "ACC" Then
+                                SpM.Finanziamenti.Avere = SpM.Finanziamenti.Avere + p.Importo
+                            Else
+                                SpM.Finanziamenti.Dare = SpM.Finanziamenti.Dare + p.Importo
+                            End If
+                        Case “512505” 'Assicurazioni
+                            SpM.Assicurazioni.Dare = SpM.Assicurazioni.Dare + p.Importo
+                        Case “251501” 'Carte
+                            If p.Causale = "ADD" Then
+                                SpM.CartaCredito.Dare = SpM.CartaCredito.Dare + p.Importo
+                            Else
+                                SpM.Varie.Dare = SpM.Varie.Dare + p.Importo
+                            End If
+                        Case “271000” 'Fornitori -> Qui ci sono due fornitori 001995 e 003327 che vanno in “Fornitori dell’affitto”, mentre ci sono i fornitori 002696, 000108, 003369 che vanno in “Fornitori Leasing”
+                            Select Case p.CodCLIFOR
+                                Case "001995", "003327"
+                                    SpM.Affitto.Dare = SpM.Affitto.Dare + p.Importo
+                                Case "002696", "000108", "003369"
+                                    SpM.Leasing.Dare = SpM.Leasing.Dare = p.Importo
+                                Case Else
+                                    SpM.Fornitori.Dare = SpM.Fornitori.Dare + p.Importo
+                            End Select
+                        Case “303002” 'INAIL
+                            If p.Causale = "PAG" Then
+                                SpM.INAIL.Dare = SpM.INAIL.Dare + p.Importo
+                            Else
+                                SpM.Varie.Dare = SpM.Varie.Dare + p.Importo
+                            End If
+                        Case “303001” 'INPS
+                            If p.Causale = "PAG" Then
+                                SpM.INPS.Dare = SpM.INPS.Dare + p.Importo
+                            Else
+                                SpM.Varie.Dare = SpM.Varie.Dare + p.Importo
+                            End If
+                        Case “301010”, “301090” 'IRPEF
+                            If p.Causale = "PAG" Then
+                                SpM.IRPEF.Dare = SpM.IRPEF.Dare + p.Importo
+                            Else
+                                SpM.Varie.Dare = SpM.Varie.Dare + p.Importo
+                            End If
+                        Case “301021” 'IVA
+                            SpM.IVA.Dare = SpM.IVA.Dare + p.Importo
+                        Case “301011” 'Ritenuta d’acconto
+                            SpM.RA.Dare = SpM.RA.Dare + p.Importo
+                        Case “302001”, “302002”, “302030” 'Stipendi
+                            SpM.Stipendi.Dare = SpM.Stipendi.Dare + p.Importo
+                        Case “303013”, “303006”, “303004”, “303016”, “303005”, “303014”, “303003”, “512306”, "302022", "303007", "301012" 'Enti Dipendenti
+                            SpM.EntiDipendenti.Dare = SpM.EntiDipendenti.Dare + p.Importo
+                        Case “301023”, “301022” 'Tasse
+                            SpM.Tasse.Dare = SpM.Tasse.Dare + p.Importo
+                        Case “523001”, “523007”, "523002", "523003" 'Interessi Passivi
+                            SpM.IntPass.Dare = SpM.IntPass.Dare + p.Importo
+                        Case “523004”, “523005” 'Oneri Bancari
+                            SpM.OneriBanc.Dare = SpM.OneriBanc.Dare + p.Importo
+                        Case "506001", "506002", "506003", "506004", "506005", "506006"
+                            SpM.Varie.Dare = SpM.Varie.Dare + p.Importo
+                        Case "122010", "311001"
+                        Case Else
+                            If p.Causale = "ACC" Then
+                                listPNVarie.Add(p)
+                            End If
+                    End Select
+                Next
+                listSpM.Add(SpM)
+            Else
+                Dim mese1 = Convert.ToInt32(m1)
+                Dim mese2 = Convert.ToInt32(m2)
+                For i = mese1 To mese2
+                    Dim listPN As New List(Of PrimeNote)
+                    Dim SpM As New SpeseMensili With {
+                        .OneriBanc = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .Bonifici = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .SBF = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .AF = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .Finanziamento = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .Affitto = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .Assicurazioni = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .CartaCredito = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .Finanziamenti = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .Fornitori = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .Insoluti = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .INAIL = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .INPS = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .IRPEF = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .IVA = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .Leasing = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .RA = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .Stipendi = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .EntiDIP = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .Varie = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .Tasse = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .IntPass = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .EntiDipendenti = New CostiPN With {.Avere = 0, .Dare = 0},
+                        .Mese = i
+                    }
+                    Try
+                        Dim mese = i.ToString
+                        If mese.Length = 1 Then
+                            mese = "0" + mese
+                        End If
+                        myConn = New SqlConnection(ConnectionString)
+                        myCmd = myConn.CreateCommand
+                        myCmd.CommandText = "select PNESER as Esercizio, 
+                                        PNSNUM As PrimaNota, 
+                                        PNNRRE as Numero_PN, 
+                                        PNDTCOREV as DataCompetenza, 
+                                        PNIMOE as Importo, 
+                                        PNCON1 as Conto, 
+                                        PNCCAU as Causale,
+                                        PNSEGN as Segno,
+                                        PNCLFO as FlagCF,
+                                        PNCOCF as CodCliFor
+                                        from CGMPNO00
+                                        where PNDTREREV like '" + datetimeCalc(0).Substring(0, 4) + mese + "%'
+                                        And PNSNUM = 'PN'
+                                        AND (PNCCAU = 'ACC' OR PNCCAU = 'ADD' OR PNCCAU = 'PAG' OR PNCCAU = 'GC' OR PNCCAU = 'INS'OR PNCCAU = 'INC' OR PNCCAU = 'RIC' OR PNCCAU = 'DEF' OR PNCCAU = 'ANT' OR PNCCAU = 'EST')
+                                    "
+                        myConn.Open()
+                    Catch ex As Exception
+                        'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+                    End Try
+                    Try
+                        myReader = myCmd.ExecuteReader
+
+                        Do While myReader.Read()
+                            listPN.Add(New EuromaWeb.PrimeNote With {
+                                .Anno = myReader.GetString(0),
+                                .CodPN = myReader.GetString(1),
+                                .NumPN = myReader.GetDecimal(2),
+                                .Importo = myReader.GetDecimal(4),
+                                .Conto = myReader.GetString(5),
+                                .Causale = myReader.GetString(6),
+                                .Segno = myReader.GetString(7),
+                                .FlagCF = myReader.GetString(8),
+                                .CodCLIFOR = myReader.GetString(9)
+                            })
+
+                            '.DataCompetenza = Convert.ToDateTime(myReader.GetDecimal(3).ToString),
+                        Loop
+                        myConn.Close()
+
+                    Catch ex As Exception
+                        'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+                    End Try
+                    Dim sum = 0
+                    'Calcolo  PrimeNote
+                    For Each p In listPN
+                        Select Case p.Conto.Replace(" ", "")
+                            Case “122000” 'Incassi ->Qui ci sono gli insoluti che sono “INS” e “RIC”
+                                sum = sum + p.Importo
+                                If p.FlagCF = "C" Then
+                                    Select Case p.Causale
+                                        Case "INS"
+                                            SpM.Insoluti.Dare = SpM.Insoluti.Dare + p.Importo
+                                        Case "RIC"
+                                            SpM.Insoluti.Dare = SpM.Insoluti.Dare + p.Importo
+                                        Case "INC"
+                                            SpM.Bonifici.Avere = SpM.Bonifici.Avere + p.Importo
+                                        Case Else
+                                            listPNVarie.Add(p)
+                                            SpM.Bonifici.Avere = SpM.Bonifici.Avere + p.Importo
+                                    End Select
+                                Else
+                                    listPNVarie.Add(p)
+                                    SpM.Bonifici.Avere = SpM.Bonifici.Avere + p.Importo
+                                End If
+                            Case "122011", "122012", "122013", "122014", "122015", "122016", "122017", "122018", "122019", "122020"
+                                If p.Causale = "DEF" Then
+                                    SpM.SBF.Avere = SpM.SBF.Avere + p.Importo
+                                End If
+                            Case “251311”, “251312”, “251313”, “251314”, “251315”, “251316”, “251317”, “251318”, “251319”, “251320”, “251321”, “251322”, “251323”, “251324”, “251325”, “251326”, “251327”, “251328” ''ANT EST
+                                If p.Segno = "D" Then
+                                    SpM.AF.Avere = SpM.AF.Avere - p.Importo
+                                Else
+                                    SpM.AF.Avere = SpM.AF.Avere + p.Importo
+                                End If
+                            Case “251330”, “251331”, “251332”, “251333”, “251334”, “251335”, “251336”, “251337”, “251338”, “251339”, “251340”, “251341”, “251342”, “251343”, “251344”, “251345”, “251346”, “251347”, “251348”, “251349”, “251350”, “251351”, “251352”, “251353”, “251354”, “251355”, “251356”, “251357”, “251358”, “251359”, “251360”, “251361”, “251362”, “251363”  'Finanziamenti
+                                If p.Causale = "ACC" Then
+                                    SpM.Finanziamenti.Avere = SpM.Finanziamenti.Avere + p.Importo
+                                Else
+                                    SpM.Finanziamenti.Dare = SpM.Finanziamenti.Dare + p.Importo
+                                End If
+                            Case “512505” 'Assicurazioni
+                                SpM.Assicurazioni.Dare = SpM.Assicurazioni.Dare + p.Importo
+                            Case “251501” 'Carte
+                                If p.Causale = "ADD" Then
+                                    SpM.CartaCredito.Dare = SpM.CartaCredito.Dare + p.Importo
+                                Else
+                                    SpM.Varie.Dare = SpM.Varie.Dare + p.Importo
+                                End If
+                            Case “271000” 'Fornitori -> Qui ci sono due fornitori 001995 e 003327 che vanno in “Fornitori dell’affitto”, mentre ci sono i fornitori 002696, 000108, 003369 che vanno in “Fornitori Leasing”
+                                Select Case p.CodCLIFOR
+                                    Case "001995", "003327"
+                                        SpM.Affitto.Dare = SpM.Affitto.Dare + p.Importo
+                                    Case "002696", "000108", "003369"
+                                        SpM.Leasing.Dare = SpM.Leasing.Dare = p.Importo
+                                    Case Else
+                                        SpM.Fornitori.Dare = SpM.Fornitori.Dare + p.Importo
+                                End Select
+                            Case “303002” 'INAIL
+                                If p.Causale = "PAG" Then
+                                    SpM.INAIL.Dare = SpM.INAIL.Dare + p.Importo
+                                Else
+                                    SpM.Varie.Dare = SpM.Varie.Dare + p.Importo
+                                End If
+                            Case “303001” 'INPS
+                                If p.Causale = "PAG" Then
+                                    SpM.INPS.Dare = SpM.INPS.Dare + p.Importo
+                                Else
+                                    SpM.Varie.Dare = SpM.Varie.Dare + p.Importo
+                                End If
+                            Case “301010”, “301090” 'IRPEF
+                                If p.Causale = "PAG" Then
+                                    SpM.IRPEF.Dare = SpM.IRPEF.Dare + p.Importo
+                                Else
+                                    SpM.Varie.Dare = SpM.Varie.Dare + p.Importo
+                                End If
+                            Case “301021” 'IVA
+                                SpM.IVA.Dare = SpM.IVA.Dare + p.Importo
+                            Case “301011” 'Ritenuta d’acconto
+                                SpM.RA.Dare = SpM.RA.Dare + p.Importo
+                            Case “302001”, “302002”, “302030” 'Stipendi
+                                SpM.Stipendi.Dare = SpM.Stipendi.Dare + p.Importo
+                            Case “303013”, “303006”, “303004”, “303016”, “303005”, “303014”, “303003”, “512306”, "302022", "303007", "301012" 'Enti Dipendenti
+                                SpM.EntiDipendenti.Dare = SpM.EntiDipendenti.Dare + p.Importo
+                            Case “301023”, “301022” 'Tasse
+                                SpM.Tasse.Dare = SpM.Tasse.Dare + p.Importo
+                            Case “523001”, “523007”, "523002", "523003" 'Interessi Passivi
+                                SpM.IntPass.Dare = SpM.IntPass.Dare + p.Importo
+                            Case “523004”, “523005” 'Oneri Bancari
+                                SpM.OneriBanc.Dare = SpM.OneriBanc.Dare + p.Importo
+                            Case "506001", "506002", "506003", "506004", "506005", "506006"
+                                SpM.Varie.Dare = SpM.Varie.Dare + p.Importo
+                            Case "122010", "311001"
+                            Case Else
+                                If p.Causale = "ACC" Then
+                                    listPNVarie.Add(p)
+                                End If
+                        End Select
+                    Next
+                    listSpM.Add(SpM)
+                Next
+            End If
+
+
+
+            Dim fs As New FileStream(Server.MapPath("\Content\Template\PrimeNote.xlsx"), FileMode.Open, FileAccess.ReadWrite)
+            Dim workbook As XSSFWorkbook = New XSSFWorkbook(fs)
+            Dim ws As XSSFSheet = workbook.GetSheetAt(0)
+            Dim fontIntestazione As XSSFFont = CType(workbook.CreateFont(), XSSFFont)
+            fontIntestazione.FontHeightInPoints = CShort(12)
+            fontIntestazione.FontName = "Arial"
+            fontIntestazione.IsBold = True
+            fontIntestazione.IsItalic = False
+            fontIntestazione.FontHeightInPoints = 11
+            Dim styleIntestazione As XSSFCellStyle = CType(workbook.CreateCellStyle(), XSSFCellStyle)
+            styleIntestazione.FillBackgroundColor = FillPattern.SolidForeground
+            styleIntestazione.SetFont(fontIntestazione)
+            Dim nomefile = "CostiEuroma_Periodo_" + datetimeCalc(0) + "_" + datetimeCalc(1) + ".xlsx"
+            'For p As Integer = 0 To 12
+
+            'Base data
+            Dim ms As New MemoryStream
+            Dim ms1 As New MemoryStream
+            Dim counter = 2
+            Dim wsCli As XSSFSheet = workbook.GetSheetAt(0)
+            Try
+                'Date 
+                wsCli.GetRow(5).GetCell(4).SetCellValue(datetimeCalc(0).Substring(6, 2) + "/" + datetimeCalc(0).Substring(4, 2) + "/" + datetimeCalc(0).Substring(0, 4))
+                wsCli.GetRow(6).GetCell(4).SetCellValue(datetimeCalc(1).Substring(6, 2) + "/" + datetimeCalc(1).Substring(4, 2) + "/" + datetimeCalc(1).Substring(0, 4))
+
+                For i = 1 To 12
+                    If listSpM.Where(Function(x) x.Mese = i).Count > 0 Then
+                        Dim SpMOutPut = listSpM.Where(Function(x) x.Mese = i).First
+                        Dim colDare = 8 + ((i - 1) * 4) + 1
+                        Dim colAvere = 8 + ((i - 1) * 4) + 2
+                        'Bonifici
+                        wsCli.GetRow(4).GetCell(colDare).SetCellValue(SpMOutPut.Bonifici.Dare)
+                        wsCli.GetRow(4).GetCell(colAvere).SetCellValue(SpMOutPut.Bonifici.Avere)
+
+                        'SBF
+                        wsCli.GetRow(5).GetCell(colDare).SetCellValue(SpMOutPut.SBF.Dare)
+                        wsCli.GetRow(5).GetCell(colAvere).SetCellValue(SpMOutPut.SBF.Avere)
+
+                        'AF
+                        wsCli.GetRow(6).GetCell(colDare).SetCellValue(SpMOutPut.AF.Dare)
+                        wsCli.GetRow(6).GetCell(colAvere).SetCellValue(SpMOutPut.AF.Avere)
+
+                        'Fin
+                        wsCli.GetRow(7).GetCell(colDare).SetCellValue(SpMOutPut.Finanziamento.Dare)
+                        wsCli.GetRow(7).GetCell(colAvere).SetCellValue(SpMOutPut.Finanziamento.Avere)
+
+                        'Affitto
+                        wsCli.GetRow(8).GetCell(colDare).SetCellValue(SpMOutPut.Affitto.Dare)
+                        wsCli.GetRow(8).GetCell(colAvere).SetCellValue(SpMOutPut.Affitto.Avere)
+
+                        'Ass
+                        wsCli.GetRow(9).GetCell(colDare).SetCellValue(SpMOutPut.Assicurazioni.Dare)
+                        wsCli.GetRow(9).GetCell(colAvere).SetCellValue(SpMOutPut.Assicurazioni.Avere)
+
+                        'Carta
+                        wsCli.GetRow(10).GetCell(colDare).SetCellValue(SpMOutPut.CartaCredito.Dare)
+                        wsCli.GetRow(10).GetCell(colAvere).SetCellValue(SpMOutPut.CartaCredito.Avere)
+
+                        'Finanz
+                        wsCli.GetRow(11).GetCell(colDare).SetCellValue(SpMOutPut.Finanziamenti.Dare)
+                        wsCli.GetRow(11).GetCell(colAvere).SetCellValue(SpMOutPut.Finanziamenti.Avere)
+
+                        'Forn
+                        wsCli.GetRow(12).GetCell(colDare).SetCellValue(SpMOutPut.Fornitori.Dare)
+                        wsCli.GetRow(12).GetCell(colAvere).SetCellValue(SpMOutPut.Fornitori.Avere)
+
+                        'Insoluti
+                        wsCli.GetRow(13).GetCell(colDare).SetCellValue(SpMOutPut.Insoluti.Dare)
+                        wsCli.GetRow(13).GetCell(colAvere).SetCellValue(SpMOutPut.Insoluti.Avere)
+
+                        'INAIL
+                        wsCli.GetRow(14).GetCell(colDare).SetCellValue(SpMOutPut.INAIL.Dare)
+                        wsCli.GetRow(14).GetCell(colAvere).SetCellValue(SpMOutPut.INAIL.Avere)
+
+                        'INSP
+                        wsCli.GetRow(15).GetCell(colDare).SetCellValue(SpMOutPut.INPS.Dare)
+                        wsCli.GetRow(15).GetCell(colAvere).SetCellValue(SpMOutPut.INPS.Avere)
+
+                        'IRPEF
+                        wsCli.GetRow(16).GetCell(colDare).SetCellValue(SpMOutPut.IRPEF.Dare)
+                        wsCli.GetRow(16).GetCell(colAvere).SetCellValue(SpMOutPut.IRPEF.Avere)
+
+                        'IVA
+                        wsCli.GetRow(17).GetCell(colDare).SetCellValue(SpMOutPut.IVA.Dare)
+                        wsCli.GetRow(17).GetCell(colAvere).SetCellValue(SpMOutPut.IVA.Avere)
+
+                        'Leasing
+                        wsCli.GetRow(18).GetCell(colDare).SetCellValue(SpMOutPut.Leasing.Dare)
+                        wsCli.GetRow(18).GetCell(colAvere).SetCellValue(SpMOutPut.Leasing.Avere)
+
+                        'RA
+                        wsCli.GetRow(19).GetCell(colDare).SetCellValue(SpMOutPut.RA.Dare)
+                        wsCli.GetRow(19).GetCell(colAvere).SetCellValue(SpMOutPut.RA.Avere)
+
+                        'Stipendi
+                        wsCli.GetRow(20).GetCell(colDare).SetCellValue(SpMOutPut.Stipendi.Dare)
+                        wsCli.GetRow(20).GetCell(colAvere).SetCellValue(SpMOutPut.Stipendi.Avere)
+
+                        'EntiDip
+                        wsCli.GetRow(21).GetCell(colDare).SetCellValue(SpMOutPut.EntiDipendenti.Dare)
+                        wsCli.GetRow(21).GetCell(colAvere).SetCellValue(SpMOutPut.EntiDipendenti.Avere)
+
+                        'Varie
+                        wsCli.GetRow(22).GetCell(colDare).SetCellValue(SpMOutPut.Varie.Dare)
+                        wsCli.GetRow(22).GetCell(colAvere).SetCellValue(SpMOutPut.Varie.Avere)
+
+                        'Tasse
+                        wsCli.GetRow(23).GetCell(colDare).SetCellValue(SpMOutPut.Tasse.Dare)
+                        wsCli.GetRow(23).GetCell(colAvere).SetCellValue(SpMOutPut.Tasse.Avere)
+                        'Last
+                        'IntPass
+                        wsCli.GetRow(27).GetCell(colDare).SetCellValue(SpMOutPut.IntPass.Dare)
+                        wsCli.GetRow(27).GetCell(colAvere).SetCellValue(SpMOutPut.IntPass.Avere)
+
+                        'Oneri
+                        wsCli.GetRow(28).GetCell(colDare).SetCellValue(SpMOutPut.OneriBanc.Dare)
+                        wsCli.GetRow(28).GetCell(colAvere).SetCellValue(SpMOutPut.OneriBanc.Avere)
+                    End If
+                Next
+
+
+                Dim arrListaPN = listPNVarie.ToArray
+                For i = 38 To listPNVarie.Count + 38
+                    Dim r As IRow = wsCli.CreateRow(i)
+                    For j = 0 To 6
+                        r.CreateCell(j)
+                    Next
+                    wsCli.GetRow(i).GetCell(1).SetCellValue(arrListaPN(i - 38).NumPN)
+                    wsCli.GetRow(i).GetCell(2).SetCellValue(arrListaPN(i - 38).Importo)
+                    wsCli.GetRow(i).GetCell(3).SetCellValue(arrListaPN(i - 38).CodPN)
+                    wsCli.GetRow(i).GetCell(4).SetCellValue(arrListaPN(i - 38).Causale)
+                    wsCli.GetRow(i).GetCell(5).SetCellValue(arrListaPN(i - 38).Conto)
+                Next
+            Catch ex As Exception
+
+            End Try
+
+            workbook.GetCreationHelper().CreateFormulaEvaluator().EvaluateAll()
+            workbook.Write(ms1)
+            Return File(ms1.ToArray, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", nomefile)
+
+        End Function
+        <Authorize(Roles:="Commerciale_Admin, Admin")>
+        <HttpGet>
+        Function Offerto(dateTime As String, agente As String, cliente As String, downloadClienti As Boolean) As FileResult
             Dim datetimeCalc = dateTime.Split("-")
             Dim ListOrdini As New List(Of OrdineOrdinato)
             Dim ListSpese As New List(Of SpeseSecondarieViewModel)
+            Dim ListOrdiniFallati As New Dictionary(Of OrdineOrdinato, String)
+            Dim dictClienti As New Dictionary(Of String, String)
+            Dim dictAgenti As New Dictionary(Of String, String)
+            Try
+                myConnBI = New SqlConnection(ConnectionStringBI)
+                myCmdBI = myConnBI.CreateCommand
+                myCmdBI.CommandText = ""
+                If agente = "" And cliente = "" Then
+                    myCmdBI.CommandText = "USE DWAlnus SELECT AL8.DWOESE, AL8.DWOSEZ, AL8.DWONUM, '', AL2.DWACR1, AL6.DWCCDC, AL1.DWCCNA, AL8.DWOTOT + AL8.DWORAS  + AL8.DWORST + AL8.DWORSB, AL4.DWDMES, AL3.DWTCCM, AL1.DWCCLI, AL7.DWVCA1, AL1.DWCRSC, AL7.DWVDA1 FROM DWAlnus.dbo.DWDCLI00 AL1, DWAlnus.dbo.DWDART00 AL2, DWAlnus.dbo.DWDTPI00 AL3, DWAlnus.dbo.DWDDAT00 AL4, DWAlnus.dbo.DWDJCO00 AL5, DWAlnus.dbo.DWDCLI00 AL6, DWAlnus.dbo.DWDFDV00 AL7, DWAlnus.dbo.DWFOC100 AL8 WHERE (AL8.DWOSEZ = 'PR' AND AL1.DWCSOC=AL8.DWOSOC AND AL6.DWCSOC=AL8.DWOSOC AND AL3.DWTSOC=AL8.DWOSOC AND AL2.DWASOC=AL8.DWOSOC AND AL5.DWJSOC=AL8.DWOSOC AND AL7.DWVSOC=AL8.DWOSOC AND AL8.DWOAK0=AL2.DWAPK0 AND AL5.DWJPK0=AL8.DWOJK0 AND AL8.DWOVK0=AL7.DWVPK0 AND AL3.DWTPK0=AL8.DWOTK0 AND AL8.DWOCK1=AL6.DWCPK0 AND AL8.DWOCK0=AL1.DWCPK0 AND AL8.DWODTDREV=AL4.DWDDATREV) AND (((AL4.DWDDATREV BETWEEN 0 AND 0 OR AL4.DWDDATREV BETWEEN '" + datetimeCalc(0) + "' AND '" + datetimeCalc(1) + "') AND (NOT AL8.DWOSTA='A') AND AL3.DWTARC='1'))"
+                Else
+                    If agente = "" Then
+                        myCmdBI.CommandText = "USE DWAlnus SELECT AL8.DWOESE, AL8.DWOSEZ, AL8.DWONUM, '', AL2.DWACR1, AL6.DWCCDC, AL1.DWCCNA, AL8.DWOTOT + AL8.DWORAS  + AL8.DWORST + AL8.DWORSB, AL4.DWDMES, AL3.DWTCCM, AL1.DWCCLI, AL7.DWVCA1, AL1.DWCRSC, AL7.DWVDA1 FROM DWAlnus.dbo.DWDCLI00 AL1, DWAlnus.dbo.DWDART00 AL2, DWAlnus.dbo.DWDTPI00 AL3, DWAlnus.dbo.DWDDAT00 AL4, DWAlnus.dbo.DWDJCO00 AL5, DWAlnus.dbo.DWDCLI00 AL6, DWAlnus.dbo.DWDFDV00 AL7, DWAlnus.dbo.DWFOC100 AL8 WHERE (AL8.DWOSEZ = 'PR' AND AL1.DWCSOC=AL8.DWOSOC AND AL6.DWCSOC=AL8.DWOSOC AND AL3.DWTSOC=AL8.DWOSOC AND AL2.DWASOC=AL8.DWOSOC AND AL5.DWJSOC=AL8.DWOSOC AND AL7.DWVSOC=AL8.DWOSOC AND AL8.DWOAK0=AL2.DWAPK0 AND AL5.DWJPK0=AL8.DWOJK0 AND AL8.DWOVK0=AL7.DWVPK0 AND AL3.DWTPK0=AL8.DWOTK0 AND AL8.DWOCK1=AL6.DWCPK0 AND AL8.DWOCK0=AL1.DWCPK0 AND AL8.DWODTDREV=AL4.DWDDATREV) AND (((AL4.DWDDATREV BETWEEN 0 AND 0 OR AL4.DWDDATREV BETWEEN '" + datetimeCalc(0) + "' AND '" + datetimeCalc(1) + "') AND (NOT AL8.DWOSTA='A') AND AL3.DWTARC='1')) AND (AL1.DWCCLI = '" + cliente + "')"
+                    Else
+                        myCmdBI.CommandText = "USE DWAlnus SELECT AL8.DWOESE, AL8.DWOSEZ, AL8.DWONUM, '', AL2.DWACR1, AL6.DWCCDC, AL1.DWCCNA, AL8.DWOTOT + AL8.DWORAS  + AL8.DWORST + AL8.DWORSB, AL4.DWDMES, AL3.DWTCCM, AL1.DWCCLI, AL7.DWVCA1, AL1.DWCRSC, AL7.DWVDA1 FROM DWAlnus.dbo.DWDCLI00 AL1, DWAlnus.dbo.DWDART00 AL2, DWAlnus.dbo.DWDTPI00 AL3, DWAlnus.dbo.DWDDAT00 AL4, DWAlnus.dbo.DWDJCO00 AL5, DWAlnus.dbo.DWDCLI00 AL6, DWAlnus.dbo.DWDFDV00 AL7, DWAlnus.dbo.DWFOC100 AL8 WHERE (AL8.DWOSEZ = 'PR' AND AL1.DWCSOC=AL8.DWOSOC AND AL6.DWCSOC=AL8.DWOSOC AND AL3.DWTSOC=AL8.DWOSOC AND AL2.DWASOC=AL8.DWOSOC AND AL5.DWJSOC=AL8.DWOSOC AND AL7.DWVSOC=AL8.DWOSOC AND AL8.DWOAK0=AL2.DWAPK0 AND AL5.DWJPK0=AL8.DWOJK0 AND AL8.DWOVK0=AL7.DWVPK0 AND AL3.DWTPK0=AL8.DWOTK0 AND AL8.DWOCK1=AL6.DWCPK0 AND AL8.DWOCK0=AL1.DWCPK0 AND AL8.DWODTDREV=AL4.DWDDATREV) AND (((AL4.DWDDATREV BETWEEN 0 AND 0 OR AL4.DWDDATREV BETWEEN '" + datetimeCalc(0) + "' AND '" + datetimeCalc(1) + "') AND (NOT AL8.DWOSTA='A') AND AL3.DWTARC='1')) AND (AL7.DWVCA1 = '" + agente + "')"
+                    End If
+                End If
+                myConnBI.Open()
+            Catch ex As Exception
+                'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+            End Try
+            Try
+                myReaderBI = myCmdBI.ExecuteReader
+
+                Do While myReaderBI.Read()
+                    Dim imp = ""
+                    Dim o As New OrdineOrdinato With {
+                        .Anno = myReaderBI.GetString(0),
+                        .codOrd = myReaderBI.GetString(1),
+                        .NumOrd = myReaderBI.GetDecimal(2),
+                        .Zone = myReaderBI.GetString(6),
+                        .TipoOrd = myReaderBI.GetString(4),
+                        .Div = myReaderBI.GetString(5),
+                        .Mese = myReaderBI.GetString(8).ToString,
+                        .TipoOrd2 = myReaderBI.GetString(9),
+                        .Cliente = myReaderBI.GetString(10),
+                        .Agente = myReaderBI.GetString(11)
+                    }
+                    If Not dictClienti.ContainsKey(myReaderBI.GetString(10)) Then
+                        dictClienti.Add(myReaderBI.GetString(10), myReaderBI.GetString(12))
+                    End If
+                    If Not dictAgenti.ContainsKey(myReaderBI.GetString(11)) Then
+                        dictAgenti.Add(myReaderBI.GetString(11), myReaderBI.GetString(13))
+                    End If
+                    imp = myReaderBI.GetDecimal(7)
+                    o.ImportoOrd = imp
+                    ListOrdini.Add(o)
+
+                Loop
+                myConn.Close()
+
+            Catch ex As Exception
+
+            End Try
+            Dim finalCosts As New Ordinato With {
+               .Unistand = New Dictionary(Of String, DivisioneOrdinato),
+                .ISA = New Dictionary(Of String, DivisioneOrdinato),
+                .MPA = New Dictionary(Of String, DivisioneOrdinato),
+                .Drill = New Dictionary(Of String, DivisioneOrdinato),
+                .CMT = New Dictionary(Of String, DivisioneOrdinato),
+                .Euroma = New Dictionary(Of String, DivisioneOrdinato),
+                .ClientiNuovi = New Dictionary(Of String, Integer)
+            }
+            Dim totalRevenue = 0
+            Dim missingImport = 0
+            Dim addedSpeseDict As New List(Of String)
+
+            'Next
+            Dim listaClientiGiaControllati As New List(Of String)
+            For Each o In ListOrdini
+                If Not listaClientiGiaControllati.Contains(o.Cliente) Then
+                    ' query per vedere quanti ordini sono
+                    Try
+                        myConn = New SqlConnection(ConnectionString)
+                        myCmd = myConn.CreateCommand
+                        myCmd.CommandText = "select ORCCLI, COUNT(*) from ORCTES00 where ORCDUMREV < '" + datetimeCalc(0) + "'  AND ORCCLI = '" + o.Cliente + "'group by ORCCLI "
+                        myConn.Open()
+                    Catch ex As Exception
+                    End Try
+                    Try
+                        myReader = myCmd.ExecuteReader
+                        Do While myReader.Read()
+                            listaClientiGiaControllati.Add(o.Cliente)
+                        Loop
+                        myConn.Close()
+                    Catch ex As Exception
+                    End Try
+                End If
+            Next
+            For Each o In ListOrdini
+                If Not listaClientiGiaControllati.Contains(o.Cliente) And Not finalCosts.ClientiNuovi.ContainsKey(o.Cliente) Then
+                    finalCosts.ClientiNuovi.Add(o.Cliente, o.Mese)
+                End If
+            Next
+            For a = 0 To ListOrdini.Count - 1
+                Console.WriteLine(ListOrdini(a))
+            Next
+            For Each o In ListOrdini
+                Try
+                    Select Case o.Div
+                        Case "01"
+                            If Not finalCosts.Drill.ContainsKey(o.Mese) Then
+                                finalCosts.Drill.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
+                            End If
+                            If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
+                                finalCosts.Drill(o.Mese).Italia_Nuovo = finalCosts.Drill(o.Mese).Italia_Nuovo + o.ImportoOrd
+                            Else
+                                finalCosts.Drill(o.Mese).Estero_Nuovo = finalCosts.Drill(o.Mese).Estero_Nuovo + o.ImportoOrd
+                            End If
+                        Case "02"
+                            If Not finalCosts.CMT.ContainsKey(o.Mese) Then
+                                finalCosts.CMT.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
+                            End If
+                            If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
+                                finalCosts.CMT(o.Mese).Italia_Nuovo = finalCosts.CMT(o.Mese).Italia_Nuovo + o.ImportoOrd
+                            Else
+                                finalCosts.CMT(o.Mese).Estero_Nuovo = finalCosts.CMT(o.Mese).Estero_Nuovo + o.ImportoOrd
+                            End If
+                        Case "03"
+                            If Not finalCosts.ISA.ContainsKey(o.Mese) Then
+                                finalCosts.ISA.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
+                            End If
+                            If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
+                                finalCosts.ISA(o.Mese).Italia_Nuovo = finalCosts.ISA(o.Mese).Italia_Nuovo + o.ImportoOrd
+                            Else
+                                finalCosts.ISA(o.Mese).Estero_Nuovo = finalCosts.ISA(o.Mese).Estero_Nuovo + o.ImportoOrd
+                            End If
+                        Case "04"
+                            If Not finalCosts.Unistand.ContainsKey(o.Mese) Then
+                                finalCosts.Unistand.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
+                            End If
+                            If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
+                                finalCosts.Unistand(o.Mese).Italia_Nuovo = finalCosts.Unistand(o.Mese).Italia_Nuovo + o.ImportoOrd
+                            Else
+                                finalCosts.Unistand(o.Mese).Estero_Nuovo = finalCosts.Unistand(o.Mese).Estero_Nuovo + o.ImportoOrd
+                            End If
+                        Case "05"
+                            If Not finalCosts.MPA.ContainsKey(o.Mese) Then
+                                finalCosts.MPA.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
+                            End If
+                            If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
+                                finalCosts.MPA(o.Mese).Italia_Nuovo = finalCosts.MPA(o.Mese).Italia_Nuovo + o.ImportoOrd
+                            Else
+                                finalCosts.MPA(o.Mese).Estero_Nuovo = finalCosts.MPA(o.Mese).Estero_Nuovo + o.ImportoOrd
+                            End If
+                        Case Else
+                            ListOrdiniFallati.Add(o, "Divisione errata")
+                    End Select
+                    totalRevenue = totalRevenue + o.ImportoOrd
+                    myConn.Close()
+                Catch ex As Exception
+                    myConn.Close()
+                    'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+                End Try
+                'End If
+
+            Next
+            'Apertura file
+            If Not downloadClienti Then
+                Dim fs As New FileStream(Server.MapPath("\Content\Template\Euroma_Offerto.xlsx"), FileMode.Open, FileAccess.ReadWrite)
+                Dim workbook As XSSFWorkbook = New XSSFWorkbook(fs)
+                Dim ws As XSSFSheet = workbook.GetSheetAt(0)
+                Dim fontIntestazione As XSSFFont = CType(workbook.CreateFont(), XSSFFont)
+                fontIntestazione.FontHeightInPoints = CShort(12)
+                fontIntestazione.FontName = "Arial"
+                fontIntestazione.IsBold = True
+                fontIntestazione.IsItalic = False
+                fontIntestazione.FontHeightInPoints = 11
+                Dim styleIntestazione As XSSFCellStyle = CType(workbook.CreateCellStyle(), XSSFCellStyle)
+                styleIntestazione.FillBackgroundColor = FillPattern.SolidForeground
+                styleIntestazione.SetFont(fontIntestazione)
+                'For p As Integer = 0 To 12
+                '    Row.Cells(p).CellStyle = yourStyle
+                'Next
+                'Base data
+                Try
+                    ws.GetRow(1).GetCell(4).CellStyle = styleIntestazione
+                    ws.GetRow(1).GetCell(4).SetCellValue(datetimeCalc(0).ToString.Substring(0, 4) + "/" + datetimeCalc(0).ToString.Substring(4, 2) + "/" + datetimeCalc(0).ToString.Substring(6, 2))
+                    ws.GetRow(1).GetCell(7).CellStyle = styleIntestazione
+                    ws.GetRow(1).GetCell(7).SetCellValue(datetimeCalc(1).ToString.Substring(0, 4) + "/" + datetimeCalc(1).ToString.Substring(4, 2) + "/" + datetimeCalc(1).ToString.Substring(6, 2))
+                Catch ex As Exception
+
+                End Try
+                Dim r As IRow = ws.CreateRow(2)
+                For j = 0 To 48
+                    r.CreateCell(j)
+                Next
+                'Intestazione
+                Dim c = 1
+                Dim countKey = 12
+                If agente = "" Then
+                    ws.GetRow(1).GetCell(12).SetCellValue("Analisi cliente " + cliente)
+                Else
+                    ws.GetRow(1).GetCell(12).SetCellValue("Analisi agente " + agente)
+                End If
+                ws.GetRow(2).GetCell(0).SetCellValue("Mese")
+                For i = 1 To 12
+                    Try
+                        Select Case i.ToString
+                            Case "1"
+                                ws.GetRow(2).GetCell(c).SetCellValue("01 - Gennaio")
+                            Case "2"
+                                ws.GetRow(2).GetCell(c).SetCellValue("02 - Febbraio")
+                            Case "3"
+                                ws.GetRow(2).GetCell(c).SetCellValue("03 - Marzo")
+                            Case "4"
+                                ws.GetRow(2).GetCell(c).SetCellValue("04 - Aprile")
+                            Case "5"
+                                ws.GetRow(2).GetCell(c).SetCellValue("05 - Maggio")
+                            Case "6"
+                                ws.GetRow(2).GetCell(c).SetCellValue("06 - Giugno")
+                            Case "7"
+                                ws.GetRow(2).GetCell(c).SetCellValue("07 - Luglio")
+                            Case "8"
+                                ws.GetRow(2).GetCell(c).SetCellValue("08 - Agosto")
+                            Case "9"
+                                ws.GetRow(2).GetCell(c).SetCellValue("09 - Settembre")
+                            Case "10"
+                                ws.GetRow(2).GetCell(c).SetCellValue("10 - Ottobre")
+                            Case "11"
+                                ws.GetRow(2).GetCell(c).SetCellValue("11 - Novembre")
+                            Case "12"
+                                ws.GetRow(2).GetCell(c).SetCellValue("12 - Dicembre")
+                        End Select
+                        c = c + 2
+                    Catch ex As Exception
+
+                    End Try
+
+                Next
+                'Start Pop
+                Dim baserow As IRow = ws.GetRow(0)
+                'Dim baserow As IRow = ws.GetRow(2)
+                Dim ms As New MemoryStream
+                Dim ms1 As New MemoryStream
+                'Riga Intestazione
+                Try
+                    Dim i As Integer = 1
+                    'Drillmatic
+                    i = 1
+                    For i = 1 To countKey * 4
+                        Try
+                            If finalCosts.Drill.ContainsKey(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)) Then
+                                Try
+                                    ws.GetRow(5).GetCell(i).SetCellValue(finalCosts.Drill(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)).Italia_Nuovo)
+                                    i = i + 1
+                                    ws.GetRow(5).GetCell(i).SetCellValue(finalCosts.Drill(GetCellValue(ws.GetRow(2), i - 1).ToString.Split(" ")(0)).Estero_Nuovo)
+                                Catch ex As Exception
+
+                                End Try
+                            Else
+                                i = i + 1
+                            End If
+                        Catch ex As Exception
+
+                        End Try
+                    Next
+                    'Isa
+                    i = 1
+                    For i = 1 To countKey * 4
+                        Try
+                            If finalCosts.ISA.ContainsKey(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)) Then
+                                Try
+                                    ws.GetRow(6).GetCell(i).SetCellValue(finalCosts.ISA(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)).Italia_Nuovo)
+                                    i = i + 1
+                                    ws.GetRow(6).GetCell(i).SetCellValue(finalCosts.ISA(GetCellValue(ws.GetRow(2), i - 1).ToString.Split(" ")(0)).Estero_Nuovo)
+                                Catch ex As Exception
+
+                                End Try
+                            Else
+                                i = i + 1
+                            End If
+                        Catch ex As Exception
+
+                        End Try
+                    Next
+                    'cmt
+                    i = 1
+                    For i = 1 To countKey * 4
+                        Try
+                            If finalCosts.CMT.ContainsKey(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)) Then
+                                Try
+                                    ws.GetRow(7).GetCell(i).SetCellValue(finalCosts.CMT(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)).Italia_Nuovo)
+                                    i = i + 1
+                                    ws.GetRow(7).GetCell(i).SetCellValue(finalCosts.CMT(GetCellValue(ws.GetRow(2), i - 1).ToString.Split(" ")(0)).Estero_Nuovo)
+                                Catch ex As Exception
+
+                                End Try
+                            Else
+                                i = i + 1
+                            End If
+                        Catch ex As Exception
+
+                        End Try
+                    Next
+                    'UNISTAND
+                    i = 1
+                    For i = 1 To countKey * 4
+                        Try
+                            If finalCosts.Unistand.ContainsKey(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)) Then
+                                Try
+                                    ws.GetRow(8).GetCell(i).SetCellValue(finalCosts.Unistand(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)).Italia_Nuovo)
+                                    i = i + 1
+                                    ws.GetRow(8).GetCell(i).SetCellValue(finalCosts.Unistand(GetCellValue(ws.GetRow(2), i - 1).ToString.Split(" ")(0)).Estero_Nuovo)
+                                Catch ex As Exception
+
+                                End Try
+                            Else
+                                i = i + 1
+                            End If
+                        Catch ex As Exception
+
+                        End Try
+                    Next
+                    'MPA
+                    i = 1
+                    For i = 1 To countKey * 4
+                        Try
+                            If finalCosts.MPA.ContainsKey(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)) Then
+                                Try
+                                    ws.GetRow(9).GetCell(i).SetCellValue(finalCosts.MPA(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)).Italia_Nuovo)
+                                    i = i + 1
+                                    ws.GetRow(9).GetCell(i).SetCellValue(finalCosts.MPA(GetCellValue(ws.GetRow(2), i - 1).ToString.Split(" ")(0)).Estero_Nuovo)
+                                Catch ex As Exception
+
+                                End Try
+                            Else
+                                i = i + 1
+                            End If
+                        Catch ex As Exception
+
+                        End Try
+
+                    Next
+                    'MPA
+                    i = 1
+                    For i = 1 To countKey * 4
+                        Try
+                            If finalCosts.Euroma.ContainsKey(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)) Then
+                                Try
+                                    ws.GetRow(10).GetCell(i).SetCellValue(finalCosts.Euroma(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)).Italia_Nuovo)
+                                    i = i + 1
+                                    ws.GetRow(10).GetCell(i).SetCellValue(finalCosts.Euroma(GetCellValue(ws.GetRow(2), i - 1).ToString.Split(" ")(0)).Estero_Nuovo)
+                                Catch ex As Exception
+
+                                End Try
+                            Else
+                                i = i + 1
+                            End If
+                        Catch ex As Exception
+
+                        End Try
+
+                    Next
+                    ws.GetRow(36).GetCell(1).SetCellValue("Nr. " & finalCosts.ClientiNuovi.Keys.Count.ToString)
+                    ws.GetRow(37).GetCell(1).SetCellValue(totalRevenue)
+                    'Evaluation totale
+                Catch ex As Exception
+
+                End Try
+
+                'ms1 = ms
+                Dim nomeFile = "def.xlsx"
+                If agente = "" Then
+                    nomeFile = "OFFERTO_BRAND_" & cliente & "_" & dateTime.ToString & ".xlsx"
+                Else
+                    nomeFile = "OFFERTO_BRAND_" & agente & "_" & dateTime.ToString & ".xlsx"
+                End If
+
+                Dim wsOC As XSSFSheet = workbook.GetSheetAt(1)
+                Dim counter = 2
+                For Each i In ListOrdini
+                    Dim rOrdini As IRow = wsOC.CreateRow(counter)
+                    For jOrdini = 0 To 8
+                        rOrdini.CreateCell(jOrdini)
+                    Next
+                    wsOC.GetRow(counter).GetCell(0).SetCellValue(i.Cliente)
+                    wsOC.GetRow(counter).GetCell(1).SetCellValue(i.Anno.ToString + "" + i.codOrd.ToString + "" + i.NumOrd.ToString)
+                    wsOC.GetRow(counter).GetCell(2).SetCellValue(i.Zone)
+                    wsOC.GetRow(counter).GetCell(3).SetCellValue(i.TipoOrd)
+                    wsOC.GetRow(counter).GetCell(4).SetCellValue(i.ImportoOrd.ToString)
+                    wsOC.GetRow(counter).GetCell(5).SetCellValue(i.UtenteOrd)
+                    wsOC.GetRow(counter).GetCell(6).SetCellValue(i.Div)
+                    wsOC.GetRow(counter).GetCell(7).SetCellValue(i.Mese)
+                    counter = counter + 1
+                Next
+                counter = counter + 2
+                Dim TitoloFallato As IRow = wsOC.CreateRow(counter)
+                TitoloFallato.CreateCell(0).SetCellValue("Offerte fallate")
+                counter = counter + 2
+                For Each i In ListOrdiniFallati
+                    Dim rOrdini As IRow = wsOC.CreateRow(counter)
+                    For jOrdini = 0 To 9
+                        rOrdini.CreateCell(jOrdini)
+                    Next
+                    wsOC.GetRow(counter).GetCell(0).SetCellValue(i.Key.Cliente)
+                    wsOC.GetRow(counter).GetCell(1).SetCellValue(i.Key.Anno.ToString + "" + i.Key.codOrd.ToString + "" + i.Key.NumOrd.ToString)
+                    wsOC.GetRow(counter).GetCell(2).SetCellValue(i.Key.Zone)
+                    wsOC.GetRow(counter).GetCell(3).SetCellValue(i.Key.TipoOrd)
+                    wsOC.GetRow(counter).GetCell(4).SetCellValue(i.Key.ImportoOrd.ToString)
+                    wsOC.GetRow(counter).GetCell(5).SetCellValue(i.Key.UtenteOrd)
+                    wsOC.GetRow(counter).GetCell(6).SetCellValue(i.Key.Div)
+                    wsOC.GetRow(counter).GetCell(7).SetCellValue(i.Key.Mese)
+                    wsOC.GetRow(counter).GetCell(7).SetCellValue(i.Value)
+                    counter = counter + 1
+                Next
+                Dim wsCli As XSSFSheet = workbook.GetSheetAt(2)
+                counter = 3
+                For Each c In finalCosts.ClientiNuovi.Keys
+                    Dim rClienti As IRow = wsCli.CreateRow(counter)
+                    For jClienti = 0 To 4
+                        rClienti.CreateCell(jClienti)
+                    Next
+                    wsCli.GetRow(counter).GetCell(0).SetCellValue(c)
+                    Dim ordineCliNuovo = ListOrdini.Where(Function(x) x.Cliente = c).First
+                    wsCli.GetRow(counter).GetCell(1).SetCellValue(ordineCliNuovo.Anno + "-" + ordineCliNuovo.codOrd + "-" + ordineCliNuovo.NumOrd.ToString)
+                    wsCli.GetRow(counter).GetCell(2).SetCellValue(ordineCliNuovo.ImportoOrd)
+                    wsCli.GetRow(counter).GetCell(3).SetCellValue(ordineCliNuovo.Mese)
+                    counter = counter + 1
+                Next
+                workbook.GetCreationHelper().CreateFormulaEvaluator().EvaluateAll()
+                workbook.Write(ms1)
+                Return File(ms1.ToArray, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", nomeFile)
+            Else
+                Dim fs As New FileStream(Server.MapPath("\Content\Template\Clienti_Nuovi.xlsx"), FileMode.Open, FileAccess.ReadWrite)
+                Dim workbook As XSSFWorkbook = New XSSFWorkbook(fs)
+                Dim ws As XSSFSheet = workbook.GetSheetAt(0)
+                Dim fontIntestazione As XSSFFont = CType(workbook.CreateFont(), XSSFFont)
+                fontIntestazione.FontHeightInPoints = CShort(12)
+                fontIntestazione.FontName = "Arial"
+                fontIntestazione.IsBold = True
+                fontIntestazione.IsItalic = False
+                fontIntestazione.FontHeightInPoints = 11
+                Dim styleIntestazione As XSSFCellStyle = CType(workbook.CreateCellStyle(), XSSFCellStyle)
+                styleIntestazione.FillBackgroundColor = FillPattern.SolidForeground
+                styleIntestazione.SetFont(fontIntestazione)
+                Dim nomefile = "ClientiNuoviPeriodo_" + datetimeCalc(0) + "_" + datetimeCalc(1) + ".xlsx"
+                'For p As Integer = 0 To 12
+                '    Row.Cells(p).CellStyle = yourStyle
+                'Next
+                'Base data
+                Dim ms As New MemoryStream
+                Dim ms1 As New MemoryStream
+                Dim counter = 2
+                Dim wsCli As XSSFSheet = workbook.GetSheetAt(0)
+                counter = 3
+                For Each c In finalCosts.ClientiNuovi.Keys
+                    Dim rClienti As IRow = wsCli.CreateRow(counter)
+                    For jClienti = 0 To 4
+                        rClienti.CreateCell(jClienti)
+                    Next
+                    wsCli.GetRow(counter).GetCell(0).SetCellValue(c + " - " + dictClienti.Where(Function(x) x.Key = c).First.Value)
+                    Dim ordineCliNuovo = ListOrdini.Where(Function(x) x.Cliente = c).First
+                    wsCli.GetRow(counter).GetCell(1).SetCellValue(ordineCliNuovo.Anno + "-" + ordineCliNuovo.codOrd + "-" + ordineCliNuovo.NumOrd.ToString)
+                    wsCli.GetRow(counter).GetCell(2).SetCellValue(ordineCliNuovo.ImportoOrd)
+                    wsCli.GetRow(counter).GetCell(3).SetCellValue(ordineCliNuovo.Mese)
+                    wsCli.GetRow(counter).GetCell(4).SetCellValue(ordineCliNuovo.Agente + " - " + dictAgenti.Where(Function(x) x.Key = ordineCliNuovo.Agente).First.Value)
+                    counter = counter + 1
+                Next
+                workbook.GetCreationHelper().CreateFormulaEvaluator().EvaluateAll()
+                workbook.Write(ms1)
+                Return File(ms1.ToArray, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", nomefile)
+            End If
+            'Return Json(New With {.tot = finalCosts, .anticipi = anticipi, .miss = totalMissing, .totRev = totalRevenue}, JsonRequestBehavior.AllowGet) '.tmpf = tmpF, .codList = codList, .tmp = dict,, .FD = fattureDrill, .CD = contiDrill
+        End Function
+        <Authorize(Roles:="Commerciale_Admin, Admin")>
+        <HttpGet>
+        Function Ordinato(dateTime As String, agente As String, cliente As String, downloadClienti As Boolean) As FileResult
+            Dim datetimeCalc = dateTime.Split("-")
+            Dim ListOrdini As New List(Of OrdineOrdinato)
+            Dim ListSpese As New List(Of SpeseSecondarieViewModel)
+            Dim ListOrdiniFallati As New Dictionary(Of OrdineOrdinato, String)
+            Dim dictClienti As New Dictionary(Of String, String)
+            Dim dictAgenti As New Dictionary(Of String, String)
             Try
                 myConn = New SqlConnection(ConnectionString)
                 myCmd = myConn.CreateCommand
@@ -806,40 +1953,47 @@ Namespace Controllers
                 'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
             End Try
             Try
-                myConn = New SqlConnection(ConnectionString)
-                myCmd = myConn.CreateCommand
-                myCmd.CommandText = ""
+                myConnBI = New SqlConnection(ConnectionStringBI)
+                myCmdBI = myConnBI.CreateCommand
+                myCmdBI.CommandText = ""
                 If agente = "" And cliente = "" Then
-                    myCmd.CommandText = "SELECT DISTINCT DET.ESECOD, DET.ORDSEZ, DET.ORDNRR, DET.ORDRIG, ANA.ARTRA1, TES.DVSCOD, CLI.NAZCOD, replace(replace(replace(convert(varchar(30), DET.ORDEOR,1), ',', '|'), '.', ','), '|', '.') as Quantita, replace(replace(replace(convert(varchar(30), DET.ORDPVA * DET.ORDEOR, 1), ',', '|'), '.', ','), '|', '.')as Prezzo_Unitario, ORCDDCREV, TES.ORCMOV,TES.ORCCLI FROM ORCDET00 as DET, ORCTES00 as TES, CLFIND as CLI, ARTANA as ANA WHERE DET.ESECOD = TES.ESECOD AND DET.ORDSEZ = TES.ORCTSZ AND DET.ORDNRR = TES.ORCTNR AND TES.ORCCLI = CLI.CLFCOD AND CLI.CLFTIP = 'C' AND ANA.ARTCO1 = DET.ARTCOD AND TES.ORCDDCREV >= '" + datetimeCalc(0) + "' and TES.ORCDDCREV <= '" + datetimeCalc(1) + "' AND (DET.ORDSEZ = 'OC' or ( DET.ORDSEZ = 'OT' and ( ORCTNR = '37' OR ORCTNR = '40' OR ORCTNR = '41' OR ORCTNR = '42' OR ORCTNR = '43'))) order by DET.ORDNRR"
+                    myCmdBI.CommandText = "USE DWAlnus SELECT AL8.DWOESE, AL8.DWOSEZ, AL8.DWONUM, '', AL2.DWACR1, AL6.DWCCDC, AL1.DWCCNA, AL8.DWOTOT + AL8.DWORAS  + AL8.DWORST + AL8.DWORSB  , AL4.DWDMES, AL3.DWTCCM, AL1.DWCCLI, AL7.DWVCA1,AL1.DWCRSC,  AL7.DWVDA1 FROM DWAlnus.dbo.DWDCLI00 AL1, DWAlnus.dbo.DWDART00 AL2, DWAlnus.dbo.DWDTPI00 AL3, DWAlnus.dbo.DWDDAT00 AL4, DWAlnus.dbo.DWDJCO00 AL5, DWAlnus.dbo.DWDCLI00 AL6, DWAlnus.dbo.DWDFDV00 AL7, DWAlnus.dbo.DWFOC100 AL8 WHERE (AL1.DWCSOC=AL8.DWOSOC AND AL6.DWCSOC=AL8.DWOSOC AND AL3.DWTSOC=AL8.DWOSOC AND AL2.DWASOC=AL8.DWOSOC AND AL5.DWJSOC=AL8.DWOSOC AND AL7.DWVSOC=AL8.DWOSOC AND AL8.DWOAK0=AL2.DWAPK0 AND AL5.DWJPK0=AL8.DWOJK0 AND AL8.DWOVK0=AL7.DWVPK0 AND AL3.DWTPK0=AL8.DWOTK0 AND AL8.DWOCK1=AL6.DWCPK0 AND AL8.DWOCK0=AL1.DWCPK0 AND AL8.DWODTDREV=AL4.DWDDATREV) AND (((AL4.DWDDATREV BETWEEN 0 AND 0 OR AL4.DWDDATREV BETWEEN '" + datetimeCalc(0) + "' AND '" + datetimeCalc(1) + "') AND (NOT AL8.DWOSTA='A') AND AL3.DWTARC='2'))"
                 Else
                     If agente = "" Then
-                        myCmd.CommandText = "SELECT DISTINCT DET.ESECOD, DET.ORDSEZ, DET.ORDNRR, DET.ORDRIG, ANA.ARTRA1, TES.DVSCOD, CLI.NAZCOD, replace(replace(replace(convert(varchar(30), DET.ORDEOR,1), ',', '|'), '.', ','), '|', '.') as Quantita, replace(replace(replace(convert(varchar(30), DET.ORDPVA * DET.ORDEOR, 1), ',', '|'), '.', ','), '|', '.')as Prezzo_Unitario, ORCDDCREV, TES.ORCMOV,TES.ORCCLI FROM ORCDET00 as DET, ORCTES00 as TES, CLFIND as CLI, ARTANA as ANA WHERE DET.ESECOD = TES.ESECOD AND DET.ORDSEZ = TES.ORCTSZ AND DET.ORDNRR = TES.ORCTNR AND TES.ORCCLI = CLI.CLFCOD AND CLI.CLFTIP = 'C' AND ANA.ARTCO1 = DET.ARTCOD AND CLI.CLFCOD = '" + cliente + "'AND TES.ORCDDCREV >= '" + datetimeCalc(0) + "' and TES.ORCDDCREV <= '" + datetimeCalc(1) + "' AND (DET.ORDSEZ = 'OC' or ( DET.ORDSEZ = 'OT' and ( ORCTNR = '37' OR ORCTNR = '40' OR ORCTNR = '41' OR ORCTNR = '42' OR ORCTNR = '43'))) order by DET.ORDNRR"
+                        myCmdBI.CommandText = "USE DWAlnus SELECT AL8.DWOESE, AL8.DWOSEZ, AL8.DWONUM, '', AL2.DWACR1, AL6.DWCCDC, AL1.DWCCNA, AL8.DWOTOT + AL8.DWORAS  + AL8.DWORST + AL8.DWORSB  , AL4.DWDMES, AL3.DWTCCM, AL1.DWCCLI, AL7.DWVCA1,AL1.DWCRSC,  AL7.DWVDA1 FROM DWAlnus.dbo.DWDCLI00 AL1, DWAlnus.dbo.DWDART00 AL2, DWAlnus.dbo.DWDTPI00 AL3, DWAlnus.dbo.DWDDAT00 AL4, DWAlnus.dbo.DWDJCO00 AL5, DWAlnus.dbo.DWDCLI00 AL6, DWAlnus.dbo.DWDFDV00 AL7, DWAlnus.dbo.DWFOC100 AL8 WHERE (AL1.DWCSOC=AL8.DWOSOC AND AL6.DWCSOC=AL8.DWOSOC AND AL3.DWTSOC=AL8.DWOSOC AND AL2.DWASOC=AL8.DWOSOC AND AL5.DWJSOC=AL8.DWOSOC AND AL7.DWVSOC=AL8.DWOSOC AND AL8.DWOAK0=AL2.DWAPK0 AND AL5.DWJPK0=AL8.DWOJK0 AND AL8.DWOVK0=AL7.DWVPK0 AND AL3.DWTPK0=AL8.DWOTK0 AND AL8.DWOCK1=AL6.DWCPK0 AND AL8.DWOCK0=AL1.DWCPK0 AND AL8.DWODTDREV=AL4.DWDDATREV) AND (((AL4.DWDDATREV BETWEEN 0 AND 0 OR AL4.DWDDATREV BETWEEN '" + datetimeCalc(0) + "' AND '" + datetimeCalc(1) + "')  AND (NOT AL8.DWOSTA='A') AND AL3.DWTARC='2')) AND (AL1.DWCCLI = '" + cliente + "')"
                     Else
-                        myCmd.CommandText = "SELECT DISTINCT DET.ESECOD, DET.ORDSEZ, DET.ORDNRR, DET.ORDRIG, ANA.ARTRA1, TES.DVSCOD, CLI.NAZCOD, replace(replace(replace(convert(varchar(30), DET.ORDEOR,1), ',', '|'), '.', ','), '|', '.') as Quantita, replace(replace(replace(convert(varchar(30), DET.ORDPVA * DET.ORDEOR, 1), ',', '|'), '.', ','), '|', '.')as Prezzo_Unitario, ORCDDCREV, TES.ORCMOV, TES.ORCCLI FROM ORCDET00 as DET, ORCTES00 as TES, CLFIND as CLI, ARTANA as ANA, ORCPRO00 as PRO WHERE DET.ESECOD = TES.ESECOD AND DET.ORDSEZ = TES.ORCTSZ AND DET.ORDNRR = TES.ORCTNR AND TES.ORCCLI = CLI.CLFCOD AND DET.ESECOD = PRO.ESECOD AND DET.ORDSEZ = PRO.ORDSEZ AND DET.ORDNRR = PRO.ORDNRR AND CLI.CLFTIP = 'C' AND ANA.ARTCO1 = DET.ARTCOD AND (DET.ORDSTC = '080' OR DET.ORDSTC= '090') AND (ORDAG1 LIKE '" + agente + "%' OR ORDAG2 LIKE '" + agente + "%' OR ORDAG3 LIKE '" + agente + "%') AND TES.ORCDDCREV >= '" + datetimeCalc(0) + "' and TES.ORCDDCREV <= '" + datetimeCalc(1) + "' AND (DET.ORDSEZ = 'OC' or ( DET.ORDSEZ = 'OT' and ( ORCTNR = '37' OR ORCTNR = '40' OR ORCTNR = '41' OR ORCTNR = '42' OR ORCTNR = '43'))) order by DET.ORDNRR"
+                        myCmdBI.CommandText = "USE DWAlnus SELECT AL8.DWOESE, AL8.DWOSEZ, AL8.DWONUM, '', AL2.DWACR1, AL6.DWCCDC, AL1.DWCCNA, AL8.DWOTOT + AL8.DWORAS  + AL8.DWORST + AL8.DWORSB  , AL4.DWDMES, AL3.DWTCCM, AL1.DWCCLI, AL7.DWVCA1,AL1.DWCRSC,  AL7.DWVDA1 FROM DWAlnus.dbo.DWDCLI00 AL1, DWAlnus.dbo.DWDART00 AL2, DWAlnus.dbo.DWDTPI00 AL3, DWAlnus.dbo.DWDDAT00 AL4, DWAlnus.dbo.DWDJCO00 AL5, DWAlnus.dbo.DWDCLI00 AL6, DWAlnus.dbo.DWDFDV00 AL7, DWAlnus.dbo.DWFOC100 AL8 WHERE (AL1.DWCSOC=AL8.DWOSOC AND AL6.DWCSOC=AL8.DWOSOC AND AL3.DWTSOC=AL8.DWOSOC AND AL2.DWASOC=AL8.DWOSOC AND AL5.DWJSOC=AL8.DWOSOC AND AL7.DWVSOC=AL8.DWOSOC AND AL8.DWOAK0=AL2.DWAPK0 AND AL5.DWJPK0=AL8.DWOJK0 AND AL8.DWOVK0=AL7.DWVPK0 AND AL3.DWTPK0=AL8.DWOTK0 AND AL8.DWOCK1=AL6.DWCPK0 AND AL8.DWOCK0=AL1.DWCPK0 AND AL8.DWODTDREV=AL4.DWDDATREV) AND (((AL4.DWDDATREV BETWEEN 0 AND 0 OR AL4.DWDDATREV BETWEEN '" + datetimeCalc(0) + "' AND '" + datetimeCalc(1) + "') AND (NOT AL8.DWOSTA='A') AND AL3.DWTARC='2')) AND (AL7.DWVCA1 = '" + agente + "')"
                     End If
                 End If
-                myConn.Open()
+                myConnBI.Open()
             Catch ex As Exception
                 'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
             End Try
             Try
-                myReader = myCmd.ExecuteReader
+                myReaderBI = myCmdBI.ExecuteReader
 
-                Do While myReader.Read()
+                Do While myReaderBI.Read()
                     Dim imp = ""
                     Dim o As New OrdineOrdinato With {
-                        .Anno = myReader.GetString(0),
-                        .codOrd = myReader.GetString(1),
-                        .NumOrd = myReader.GetDecimal(2),
-                        .Zone = myReader.GetString(6),
-                        .TipoOrd = myReader.GetString(4),
-                        .Div = myReader.GetString(5),
-                        .Mese = myReader.GetDecimal(9).ToString.Substring(4, 2),
-                        .TipoOrd2 = myReader.GetString(10),
-                        .Cliente = myReader.GetString(11)
+                        .Anno = myReaderBI.GetString(0),
+                        .codOrd = myReaderBI.GetString(1),
+                        .NumOrd = myReaderBI.GetDecimal(2),
+                        .Zone = myReaderBI.GetString(6),
+                        .TipoOrd = myReaderBI.GetString(4),
+                        .Div = myReaderBI.GetString(5),
+                        .Mese = myReaderBI.GetString(8).ToString,
+                        .TipoOrd2 = myReaderBI.GetString(9),
+                        .Cliente = myReaderBI.GetString(10),
+                        .Agente = myReaderBI.GetString(11)
                     }
-                    imp = myReader.GetString(8)
-                    o.ImportoOrd = Convert.ToDecimal(imp.Substring(0, imp.Length - 7))
+                    If Not dictClienti.ContainsKey(myReaderBI.GetString(10)) Then
+                        dictClienti.Add(myReaderBI.GetString(10), myReaderBI.GetString(12))
+                    End If
+                    If Not dictAgenti.ContainsKey(myReaderBI.GetString(11)) Then
+                        dictAgenti.Add(myReaderBI.GetString(11), myReaderBI.GetString(13))
+                    End If
+                    imp = myReaderBI.GetDecimal(7)
+                    o.ImportoOrd = imp
                     ListOrdini.Add(o)
 
                 Loop
@@ -860,23 +2014,8 @@ Namespace Controllers
             Dim totalRevenue = 0
             Dim missingImport = 0
             Dim addedSpeseDict As New List(Of String)
-            For Each o In ListOrdini
-                Try
-                    If Not addedSpeseDict.Contains(o.NumOrd) Then
-                        Dim valSpese = ListSpese.Where(Function(x) x.Anno = o.Anno And x.codOrd = o.codOrd And x.NumOrd = o.NumOrd)
-                        If Not IsNothing(valSpese.FirstOrDefault) Then
-                            o.ImportoOrd = o.ImportoOrd + valSpese.First.Value
-                            addedSpeseDict.Add(o.NumOrd)
-                        Else
-                            addedSpeseDict.Add(o.NumOrd)
-                        End If
 
-                    End If
-                Catch ex As Exception
-
-                End Try
-
-            Next
+            'Next
             Dim listaClientiGiaControllati As New List(Of String)
             For Each o In ListOrdini
                 If Not listaClientiGiaControllati.Contains(o.Cliente) Then
@@ -903,94 +2042,139 @@ Namespace Controllers
                     finalCosts.ClientiNuovi.Add(o.Cliente, o.Mese)
                 End If
             Next
+            For a = 0 To ListOrdini.Count - 1
+                Console.WriteLine(ListOrdini(a))
+            Next
             For Each o In ListOrdini
                 Try
-                    Select Case o.TipoOrd
-                        Case "DRILL"
+                    Select Case o.Div
+                        Case "01"
                             If Not finalCosts.Drill.ContainsKey(o.Mese) Then
                                 finalCosts.Drill.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
                             End If
                             If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
-                                finalCosts.Drill(o.Mese).Italia_Nuovo = finalCosts.Drill(o.Mese).Italia_Nuovo + o.ImportoOrd
+                                If Not o.TipoOrd.Contains("DRILL") And Not o.TipoOrd.Contains("MPA") And Not o.TipoOrd.Contains("A/R") Then
+                                    ListOrdiniFallati.Add(o, "Raggruppamento 1 errato")
+                                Else
+                                    If o.TipoOrd2 = "UC1" Or o.TipoOrd = "UC9" Then
+                                        finalCosts.Drill(o.Mese).Italia_Nuovo = finalCosts.Drill(o.Mese).Italia_Nuovo + o.ImportoOrd
+                                    Else
+                                        finalCosts.Drill(o.Mese).Italia_Ricambio = finalCosts.Drill(o.Mese).Italia_Ricambio + o.ImportoOrd
+                                    End If
+                                End If
                             Else
-                                finalCosts.Drill(o.Mese).Estero_Nuovo = finalCosts.Drill(o.Mese).Estero_Nuovo + o.ImportoOrd
+                                If Not o.TipoOrd.Contains("DRILL") And Not o.TipoOrd.Contains("MPA") And Not o.TipoOrd.Contains("A/R") Then
+                                    ListOrdiniFallati.Add(o, "Raggruppamento 1 errato")
+                                Else
+                                    If o.TipoOrd2 = "UC1" Or o.TipoOrd = "UC9" Then
+                                        finalCosts.Drill(o.Mese).Estero_Nuovo = finalCosts.Drill(o.Mese).Estero_Nuovo + o.ImportoOrd
+                                    Else
+                                        finalCosts.Drill(o.Mese).Estero_Ricambio = finalCosts.Drill(o.Mese).Estero_Ricambio + o.ImportoOrd
+                                    End If
+                                End If
                             End If
-
-                        Case "CMT  "
+                        Case "02"
                             If Not finalCosts.CMT.ContainsKey(o.Mese) Then
                                 finalCosts.CMT.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
                             End If
                             If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
-                                finalCosts.CMT(o.Mese).Italia_Nuovo = finalCosts.CMT(o.Mese).Italia_Nuovo + o.ImportoOrd
+                                If Not o.TipoOrd.Contains("CMT") And Not o.TipoOrd.Contains("A/R") Then
+                                    ListOrdiniFallati.Add(o, "Raggruppamento 1 errato")
+                                Else
+                                    If o.TipoOrd2 = "UC1" Or o.TipoOrd = "UC9" Then
+                                        finalCosts.CMT(o.Mese).Italia_Nuovo = finalCosts.CMT(o.Mese).Italia_Nuovo + o.ImportoOrd
+                                    Else
+                                        finalCosts.CMT(o.Mese).Italia_Ricambio = finalCosts.CMT(o.Mese).Italia_Ricambio + o.ImportoOrd
+                                    End If
+                                End If
                             Else
-                                finalCosts.CMT(o.Mese).Estero_Nuovo = finalCosts.CMT(o.Mese).Estero_Nuovo + o.ImportoOrd
+                                If Not o.TipoOrd.Contains("CMT") And Not o.TipoOrd.Contains("A/R") Then
+                                    ListOrdiniFallati.Add(o, "Raggruppamento 1 errato")
+                                Else
+                                    If o.TipoOrd2 = "UC1" Or o.TipoOrd = "UC9" Then
+                                        finalCosts.CMT(o.Mese).Estero_Nuovo = finalCosts.CMT(o.Mese).Estero_Nuovo + o.ImportoOrd
+                                    Else
+                                        finalCosts.CMT(o.Mese).Estero_Ricambio = finalCosts.CMT(o.Mese).Estero_Ricambio + o.ImportoOrd
+                                    End If
+                                End If
                             End If
-
-                        Case "ISA"
+                        Case "03"
                             If Not finalCosts.ISA.ContainsKey(o.Mese) Then
                                 finalCosts.ISA.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
                             End If
                             If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
-                                finalCosts.ISA(o.Mese).Italia_Nuovo = finalCosts.ISA(o.Mese).Italia_Nuovo + o.ImportoOrd
+                                If Not o.TipoOrd.Contains("ISA") And Not o.TipoOrd.Contains("A/R") Then
+                                    ListOrdiniFallati.Add(o, "Raggruppamento 1 errato")
+                                Else
+                                    If o.TipoOrd2 = "UC1" Or o.TipoOrd = "UC9" Then
+                                        finalCosts.ISA(o.Mese).Italia_Nuovo = finalCosts.ISA(o.Mese).Italia_Nuovo + o.ImportoOrd
+                                    Else
+                                        finalCosts.ISA(o.Mese).Italia_Ricambio = finalCosts.ISA(o.Mese).Italia_Ricambio + o.ImportoOrd
+                                    End If
+                                End If
                             Else
-                                finalCosts.ISA(o.Mese).Estero_Nuovo = finalCosts.ISA(o.Mese).Estero_Nuovo + o.ImportoOrd
+                                If Not o.TipoOrd.Contains("ISA") And Not o.TipoOrd.Contains("A/R") Then
+                                    ListOrdiniFallati.Add(o, "Raggruppamento 1 errato")
+                                Else
+                                    If o.TipoOrd2 = "UC1" Or o.TipoOrd = "UC9" Then
+                                        finalCosts.ISA(o.Mese).Estero_Nuovo = finalCosts.ISA(o.Mese).Estero_Nuovo + o.ImportoOrd
+                                    Else
+                                        finalCosts.ISA(o.Mese).Estero_Ricambio = finalCosts.ISA(o.Mese).Estero_Ricambio + o.ImportoOrd
+                                    End If
+                                End If
                             End If
-                        Case "UNI"
+                        Case "04"
                             If Not finalCosts.Unistand.ContainsKey(o.Mese) Then
                                 finalCosts.Unistand.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
                             End If
                             If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
-                                finalCosts.Unistand(o.Mese).Italia_Nuovo = finalCosts.Unistand(o.Mese).Italia_Nuovo + o.ImportoOrd
+                                If Not o.TipoOrd.Contains("UNI") And Not o.TipoOrd.Contains("A/R") Then
+                                    ListOrdiniFallati.Add(o, "Raggruppamento 1 errato")
+                                Else
+                                    If o.TipoOrd2 = "UC1" Or o.TipoOrd = "UC9" Then
+                                        finalCosts.Unistand(o.Mese).Italia_Nuovo = finalCosts.Unistand(o.Mese).Italia_Nuovo + o.ImportoOrd
+                                    Else
+                                        finalCosts.Unistand(o.Mese).Italia_Ricambio = finalCosts.Unistand(o.Mese).Italia_Ricambio + o.ImportoOrd
+                                    End If
+                                End If
                             Else
-                                finalCosts.Unistand(o.Mese).Estero_Nuovo = finalCosts.Unistand(o.Mese).Estero_Nuovo + o.ImportoOrd
+                                If Not o.TipoOrd.Contains("UNI") And Not o.TipoOrd.Contains("A/R") Then
+                                    ListOrdiniFallati.Add(o, "Raggruppamento 1 errato")
+                                Else
+                                    If o.TipoOrd2 = "UC1" Or o.TipoOrd = "UC9" Then
+                                        finalCosts.Unistand(o.Mese).Estero_Nuovo = finalCosts.Unistand(o.Mese).Estero_Nuovo + o.ImportoOrd
+                                    Else
+                                        finalCosts.Unistand(o.Mese).Estero_Ricambio = finalCosts.Unistand(o.Mese).Estero_Ricambio + o.ImportoOrd
+                                    End If
+                                End If
                             End If
-                        Case "MPA  "
+                        Case "05"
                             If Not finalCosts.MPA.ContainsKey(o.Mese) Then
                                 finalCosts.MPA.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
                             End If
                             If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
-                                finalCosts.MPA(o.Mese).Italia_Nuovo = finalCosts.MPA(o.Mese).Italia_Nuovo + o.ImportoOrd
+                                If Not o.TipoOrd.Contains("MPA") And Not o.TipoOrd.Contains("A/R") Then
+                                    ListOrdiniFallati.Add(o, "Raggruppamento 1 errato")
+                                Else
+                                    If o.TipoOrd2 = "UC1" Or o.TipoOrd = "UC9" Then
+                                        finalCosts.MPA(o.Mese).Italia_Nuovo = finalCosts.MPA(o.Mese).Italia_Nuovo + o.ImportoOrd
+                                    Else
+                                        finalCosts.MPA(o.Mese).Italia_Ricambio = finalCosts.MPA(o.Mese).Italia_Ricambio + o.ImportoOrd
+                                    End If
+                                End If
                             Else
-                                finalCosts.MPA(o.Mese).Estero_Nuovo = finalCosts.MPA(o.Mese).Estero_Nuovo + o.ImportoOrd
+                                If Not o.TipoOrd.Contains("MPA") And Not o.TipoOrd.Contains("A/R") Then
+                                    ListOrdiniFallati.Add(o, "Raggruppamento 1 errato")
+                                Else
+                                    If o.TipoOrd2 = "UC1" Or o.TipoOrd = "UC9" Then
+                                        finalCosts.MPA(o.Mese).Estero_Nuovo = finalCosts.MPA(o.Mese).Estero_Nuovo + o.ImportoOrd
+                                    Else
+                                        finalCosts.MPA(o.Mese).Estero_Ricambio = finalCosts.MPA(o.Mese).Estero_Ricambio + o.ImportoOrd
+                                    End If
+                                End If
                             End If
-                        Case "A/R  "
-                            Select Case o.Div
-                                Case "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"
-                                    If Not finalCosts.Drill.ContainsKey(o.Mese) Then
-                                        finalCosts.Drill.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
-                                    End If
-                                    If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
-                                        finalCosts.Drill(o.Mese).Italia_Ricambio = finalCosts.Drill(o.Mese).Italia_Ricambio + o.ImportoOrd
-                                    Else
-                                        finalCosts.Drill(o.Mese).Estero_Ricambio = finalCosts.Drill(o.Mese).Estero_Ricambio + o.ImportoOrd
-                                    End If
-                            End Select
-
-
                         Case Else
-                            Select Case o.Div
-                                Case "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"
-                                    If Not finalCosts.Drill.ContainsKey(o.Mese) Then
-                                        finalCosts.Drill.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
-                                    End If
-                                    If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
-                                        If o.TipoOrd2 = "UC2" Or o.TipoOrd2 = "UC6" Then
-                                            finalCosts.Drill(o.Mese).Italia_Ricambio = finalCosts.Drill(o.Mese).Italia_Ricambio + o.ImportoOrd
-                                        Else
-                                            finalCosts.Drill(o.Mese).Italia_Nuovo = finalCosts.Drill(o.Mese).Italia_Nuovo + o.ImportoOrd
-                                        End If
-                                    Else
-                                        If o.TipoOrd2 = "UC2" Or o.TipoOrd2 = "UC6" Then
-                                            finalCosts.Drill(o.Mese).Estero_Ricambio = finalCosts.Drill(o.Mese).Estero_Ricambio + o.ImportoOrd
-                                        Else
-                                            finalCosts.Drill(o.Mese).Estero_Nuovo = finalCosts.Drill(o.Mese).Estero_Nuovo + o.ImportoOrd
-                                        End If
-                                    End If
-
-                                Case Else
-                                    missingImport = missingImport + o.ImportoOrd
-
-                            End Select
+                            ListOrdiniFallati.Add(o, "Divisione errata")
                     End Select
                     totalRevenue = totalRevenue + o.ImportoOrd
                     myConn.Close()
@@ -1002,227 +2186,335 @@ Namespace Controllers
 
             Next
             'Apertura file
-            Dim fs As New FileStream(Server.MapPath("\Content\Template\Euroma_Ordinato.xlsx"), FileMode.Open, FileAccess.ReadWrite)
-            Dim workbook As XSSFWorkbook = New XSSFWorkbook(fs)
+            If Not downloadClienti Then
+                Dim fs As New FileStream(Server.MapPath("\Content\Template\Euroma_Ordinato.xlsx"), FileMode.Open, FileAccess.ReadWrite)
+                Dim workbook As XSSFWorkbook = New XSSFWorkbook(fs)
+                Dim ws As XSSFSheet = workbook.GetSheetAt(0)
+                Dim fontIntestazione As XSSFFont = CType(workbook.CreateFont(), XSSFFont)
+                fontIntestazione.FontHeightInPoints = CShort(12)
+                fontIntestazione.FontName = "Arial"
+                fontIntestazione.IsBold = True
+                fontIntestazione.IsItalic = False
+                fontIntestazione.FontHeightInPoints = 11
+                Dim styleIntestazione As XSSFCellStyle = CType(workbook.CreateCellStyle(), XSSFCellStyle)
+                styleIntestazione.FillBackgroundColor = FillPattern.SolidForeground
+                styleIntestazione.SetFont(fontIntestazione)
+                'For p As Integer = 0 To 12
+                '    Row.Cells(p).CellStyle = yourStyle
+                'Next
+                'Base data
+                Try
+                    ws.GetRow(1).GetCell(6).CellStyle = styleIntestazione
+                    ws.GetRow(1).GetCell(6).SetCellValue(datetimeCalc(0).ToString.Substring(0, 4) + "/" + datetimeCalc(0).ToString.Substring(4, 2) + "/" + datetimeCalc(0).ToString.Substring(6, 2))
+                    ws.GetRow(1).GetCell(9).CellStyle = styleIntestazione
+                    ws.GetRow(1).GetCell(9).SetCellValue(datetimeCalc(1).ToString.Substring(0, 4) + "/" + datetimeCalc(1).ToString.Substring(4, 2) + "/" + datetimeCalc(1).ToString.Substring(6, 2))
+                Catch ex As Exception
 
-            Dim ws As XSSFSheet = workbook.GetSheetAt(0)
-            Dim fontIntestazione As XSSFFont = CType(workbook.CreateFont(), XSSFFont)
-            fontIntestazione.FontHeightInPoints = CShort(12)
-            fontIntestazione.FontName = "Arial"
-            fontIntestazione.IsBold = True
-            fontIntestazione.IsItalic = False
-            Dim styleIntestazione As XSSFCellStyle = CType(workbook.CreateCellStyle(), XSSFCellStyle)
-            styleIntestazione.FillBackgroundColor = FillPattern.SolidForeground
-            styleIntestazione.SetFont(fontIntestazione)
+                End Try
+                Dim r As IRow = ws.CreateRow(2)
+                For j = 0 To 48
+                    r.CreateCell(j)
+                Next
+                'Intestazione
+                Dim c = 1
+                Dim countKey = 12
+                If agente = "" Then
+                    ws.GetRow(1).GetCell(12).SetCellValue("Analisi cliente " + cliente)
+                Else
+                    ws.GetRow(1).GetCell(12).SetCellValue("Analisi agente " + agente)
+                End If
+                ws.GetRow(2).GetCell(0).SetCellValue("Mese")
+                For i = 1 To 12
+                    Try
+                        Select Case i.ToString
+                            Case "1"
+                                ws.GetRow(2).GetCell(c).SetCellValue("01 - Gennaio")
+                            Case "2"
+                                ws.GetRow(2).GetCell(c).SetCellValue("02 - Febbraio")
+                            Case "3"
+                                ws.GetRow(2).GetCell(c).SetCellValue("03 - Marzo")
+                            Case "4"
+                                ws.GetRow(2).GetCell(c).SetCellValue("04 - Aprile")
+                            Case "5"
+                                ws.GetRow(2).GetCell(c).SetCellValue("05 - Maggio")
+                            Case "6"
+                                ws.GetRow(2).GetCell(c).SetCellValue("06 - Giugno")
+                            Case "7"
+                                ws.GetRow(2).GetCell(c).SetCellValue("07 - Luglio")
+                            Case "8"
+                                ws.GetRow(2).GetCell(c).SetCellValue("08 - Agosto")
+                            Case "9"
+                                ws.GetRow(2).GetCell(c).SetCellValue("09 - Settembre")
+                            Case "10"
+                                ws.GetRow(2).GetCell(c).SetCellValue("10 - Ottobre")
+                            Case "11"
+                                ws.GetRow(2).GetCell(c).SetCellValue("11 - Novembre")
+                            Case "12"
+                                ws.GetRow(2).GetCell(c).SetCellValue("12 - Dicembre")
+                        End Select
+                        c = c + 4
+                    Catch ex As Exception
 
-            'For p As Integer = 0 To 12
-            '    Row.Cells(p).CellStyle = yourStyle
-            'Next
-            'Base data
-            Try
-                ws.GetRow(1).GetCell(6).CellStyle = styleIntestazione
-                ws.GetRow(1).GetCell(6).SetCellValue(datetimeCalc(0).ToString.Substring(0, 4) + "/" + datetimeCalc(0).ToString.Substring(4, 2) + "/" + datetimeCalc(0).ToString.Substring(6, 2))
-                ws.GetRow(1).GetCell(9).CellStyle = styleIntestazione
-                ws.GetRow(1).GetCell(9).SetCellValue(datetimeCalc(1).ToString.Substring(0, 4) + "/" + datetimeCalc(1).ToString.Substring(4, 2) + "/" + datetimeCalc(1).ToString.Substring(6, 2))
-            Catch ex As Exception
+                    End Try
 
-            End Try
-            Dim r As IRow = ws.CreateRow(2)
-            For j = 0 To 26
-                r.CreateCell(j)
-            Next
-            'Intestazione
-            Dim c = 1
-            Dim countKey = finalCosts.MPA.Keys.Count
-            If agente = "" Then
-                ws.GetRow(1).GetCell(12).SetCellValue("Analisi cliente " + cliente)
+                Next
+                'Start Pop
+                Dim baserow As IRow = ws.GetRow(0)
+                'Dim baserow As IRow = ws.GetRow(2)
+                Dim ms As New MemoryStream
+                Dim ms1 As New MemoryStream
+                'Riga Intestazione
+                Try
+                    Dim i As Integer = 1
+                    'Drillmatic
+                    i = 1
+                    For i = 1 To countKey * 4
+                        Try
+                            If finalCosts.Drill.ContainsKey(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)) Then
+                                Try
+                                    ws.GetRow(5).GetCell(i).SetCellValue(finalCosts.Drill(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)).Italia_Nuovo)
+                                    i = i + 1
+                                    ws.GetRow(5).GetCell(i).SetCellValue(finalCosts.Drill(GetCellValue(ws.GetRow(2), i - 1).ToString.Split(" ")(0)).Estero_Nuovo)
+                                    i = i + 1
+                                    ws.GetRow(5).GetCell(i).SetCellValue(finalCosts.Drill(GetCellValue(ws.GetRow(2), i - 2).ToString.Split(" ")(0)).Italia_Ricambio)
+                                    i = i + 1
+                                    ws.GetRow(5).GetCell(i).SetCellValue(finalCosts.Drill(GetCellValue(ws.GetRow(2), i - 3).ToString.Split(" ")(0)).Estero_Ricambio)
+                                Catch ex As Exception
+
+                                End Try
+                            Else
+                                i = i + 1
+                            End If
+                        Catch ex As Exception
+
+                        End Try
+                    Next
+                    'Isa
+                    i = 1
+                    For i = 1 To countKey * 4
+                        Try
+                            If finalCosts.ISA.ContainsKey(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)) Then
+                                Try
+                                    ws.GetRow(6).GetCell(i).SetCellValue(finalCosts.ISA(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)).Italia_Nuovo)
+                                    i = i + 1
+                                    ws.GetRow(6).GetCell(i).SetCellValue(finalCosts.ISA(GetCellValue(ws.GetRow(2), i - 1).ToString.Split(" ")(0)).Estero_Nuovo)
+                                    i = i + 1
+                                    ws.GetRow(6).GetCell(i).SetCellValue(finalCosts.ISA(GetCellValue(ws.GetRow(2), i - 2).ToString.Split(" ")(0)).Italia_Ricambio)
+                                    i = i + 1
+                                    ws.GetRow(6).GetCell(i).SetCellValue(finalCosts.ISA(GetCellValue(ws.GetRow(2), i - 3).ToString.Split(" ")(0)).Estero_Ricambio)
+                                Catch ex As Exception
+
+                                End Try
+                            Else
+                                i = i + 1
+                            End If
+                        Catch ex As Exception
+
+                        End Try
+                    Next
+                    'cmt
+                    i = 1
+                    For i = 1 To countKey * 4
+                        Try
+                            If finalCosts.CMT.ContainsKey(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)) Then
+                                Try
+                                    ws.GetRow(7).GetCell(i).SetCellValue(finalCosts.CMT(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)).Italia_Nuovo)
+                                    i = i + 1
+                                    ws.GetRow(7).GetCell(i).SetCellValue(finalCosts.CMT(GetCellValue(ws.GetRow(2), i - 1).ToString.Split(" ")(0)).Estero_Nuovo)
+                                    i = i + 1
+                                    ws.GetRow(7).GetCell(i).SetCellValue(finalCosts.CMT(GetCellValue(ws.GetRow(2), i - 2).ToString.Split(" ")(0)).Italia_Ricambio)
+                                    i = i + 1
+                                    ws.GetRow(7).GetCell(i).SetCellValue(finalCosts.CMT(GetCellValue(ws.GetRow(2), i - 3).ToString.Split(" ")(0)).Estero_Ricambio)
+                                Catch ex As Exception
+
+                                End Try
+                            Else
+                                i = i + 1
+                            End If
+                        Catch ex As Exception
+
+                        End Try
+                    Next
+                    'UNISTAND
+                    i = 1
+                    For i = 1 To countKey * 4
+                        Try
+                            If finalCosts.Unistand.ContainsKey(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)) Then
+                                Try
+                                    ws.GetRow(8).GetCell(i).SetCellValue(finalCosts.Unistand(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)).Italia_Nuovo)
+                                    i = i + 1
+                                    ws.GetRow(8).GetCell(i).SetCellValue(finalCosts.Unistand(GetCellValue(ws.GetRow(2), i - 1).ToString.Split(" ")(0)).Estero_Nuovo)
+                                    i = i + 1
+                                    ws.GetRow(8).GetCell(i).SetCellValue(finalCosts.Unistand(GetCellValue(ws.GetRow(2), i - 2).ToString.Split(" ")(0)).Italia_Ricambio)
+                                    i = i + 1
+                                    ws.GetRow(8).GetCell(i).SetCellValue(finalCosts.Unistand(GetCellValue(ws.GetRow(2), i - 3).ToString.Split(" ")(0)).Estero_Ricambio)
+                                Catch ex As Exception
+
+                                End Try
+                            Else
+                                i = i + 1
+                            End If
+                        Catch ex As Exception
+
+                        End Try
+                    Next
+                    'MPA
+                    i = 1
+                    For i = 1 To countKey * 4
+                        Try
+                            If finalCosts.MPA.ContainsKey(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)) Then
+                                Try
+                                    ws.GetRow(9).GetCell(i).SetCellValue(finalCosts.MPA(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)).Italia_Nuovo)
+                                    i = i + 1
+                                    ws.GetRow(9).GetCell(i).SetCellValue(finalCosts.MPA(GetCellValue(ws.GetRow(2), i - 1).ToString.Split(" ")(0)).Estero_Nuovo)
+                                    i = i + 1
+                                    ws.GetRow(9).GetCell(i).SetCellValue(finalCosts.MPA(GetCellValue(ws.GetRow(2), i - 2).ToString.Split(" ")(0)).Italia_Ricambio)
+                                    i = i + 1
+                                    ws.GetRow(9).GetCell(i).SetCellValue(finalCosts.MPA(GetCellValue(ws.GetRow(2), i - 3).ToString.Split(" ")(0)).Estero_Ricambio)
+                                Catch ex As Exception
+
+                                End Try
+                            Else
+                                i = i + 1
+                            End If
+                        Catch ex As Exception
+
+                        End Try
+
+                    Next
+                    'MPA
+                    i = 1
+                    For i = 1 To countKey * 4
+                        Try
+                            If finalCosts.Euroma.ContainsKey(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)) Then
+                                Try
+                                    ws.GetRow(10).GetCell(i).SetCellValue(finalCosts.Euroma(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)).Italia_Nuovo)
+                                    i = i + 1
+                                    ws.GetRow(10).GetCell(i).SetCellValue(finalCosts.Euroma(GetCellValue(ws.GetRow(2), i - 1).ToString.Split(" ")(0)).Estero_Nuovo)
+                                    i = i + 1
+                                    ws.GetRow(10).GetCell(i).SetCellValue(finalCosts.Euroma(GetCellValue(ws.GetRow(2), i - 2).ToString.Split(" ")(0)).Italia_Ricambio)
+                                    i = i + 1
+                                    ws.GetRow(10).GetCell(i).SetCellValue(finalCosts.Euroma(GetCellValue(ws.GetRow(2), i - 3).ToString.Split(" ")(0)).Estero_Ricambio)
+                                Catch ex As Exception
+
+                                End Try
+                            Else
+                                i = i + 1
+                            End If
+                        Catch ex As Exception
+
+                        End Try
+
+                    Next
+                    ws.GetRow(36).GetCell(1).SetCellValue("Nr. " & finalCosts.ClientiNuovi.Keys.Count.ToString)
+                    ws.GetRow(37).GetCell(1).SetCellValue(totalRevenue)
+                    'Evaluation totale
+                Catch ex As Exception
+
+                End Try
+
+                'ms1 = ms
+                Dim nomeFile = "def.xlsx"
+                If agente = "" Then
+                    nomeFile = "ORDINATO_BRAND_" & cliente & "_" & dateTime.ToString & ".xlsx"
+                Else
+                    nomeFile = "ORDINATO_BRAND_" & agente & "_" & dateTime.ToString & ".xlsx"
+                End If
+
+                Dim wsOC As XSSFSheet = workbook.GetSheetAt(1)
+                Dim counter = 2
+                For Each i In ListOrdini
+                    Dim rOrdini As IRow = wsOC.CreateRow(counter)
+                    For jOrdini = 0 To 8
+                        rOrdini.CreateCell(jOrdini)
+                    Next
+                    wsOC.GetRow(counter).GetCell(0).SetCellValue(i.Cliente)
+                    wsOC.GetRow(counter).GetCell(1).SetCellValue(i.Anno.ToString + "" + i.codOrd.ToString + "" + i.NumOrd.ToString)
+                    wsOC.GetRow(counter).GetCell(2).SetCellValue(i.Zone)
+                    wsOC.GetRow(counter).GetCell(3).SetCellValue(i.TipoOrd)
+                    wsOC.GetRow(counter).GetCell(4).SetCellValue(i.ImportoOrd.ToString)
+                    wsOC.GetRow(counter).GetCell(5).SetCellValue(i.UtenteOrd)
+                    wsOC.GetRow(counter).GetCell(6).SetCellValue(i.Div)
+                    wsOC.GetRow(counter).GetCell(7).SetCellValue(i.Mese)
+                    counter = counter + 1
+                Next
+                counter = counter + 2
+                Dim TitoloFallato As IRow = wsOC.CreateRow(counter)
+                TitoloFallato.CreateCell(0).SetCellValue("Ordini fallati")
+                counter = counter + 2
+                For Each i In ListOrdiniFallati
+                    Dim rOrdini As IRow = wsOC.CreateRow(counter)
+                    For jOrdini = 0 To 9
+                        rOrdini.CreateCell(jOrdini)
+                    Next
+                    wsOC.GetRow(counter).GetCell(0).SetCellValue(i.Key.Cliente)
+                    wsOC.GetRow(counter).GetCell(1).SetCellValue(i.Key.Anno.ToString + "" + i.Key.codOrd.ToString + "" + i.Key.NumOrd.ToString)
+                    wsOC.GetRow(counter).GetCell(2).SetCellValue(i.Key.Zone)
+                    wsOC.GetRow(counter).GetCell(3).SetCellValue(i.Key.TipoOrd)
+                    wsOC.GetRow(counter).GetCell(4).SetCellValue(i.Key.ImportoOrd.ToString)
+                    wsOC.GetRow(counter).GetCell(5).SetCellValue(i.Key.UtenteOrd)
+                    wsOC.GetRow(counter).GetCell(6).SetCellValue(i.Key.Div)
+                    wsOC.GetRow(counter).GetCell(7).SetCellValue(i.Key.Mese)
+                    wsOC.GetRow(counter).GetCell(7).SetCellValue(i.Value)
+                    counter = counter + 1
+                Next
+                Dim wsCli As XSSFSheet = workbook.GetSheetAt(2)
+                counter = 3
+                For Each c In finalCosts.ClientiNuovi.Keys
+                    Dim rClienti As IRow = wsCli.CreateRow(counter)
+                    For jClienti = 0 To 4
+                        rClienti.CreateCell(jClienti)
+                    Next
+                    wsCli.GetRow(counter).GetCell(0).SetCellValue(c)
+                    Dim ordineCliNuovo = ListOrdini.Where(Function(x) x.Cliente = c).First
+                    wsCli.GetRow(counter).GetCell(1).SetCellValue(ordineCliNuovo.Anno + "-" + ordineCliNuovo.codOrd + "-" + ordineCliNuovo.NumOrd.ToString)
+                    wsCli.GetRow(counter).GetCell(2).SetCellValue(ordineCliNuovo.ImportoOrd)
+                    wsCli.GetRow(counter).GetCell(3).SetCellValue(ordineCliNuovo.Mese)
+                    counter = counter + 1
+                Next
+                workbook.GetCreationHelper().CreateFormulaEvaluator().EvaluateAll()
+                workbook.Write(ms1)
+                Return File(ms1.ToArray, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", nomeFile)
             Else
-                ws.GetRow(1).GetCell(12).SetCellValue("Analisi agente " + agente)
+                Dim fs As New FileStream(Server.MapPath("\Content\Template\Clienti_Nuovi.xlsx"), FileMode.Open, FileAccess.ReadWrite)
+                Dim workbook As XSSFWorkbook = New XSSFWorkbook(fs)
+                Dim ws As XSSFSheet = workbook.GetSheetAt(0)
+                Dim fontIntestazione As XSSFFont = CType(workbook.CreateFont(), XSSFFont)
+                fontIntestazione.FontHeightInPoints = CShort(12)
+                fontIntestazione.FontName = "Arial"
+                fontIntestazione.IsBold = True
+                fontIntestazione.IsItalic = False
+                fontIntestazione.FontHeightInPoints = 11
+                Dim styleIntestazione As XSSFCellStyle = CType(workbook.CreateCellStyle(), XSSFCellStyle)
+                styleIntestazione.FillBackgroundColor = FillPattern.SolidForeground
+                styleIntestazione.SetFont(fontIntestazione)
+                Dim nomefile = "ClientiNuoviPeriodo_" + datetimeCalc(0) + "_" + datetimeCalc(1) + ".xlsx"
+                'For p As Integer = 0 To 12
+                '    Row.Cells(p).CellStyle = yourStyle
+                'Next
+                'Base data
+                Dim ms As New MemoryStream
+                Dim ms1 As New MemoryStream
+                Dim counter = 2
+                Dim wsCli As XSSFSheet = workbook.GetSheetAt(0)
+                counter = 3
+                For Each c In finalCosts.ClientiNuovi.Keys
+                    Dim rClienti As IRow = wsCli.CreateRow(counter)
+                    For jClienti = 0 To 4
+                        rClienti.CreateCell(jClienti)
+                    Next
+                    wsCli.GetRow(counter).GetCell(0).SetCellValue(c + " - " + dictClienti.Where(Function(x) x.Key = c).First.Value)
+                    Dim ordineCliNuovo = ListOrdini.Where(Function(x) x.Cliente = c).First
+                    wsCli.GetRow(counter).GetCell(1).SetCellValue(ordineCliNuovo.Anno + "-" + ordineCliNuovo.codOrd + "-" + ordineCliNuovo.NumOrd.ToString)
+                    wsCli.GetRow(counter).GetCell(2).SetCellValue(ordineCliNuovo.ImportoOrd)
+                    wsCli.GetRow(counter).GetCell(3).SetCellValue(ordineCliNuovo.Mese)
+                    wsCli.GetRow(counter).GetCell(4).SetCellValue(ordineCliNuovo.Agente + " - " + dictAgenti.Where(Function(x) x.Key = ordineCliNuovo.Agente).First.Value)
+                    counter = counter + 1
+                Next
+                workbook.GetCreationHelper().CreateFormulaEvaluator().EvaluateAll()
+                workbook.Write(ms1)
+                Return File(ms1.ToArray, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", nomeFile)
             End If
-            'Start Pop
-            Dim baserow As IRow = ws.GetRow(0)
-            'Dim baserow As IRow = ws.GetRow(2)
-            Dim ms As New MemoryStream
-            Dim ms1 As New MemoryStream
-            'Riga Intestazione
-            Try
-                Dim i As Integer = 1
-                'Drillmatic
-                i = 1
-                For i = 1 To countKey * 4
-                    Try
-                        If finalCosts.Drill.ContainsKey(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)) Then
-                            Try
-                                ws.GetRow(5).GetCell(i).SetCellValue(finalCosts.Drill(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)).Italia_Nuovo)
-                                i = i + 1
-                                ws.GetRow(5).GetCell(i).SetCellValue(finalCosts.Drill(GetCellValue(ws.GetRow(2), i - 1).ToString.Split(" ")(0)).Estero_Nuovo)
-                                i = i + 1
-                                ws.GetRow(5).GetCell(i).SetCellValue(finalCosts.Drill(GetCellValue(ws.GetRow(2), i - 2).ToString.Split(" ")(0)).Italia_Ricambio)
-                                i = i + 1
-                                ws.GetRow(5).GetCell(i).SetCellValue(finalCosts.Drill(GetCellValue(ws.GetRow(2), i - 3).ToString.Split(" ")(0)).Estero_Ricambio)
-                            Catch ex As Exception
-
-                            End Try
-                        Else
-                            i = i + 1
-                        End If
-                    Catch ex As Exception
-
-                    End Try
-                Next
-                'Isa
-                i = 1
-                For i = 1 To countKey * 4
-                    Try
-                        If finalCosts.ISA.ContainsKey(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)) Then
-                            Try
-                                ws.GetRow(6).GetCell(i).SetCellValue(finalCosts.ISA(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)).Italia_Nuovo)
-                                i = i + 1
-                                ws.GetRow(6).GetCell(i).SetCellValue(finalCosts.ISA(GetCellValue(ws.GetRow(2), i - 1).ToString.Split(" ")(0)).Estero_Nuovo)
-                                i = i + 1
-                                ws.GetRow(6).GetCell(i).SetCellValue(finalCosts.ISA(GetCellValue(ws.GetRow(2), i - 2).ToString.Split(" ")(0)).Italia_Ricambio)
-                                i = i + 1
-                                ws.GetRow(6).GetCell(i).SetCellValue(finalCosts.ISA(GetCellValue(ws.GetRow(2), i - 3).ToString.Split(" ")(0)).Estero_Ricambio)
-                            Catch ex As Exception
-
-                            End Try
-                        Else
-                            i = i + 1
-                        End If
-                    Catch ex As Exception
-
-                    End Try
-                Next
-                'cmt
-                i = 1
-                For i = 1 To countKey * 4
-                    Try
-                        If finalCosts.CMT.ContainsKey(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)) Then
-                            Try
-                                ws.GetRow(7).GetCell(i).SetCellValue(finalCosts.CMT(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)).Italia_Nuovo)
-                                i = i + 1
-                                ws.GetRow(7).GetCell(i).SetCellValue(finalCosts.CMT(GetCellValue(ws.GetRow(2), i - 1).ToString.Split(" ")(0)).Estero_Nuovo)
-                                i = i + 1
-                                ws.GetRow(7).GetCell(i).SetCellValue(finalCosts.CMT(GetCellValue(ws.GetRow(2), i - 2).ToString.Split(" ")(0)).Italia_Ricambio)
-                                i = i + 1
-                                ws.GetRow(7).GetCell(i).SetCellValue(finalCosts.CMT(GetCellValue(ws.GetRow(2), i - 3).ToString.Split(" ")(0)).Estero_Ricambio)
-                            Catch ex As Exception
-
-                            End Try
-                        Else
-                            i = i + 1
-                        End If
-                    Catch ex As Exception
-
-                    End Try
-                Next
-                'UNISTAND
-                i = 1
-                For i = 1 To countKey * 4
-                    Try
-                        If finalCosts.Unistand.ContainsKey(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)) Then
-                            Try
-                                ws.GetRow(8).GetCell(i).SetCellValue(finalCosts.Unistand(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)).Italia_Nuovo)
-                                i = i + 1
-                                ws.GetRow(8).GetCell(i).SetCellValue(finalCosts.Unistand(GetCellValue(ws.GetRow(2), i - 1).ToString.Split(" ")(0)).Estero_Nuovo)
-                                i = i + 1
-                                ws.GetRow(8).GetCell(i).SetCellValue(finalCosts.Unistand(GetCellValue(ws.GetRow(2), i - 2).ToString.Split(" ")(0)).Italia_Ricambio)
-                                i = i + 1
-                                ws.GetRow(8).GetCell(i).SetCellValue(finalCosts.Unistand(GetCellValue(ws.GetRow(2), i - 3).ToString.Split(" ")(0)).Estero_Ricambio)
-                            Catch ex As Exception
-
-                            End Try
-                        Else
-                            i = i + 1
-                        End If
-                    Catch ex As Exception
-
-                    End Try
-                Next
-                'MPA
-                i = 1
-                For i = 1 To countKey * 4
-                    Try
-                        If finalCosts.MPA.ContainsKey(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)) Then
-                            Try
-                                ws.GetRow(9).GetCell(i).SetCellValue(finalCosts.MPA(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)).Italia_Nuovo)
-                                i = i + 1
-                                ws.GetRow(9).GetCell(i).SetCellValue(finalCosts.MPA(GetCellValue(ws.GetRow(2), i - 1).ToString.Split(" ")(0)).Estero_Nuovo)
-                                i = i + 1
-                                ws.GetRow(9).GetCell(i).SetCellValue(finalCosts.MPA(GetCellValue(ws.GetRow(2), i - 2).ToString.Split(" ")(0)).Italia_Ricambio)
-                                i = i + 1
-                                ws.GetRow(9).GetCell(i).SetCellValue(finalCosts.MPA(GetCellValue(ws.GetRow(2), i - 3).ToString.Split(" ")(0)).Estero_Ricambio)
-                            Catch ex As Exception
-
-                            End Try
-                        Else
-                            i = i + 1
-                        End If
-                    Catch ex As Exception
-
-                    End Try
-
-                Next
-                'MPA
-                i = 1
-                For i = 1 To countKey * 4
-                    Try
-                        If finalCosts.Euroma.ContainsKey(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)) Then
-                            Try
-                                ws.GetRow(10).GetCell(i).SetCellValue(finalCosts.Euroma(GetCellValue(ws.GetRow(2), i).ToString.Split(" ")(0)).Italia_Nuovo)
-                                i = i + 1
-                                ws.GetRow(10).GetCell(i).SetCellValue(finalCosts.Euroma(GetCellValue(ws.GetRow(2), i - 1).ToString.Split(" ")(0)).Estero_Nuovo)
-                                i = i + 1
-                                ws.GetRow(10).GetCell(i).SetCellValue(finalCosts.Euroma(GetCellValue(ws.GetRow(2), i - 2).ToString.Split(" ")(0)).Italia_Ricambio)
-                                i = i + 1
-                                ws.GetRow(10).GetCell(i).SetCellValue(finalCosts.Euroma(GetCellValue(ws.GetRow(2), i - 3).ToString.Split(" ")(0)).Estero_Ricambio)
-                            Catch ex As Exception
-
-                            End Try
-                        Else
-                            i = i + 1
-                        End If
-                    Catch ex As Exception
-
-                    End Try
-
-                Next
-                ws.GetRow(42).GetCell(1).SetCellValue(totalRevenue)
-                ws.GetRow(37).GetCell(1).SetCellValue("Nr. nuovi clienti: " & finalCosts.ClientiNuovi.Keys.Count.ToString)
-                'Evaluation totale
-            Catch ex As Exception
-
-            End Try
-
-            'ms1 = ms
-            Dim nomeFile = "def.xlsx"
-            If agente = "" Then
-                nomeFile = "ORDINATO_BRAND_" & cliente & "_" & dateTime.ToString & ".xlsx"
-            Else
-                nomeFile = "ORDINATO_BRAND_" & agente & "_" & dateTime.ToString & ".xlsx"
-            End If
-
-            Dim wsOC As XSSFSheet = workbook.GetSheetAt(1)
-            Dim counter = 2
-            For Each i In ListOrdini
-                Dim rOrdini As IRow = wsOC.CreateRow(counter)
-                For jOrdini = 0 To 8
-                    rOrdini.CreateCell(jOrdini)
-                Next
-                wsOC.GetRow(counter).GetCell(0).SetCellValue(i.Cliente)
-                wsOC.GetRow(counter).GetCell(1).SetCellValue(i.Anno.ToString + "" + i.codOrd.ToString + "" + i.NumOrd.ToString)
-                wsOC.GetRow(counter).GetCell(2).SetCellValue(i.Zone)
-                wsOC.GetRow(counter).GetCell(3).SetCellValue(i.TipoOrd)
-                wsOC.GetRow(counter).GetCell(4).SetCellValue(i.ImportoOrd.ToString)
-                wsOC.GetRow(counter).GetCell(5).SetCellValue(i.UtenteOrd)
-                wsOC.GetRow(counter).GetCell(6).SetCellValue(i.Div)
-                wsOC.GetRow(counter).GetCell(7).SetCellValue(i.Mese)
-                counter = counter + 1
-            Next
-            workbook.GetCreationHelper().CreateFormulaEvaluator().EvaluateAll()
-            workbook.Write(ms1)
-            Return File(ms1.ToArray, "application/vnd.ms-excel", nomeFile)
-
             'Return Json(New With {.tot = finalCosts, .anticipi = anticipi, .miss = totalMissing, .totRev = totalRevenue}, JsonRequestBehavior.AllowGet) '.tmpf = tmpF, .codList = codList, .tmp = dict,, .FD = fattureDrill, .CD = contiDrill
         End Function
         <Authorize(Roles:="Commerciale_Admin, Admin")>
@@ -1874,7 +3166,72 @@ Namespace Controllers
             Return PartialView()
         End Function
         <Authorize>
+        Function FatturatoFornitoriPage() As ActionResult
+            Return PartialView()
+        End Function
+        <Authorize>
+        Function PrimaNotaPage() As ActionResult
+            Return PartialView()
+        End Function
+        <Authorize>
         Function OrdinatoPage() As ActionResult
+            Dim selectSlotList As New List(Of ClienteSmallViewModel)
+            Try
+                myConn = New SqlConnection(ConnectionString)
+                myCmd = myConn.CreateCommand
+                myCmd.CommandText = "Select CLFCO1, CLFRSC from CLFANA where CLFTIP = 'C' order by CLFRSC"
+                myConn.Open()
+            Catch ex As Exception
+                'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+            End Try
+            Try
+                myReader = myCmd.ExecuteReader
+
+                Do While myReader.Read()
+                    selectSlotList.Add(New ClienteSmallViewModel With {
+                        .CodCliente = myReader.GetString(0),
+                        .NomeCliente = myReader.GetString(1)
+                    })
+
+                Loop
+                myConn.Close()
+
+            Catch ex As Exception
+                'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+            End Try
+            ViewBag.clienti = New SelectList(selectSlotList, "CodCliente", "NomeCliente")
+
+            Dim selectSlotListAgenti As New List(Of ClienteSmallViewModel)
+            Try
+                myConn = New SqlConnection(ConnectionString)
+                myCmd = myConn.CreateCommand
+                myCmd.CommandText = "select PROAGE, PRORSC from PROANA00"
+                myConn.Open()
+            Catch ex As Exception
+                'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+            End Try
+            Try
+                myReader = myCmd.ExecuteReader
+
+                Do While myReader.Read()
+                    selectSlotListAgenti.Add(New ClienteSmallViewModel With {
+                        .CodCliente = myReader.GetString(0),
+                        .NomeCliente = myReader.GetString(1)
+                    })
+
+                Loop
+                myConn.Close()
+
+            Catch ex As Exception
+                'Return Json(New With {.ok = False, .message = "Errore: " + ex.Message + "."})
+            End Try
+            ViewBag.clienti = New SelectList(selectSlotList, "CodCliente", "NomeCliente")
+            ViewBag.agenti = New SelectList(selectSlotListAgenti, "CodCliente", "NomeCliente")
+
+            Return PartialView()
+        End Function
+        <Authorize>
+        Function OffertoPage() As ActionResult
             Dim selectSlotList As New List(Of ClienteSmallViewModel)
             Try
                 myConn = New SqlConnection(ConnectionString)
@@ -2247,7 +3604,6 @@ Namespace Controllers
             Return View(listOfPezzi)
         End Function
 
-
         Private Function GetCellValue(row As IRow, col As Integer, Optional OpID As String = vbNullString, Optional OpName As String = vbNullString) As Object
             Dim result As String = vbNullString
             Try
@@ -2287,7 +3643,7 @@ Namespace Controllers
             totalDays = DateDiff(DateInterval.Day, startDate, endDate) + 1
             For i As Integer = 1 To totalDays
                 If DatePart(DateInterval.Weekday, startDate) = 1 Then
-                    WeekendDays = WeekendDays + 1
+                    WeekendDays = WeekendDays + 7
                 End If
                 If DatePart(DateInterval.Weekday, startDate) = 7 Then
                     WeekendDays = WeekendDays + 1

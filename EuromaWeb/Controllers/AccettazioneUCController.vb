@@ -26,6 +26,32 @@ Imports Newtonsoft.Json
 Namespace Controllers
     Public Class AccettazioneUCController
         Inherits System.Web.Mvc.Controller
+        Public Declare Unicode Function Everything_SetSearchW Lib "..\Content\dll\Everything32.dll" (ByVal search As String) As UInt32
+        Public Declare Unicode Function Everything_SetRequestFlags Lib "..\Content\dll\Everything32.dll" (ByVal dwRequestFlags As UInt32) As UInt32
+        Public Declare Unicode Function Everything_QueryW Lib "..\Content\dll\Everything32.dll" (ByVal bWait As Integer) As Integer
+        Public Declare Unicode Function Everything_GetNumResults Lib "..\Content\dll\Everything32.dll" () As UInt32
+        Public Declare Unicode Function Everything_GetResultFileNameW Lib "..\Content\dll\Everything32.dll" (ByVal index As UInt32) As IntPtr
+        Public Declare Unicode Function Everything_GetLastError Lib "..\Content\dll\Everything32.dll" () As UInt32
+        Public Declare Unicode Function Everything_GetResultFullPathNameW Lib "..\Content\dll\Everything32.dll" (ByVal index As UInt32, ByVal buf As System.Text.StringBuilder, ByVal size As UInt32) As UInt32
+        Public Declare Unicode Function Everything_GetResultSize Lib "..\Content\dll\Everything32.dll" (ByVal index As UInt32, ByRef size As UInt64) As Integer
+        Public Declare Unicode Function Everything_GetResultDateModified Lib "..\Content\dll\Everything32.dll" (ByVal index As UInt32, ByRef ft As UInt64) As Integer
+
+        Public Const EVERYTHING_REQUEST_FILE_NAME = &H1
+        Public Const EVERYTHING_REQUEST_PATH = &H2
+        Public Const EVERYTHING_REQUEST_FULL_PATH_AND_FILE_NAME = &H4
+        Public Const EVERYTHING_REQUEST_EXTENSION = &H8
+        Public Const EVERYTHING_REQUEST_SIZE = &H10
+        Public Const EVERYTHING_REQUEST_DATE_CREATED = &H20
+        Public Const EVERYTHING_REQUEST_DATE_MODIFIED = &H40
+        Public Const EVERYTHING_REQUEST_DATE_ACCESSED = &H80
+        Public Const EVERYTHING_REQUEST_ATTRIBUTES = &H100
+        Public Const EVERYTHING_REQUEST_FILE_LIST_FILE_NAME = &H200
+        Public Const EVERYTHING_REQUEST_RUN_COUNT = &H400
+        Public Const EVERYTHING_REQUEST_DATE_RUN = &H800
+        Public Const EVERYTHING_REQUEST_DATE_RECENTLY_CHANGED = &H1000
+        Public Const EVERYTHING_REQUEST_HIGHLIGHTED_FILE_NAME = &H2000
+        Public Const EVERYTHING_REQUEST_HIGHLIGHTED_PATH = &H4000
+        Public Const EVERYTHING_REQUEST_HIGHLIGHTED_FULL_PATH_AND_FILE_NAME = &H8000
         Private Const ConnectionString As String = "Persist Security Info=True;Password=ALNUSAD;User ID=ALNUSAD;Initial Catalog=ALNEUMA;Data Source=192.168.100.50"
         Private myConn As SqlConnection
         Private myCmd As SqlCommand
@@ -40,17 +66,8 @@ Namespace Controllers
         Function Index(ByVal id As Integer?) As ActionResult
             Dim Chiave = ""
             Dim metrica = 0
-            Select Case id
-                Case 1
-                    Return View(db.AccettazioneUC.Where(Function(x) x.EmailInviata = False And x.Accettato = Stato_UC.In_attesa).ToList())
-                Case 2
-                    Return View(db.AccettazioneUC.Where(Function(x) x.EmailInviata = False And x.Accettato = Stato_UC.Accettato).ToList())
-                Case 3
-                    Return View(db.AccettazioneUC.Where(Function(x) x.EmailInviata = False And x.Accettato = Stato_UC.Non_Accettato).ToList())
-                Case 4
-                    Return View(db.AccettazioneUC.ToList())
-            End Select
-
+            ViewBag.tipo = id
+            Return View(db.AccettazioneUC.Take(10).ToList())
             Return HttpNotFound()
         End Function
         Function CaricoUT() As ActionResult
@@ -371,6 +388,286 @@ Namespace Controllers
             Return Json(New With {PostedData.draw, .recordsTotalUC = db.AccettazioneUC.Count, .recordsFiltered = 0})
         End Function
 
+        <HttpPost()>
+        <ValidateInput(False)>
+        Function ServerProcessingInAttesa(PostedData As DataTableAjaxPostModel) As JsonResult
+            Dim OpID As String = vbNullString
+            Dim OpName As String = vbNullString
+            Dim CurrentDate As DateTime = Now
+            Try
+                OpID = User.Identity.GetUserId()
+                OpName = User.Identity.GetUserName()
+
+                Dim result As New List(Of Object)
+                Dim data As IQueryable(Of AccettazioneUC)
+                data = db.AccettazioneUC.Where(Function(y) y.Accettato = Stato_UC.In_attesa).OrderBy(Function(x) x.DataCreazione)
+                'ricerca
+                Try
+                    If Not IsNothing(PostedData.search.value) Then
+                        If Not PostedData.search.value.Contains(" ") Then 'singola parola
+                            Dim search As String = PostedData.search.value
+                            Dim w As Expressions.Expression(Of Func(Of AccettazioneUC, Boolean)) = MakeWhereExpression(search)
+                            w.Compile()
+                            data = data.Where(w)
+                        Else 'multiple
+                            For Each term As String In PostedData.search.value.Split(" ")
+                                Dim wpartial As Expressions.Expression(Of Func(Of AccettazioneUC, Boolean)) = MakeWhereExpression(term)
+                                wpartial.Compile()
+                                data = data.Where(wpartial)
+                            Next
+                        End If
+                    End If
+                Catch ex As SystemException
+                    db.Log.Add(New Log With {
+                      .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},
+                      .Livello = TipoLogLivello.Errors,
+                      .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                      .Messaggio = "Errore Ricerca -> " & ex.Message,
+                      .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {PostedData})
+                      })
+                    db.SaveChanges()
+                End Try
+
+                Try
+                    'If Not IsNothing(PostedData.columns(1).search.value) Then
+                    '    Dim Stato_Accettazione = 0
+                    '    Select Case PostedData.columns(1).search.value
+                    '        Case "<Span Class='badge bg-warning text-dark'><i class='fa-solid fa-clock'></i>In attesa</span>"
+                    '            Stato_Accettazione = 0
+
+                    '        Case "<Span Class='badge bg-primary'><i class='fa-solid fa-check-double'></i>Accettato</span>"
+                    '            Stato_Accettazione = 1
+
+                    '        Case "<Span Class='badge bg-danger'><i class='fa-solid fa-circle-exclamation'></i>Non Accettato</span>"
+                    '            Stato_Accettazione = 2
+
+                    '        Case "<Span Class='badge bg-success'><i class='fa-solid fa-envelope-circle-check'></i>Inviato</span>"
+                    '            Stato_Accettazione = 3
+
+                    '    End Select
+                    '    Dim search As String = PostedData.columns(1).search.value
+                    '    Dim w As Expressions.Expression(Of Func(Of AccettazioneUC, Boolean)) = MakeWhereExpression(search)
+                    '    w.Compile()
+                    '    data = data.Where(w)
+                    'End If
+                Catch ex As SystemException
+                    db.Log.Add(New Log With {
+                          .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},
+                          .Livello = TipoLogLivello.Errors,
+                          .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                          .Messaggio = "Errore Ricerca -> " & ex.Message,
+                          .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {PostedData})
+                          })
+                    db.SaveChanges()
+                End Try
+                'ordinamento
+                Try
+                    If PostedData.order.Count = 0 Then
+                        Dim o As Expressions.Expression(Of Func(Of AccettazioneUC, String))
+                        o = MakeOrderExpression(Nothing) 'default
+                        o.Compile()
+                        data = data.OrderBy(o)
+                        'data = data.OrderBy(CreateExpression(Of Amministratore)("Studio"))
+                        'data = OrderByDynamic(data, "Studio", False)
+                    ElseIf PostedData.order.Count = 1 Then 'singolo
+                        Dim o As Expressions.Expression(Of Func(Of AccettazioneUC, String)) = MakeOrderExpression(PostedData.order(0).column)
+                        o.Compile()
+                        'If IsNothing(PostedData.columns(PostedData.order(0).column).data) Then
+                        '    data = OrderByDynamic(data, "Studio", False)
+                        'Else
+                        '    data = OrderByDynamic(data, PostedData.columns(PostedData.order(0).column).data, PostedData.order(0).dir = "desc")
+                        'End If
+
+                        Select Case PostedData.order(0).dir
+                            Case "asc"
+                                data = data.OrderBy(o)
+                            Case "desc"
+                                data = data.OrderByDescending(o)
+                        End Select
+                    ElseIf PostedData.order.Count = 2 Then 'doppio
+                        Dim o As Expressions.Expression(Of Func(Of AccettazioneUC, String)) = MakeOrderExpression(PostedData.order(0).column)
+                        o.Compile()
+
+                        Dim o2 As Expressions.Expression(Of Func(Of AccettazioneUC, String)) = MakeOrderExpression(PostedData.order(1).column)
+                        o2.Compile()
+
+                        Select Case PostedData.order(0).dir
+                            Case "asc"
+                                Select Case PostedData.order(1).dir
+                                    Case "asc"
+                                        data = data.OrderBy(o).ThenBy(o2)
+                                    Case "desc"
+                                        data = data.OrderBy(o).ThenByDescending(o2)
+                                End Select
+
+                            Case "desc"
+                                Select Case PostedData.order(1).dir
+                                    Case "asc"
+                                        data = data.OrderByDescending(o).ThenBy(o2)
+                                    Case "desc"
+                                        data = data.OrderByDescending(o).ThenByDescending(o2)
+                                End Select
+                        End Select
+                    Else 'solo i primi tre
+                        Dim o As Expressions.Expression(Of Func(Of AccettazioneUC, String)) = MakeOrderExpression(PostedData.order(0).column)
+                        o.Compile()
+
+                        Dim o2 As Expressions.Expression(Of Func(Of AccettazioneUC, String)) = MakeOrderExpression(PostedData.order(1).column)
+                        o2.Compile()
+
+                        Dim o3 As Expressions.Expression(Of Func(Of AccettazioneUC, String)) = MakeOrderExpression(PostedData.order(2).column)
+                        o3.Compile()
+
+                        Select Case PostedData.order(0).dir
+                            Case "asc"
+                                Select Case PostedData.order(1).dir
+                                    Case "asc"
+                                        Select Case PostedData.order(2).dir
+                                            Case "asc"
+                                                data = data.OrderBy(o).ThenBy(o2).ThenBy(o3)
+                                            Case "desc"
+                                                data = data.OrderBy(o).ThenBy(o2).ThenByDescending(o3)
+                                        End Select
+                                    Case "desc"
+                                        Select Case PostedData.order(2).dir
+                                            Case "asc"
+                                                data = data.OrderBy(o).ThenByDescending(o2).ThenBy(o3)
+                                            Case "desc"
+                                                data = data.OrderBy(o).ThenByDescending(o2).ThenByDescending(o3)
+                                        End Select
+                                End Select
+
+                            Case "desc"
+                                Select Case PostedData.order(1).dir
+                                    Case "asc"
+                                        Select Case PostedData.order(2).dir
+                                            Case "asc"
+                                                data = data.OrderByDescending(o).ThenBy(o2).ThenBy(o3)
+                                            Case "desc"
+                                                data = data.OrderByDescending(o).ThenBy(o2).ThenByDescending(o3)
+                                        End Select
+                                    Case "desc"
+                                        Select Case PostedData.order(2).dir
+                                            Case "asc"
+                                                data = data.OrderByDescending(o).ThenByDescending(o2).ThenBy(o3)
+                                            Case "desc"
+                                                data = data.OrderByDescending(o).ThenByDescending(o2).ThenByDescending(o3)
+                                        End Select
+                                End Select
+                        End Select
+                    End If
+                Catch ex As SystemException
+                    'Messo in pausa logging ordinamento causa errore 
+                    'db.Log.Add(New Log With {
+                    ' .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},
+                    ' .Livello = TipoLogLivello.Errors,
+                    ' .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                    ' .Messaggio = "Errore Ordinamento -> " & ex.Message,
+                    ' .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {PostedData})
+                    ' })
+                    'db.SaveChanges()
+                End Try
+
+                'paginazione
+                Dim filtered As Integer = 0
+                Try
+                    filtered = data.Count
+                    If PostedData.length > 0 Then
+                        data = data.Skip(PostedData.start).Take(PostedData.length)
+                    End If
+                Catch ex As SystemException
+                    db.Log.Add(New Log With {
+                                         .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},
+                                         .Livello = TipoLogLivello.Errors,
+                                         .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                         .Messaggio = "Errore Paginazione -> " & ex.Message,
+                                         .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {PostedData})
+                                         })
+                    db.SaveChanges()
+                End Try
+
+
+                'esecuzione (spero)
+                For Each Acc As AccettazioneUC In data
+                    Try
+                        Dim finalButtons = ""
+                        Dim Stato_Accettazione = ""
+                        Select Case Acc.Accettato
+                            Case 0
+                                Stato_Accettazione = "<Span Class='badge bg-warning text-dark'><i class='fa-solid fa-clock'></i>In attesa</span>"
+
+                            Case 1
+                                Stato_Accettazione = "<Span Class='badge bg-primary'><i class='fa-solid fa-check-double'></i>Accettato</span>"
+
+                            Case 2
+                                Stato_Accettazione = "<Span Class='badge bg-danger'><i class='fa-solid fa-circle-exclamation'></i>Non Accettato</span>"
+
+                            Case 3
+                                Stato_Accettazione = "<Span Class='badge bg-success'><i class='fa-solid fa-envelope-circle-check'></i>Inviato</span>"
+
+                            Case 4
+                                Stato_Accettazione = "<Span Class='badge bg-success'><i class='fa-solid fa-envelope-circle-check'></i>Inviato a UT</span>"
+
+                            Case 5
+                                Stato_Accettazione = "<Span Class='badge bg-success'><i class='fa-solid fa-envelope-circle-check'></i>Inviato a PROD</span>"
+
+                            Case 7
+                                Stato_Accettazione = "<Span Class='badge bg-warning text-dark'><i class='fa-solid fa-clock'></i>Ritorno da UT</span>"
+
+                        End Select
+                        Dim countNote = db.NotePerOC.Where(Function(x) x.OC = Acc.OC).Count
+                        Dim countFile = db.DocumentiPerOC.Where(Function(x) x.OC = Acc.OC).Count
+                        Dim notificheNote = ""
+                        Dim notificheFile = ""
+                        If countNote > 0 Then
+                            notificheNote = "<i class='mx-1 fa-solid fa-comment fa-beat-fade' style='color:red!important;--fa-beat-fade-opacity: 0.67; --fa-beat-fade-scale: 1.05;'></i>"
+                        End If
+                        If countFile > 0 Then
+                            notificheFile = "<i class='mx-1 fa-solid fa-file fa-beat-fade' style='color:red!important;--fa-beat-fade-opacity: 0.67; --fa-beat-fade-scale: 1.05;'></i>"
+                        End If
+                        result.Add(New With {
+                                .DT_RowData = New With {.value = Acc.Id},
+                                .DT_RowId = "row_" & Acc.Id,
+                                .Id = Acc.Id,
+                                .File = Acc.File,
+                                .OperatoreInsert = Acc.OperatoreInsert,
+                                .OperatoreAccettazione = Acc.OperatoreAccettazione,
+                                .OC = "<a style='text-decoration:none!important; margin-right:8px;'href='/Overviews/Ordine/" + Acc.OC.ToString + "' Target='_blank'>" + Acc.OC + "</a>" + notificheFile + notificheNote,
+                                .Note = Acc.Note,
+                                .EmailOperatoreInsert = Acc.EmailOperatoreInsert,
+                                .Accettato = Stato_Accettazione,
+                                .Cartella = Acc.Cartella,
+                                .DataAccettazione = Acc.DataAccettazione.ToString,
+                                .DataCreazione = Acc.DataCreazione.ToString,
+                                .EmailInviata = Acc.EmailInviata
+                           })
+
+
+                    Catch ex As SystemException
+                        db.Log.Add(New Log With {
+                             .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},
+                             .Livello = TipoLogLivello.Errors,
+                             .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                             .Messaggio = "Errore Creazione Lista Impianto (" & Acc.Id & ") -> " & ex.Message & " [" & ex.InnerException.Message & "]",
+                             .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {PostedData})
+                        })
+                        db.SaveChanges()
+                    End Try
+                Next
+
+                Return Json(New With {PostedData.draw, .recordsTotal = db.AccettazioneUC.Count, .recordsFiltered = filtered, .data = result})
+            Catch ex As SystemException
+                db.Log.Add(New Log With {
+                     .UltimaModifica = New TipoUltimaModifica With {.Data = CurrentDate, .OperatoreID = OpID, .Operatore = OpName},
+                     .Livello = TipoLogLivello.Errors,
+                     .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                     .Messaggio = "Errore Generico -> " & ex.Message,
+                     .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {PostedData})
+                     })
+                db.SaveChanges()
+            End Try
+            Return Json(New With {PostedData.draw, .recordsTotalUC = db.AccettazioneUC.Count, .recordsFiltered = 0})
+        End Function
 
 
         ' GET: AccettazioneUC/Details/5
@@ -601,7 +898,7 @@ Namespace Controllers
                         db.DocumentiPerOC.Add(New DocumentiPerOC With {
                         .OC = f.OC,
                         .DataCreazioneFile = DateTime.Now,
-                        .Nome_File = f.OC + "_REV.pdf",
+                        .Nome_File = f.OC + "OLD_REV.pdf",
                         .Operatore_Id = OpID,
                         .Operatore_Nome = OpName,
                         .Percorso_File = pathTMPOldREV
@@ -651,7 +948,22 @@ Namespace Controllers
                                            .DistintaBase = IIf(countDB > 0, 1, 0),
                                            .OC = OCName
                                        })
+                                        Dim listaPercorsi = RicercaDisegniTot(codeArticolo)
+                                        For Each l In listaPercorsi.Keys
+                                            If db.DocumentiPerOC.Where(Function(x) x.OC = f.OC And x.Nome_File = listaPercorsi.Item(l).ToString).Count = 0 Then
+                                                db.DocumentiPerOC.Add(New DocumentiPerOC With {
+                                                  .OC = f.OC,
+                                                  .DataCreazioneFile = DateTime.Now,
+                                                  .Nome_File = l,
+                                                  .Operatore_Id = OpID,
+                                                  .Operatore_Nome = OpName,
+                                                  .Percorso_File = listaPercorsi.Item(l)
+                                              })
+                                                db.SaveChanges()
+                                            End If
+                                        Next
                                         db.SaveChanges()
+
                                     Catch ex As SystemException
 
                                     End Try
@@ -943,6 +1255,7 @@ Namespace Controllers
                         .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .Operatore = OpName, .OperatoreID = OpID}
                     })
                     db.SaveChanges()
+
                     db.Audit.Add(New Audit With {
                                              .Livello = TipoAuditLivello.Info,
                                              .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
@@ -959,7 +1272,7 @@ Namespace Controllers
                     myMailT = New MailMessage()
                     myMailT.From = New MailAddress("no-reply@euromagroup.com")
                     myMailT.Attachments.Add(New System.Net.Mail.Attachment(pathTMP))
-                    'myMailT.To.Add("m.zucchini@euromagroup.com")
+                    myMailT.To.Add("m.zucchini@euromagroup.com")
                     myMailT.To.Add("t.marchioni@euromagroup.com")
                     myMailT.To.Add("s.botti@euromagroup.com")
                     myMailT.To.Add("s.carboni@euromagroup.com")
@@ -1297,6 +1610,7 @@ Namespace Controllers
                 db.SaveChanges()
                 OC.Accettato = Stato_UC.Inviato_Prod
                 db.SaveChanges()
+
                 db.StoricoOC.Add(New StoricoOC With {
                         .OC = OC.OC,
                         .Descrizione = "Documento condiviso correttamente con l'ufficio Produzione",
@@ -1313,6 +1627,25 @@ Namespace Controllers
                                             .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
                                })
                 db.SaveChanges()
+                Dim listaArticoli = db.ArticoliPerOC.Where(Function(x) x.OC = OC.OC).ToList
+                For Each l In listaArticoli
+                    Dim listaPercorsi = RicercaDisegniTot(l.Cod_Art)
+                    If Not IsNothing(listaPercorsi) Then
+                        For Each la In listaPercorsi.Keys
+                            If db.DocumentiPerOC.Where(Function(x) x.OC = OC.OC And x.Nome_File = listaPercorsi.Item(la).ToString).Count = 0 Then
+                                db.DocumentiPerOC.Add(New DocumentiPerOC With {
+                              .OC = OC.OC,
+                              .DataCreazioneFile = DateTime.Now,
+                              .Nome_File = la,
+                              .Operatore_Id = OpID,
+                              .Operatore_Nome = OpName,
+                              .Percorso_File = listaPercorsi.Item(la)
+                          })
+                                db.SaveChanges()
+                            End If
+                        Next
+                    End If
+                Next
             Catch ex As System.Exception
                 db.Log.Add(New Log With {
                                                   .Livello = TipoLogLivello.Errors,
@@ -1365,6 +1698,23 @@ Namespace Controllers
                        .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .Operatore = OpName, .OperatoreID = OpID}
                    })
                     db.SaveChanges()
+                    Dim listaArticolis = db.ArticoliPerOC.Where(Function(x) x.OC = OC.OC).ToList
+                    For Each l In listaArticolis
+                        Dim listaPercorsi = RicercaDisegniTot(l.Cod_Art)
+                        For Each la In listaPercorsi.Keys
+                            If db.DocumentiPerOC.Where(Function(x) x.OC = OC.OC And x.Nome_File = listaPercorsi.Item(la).ToString).Count = 0 Then
+                                db.DocumentiPerOC.Add(New DocumentiPerOC With {
+                                  .OC = OC.OC,
+                                  .DataCreazioneFile = DateTime.Now,
+                                  .Nome_File = la,
+                                  .Operatore_Id = OpID,
+                                  .Operatore_Nome = OpName,
+                                  .Percorso_File = listaPercorsi.Item(la)
+                              })
+                                db.SaveChanges()
+                            End If
+                        Next
+                    Next
                 Else
                     Dim Progetto As New ProgettiUT With {
                     .OC_Riferimento = OC.OC,
@@ -1386,6 +1736,25 @@ Namespace Controllers
                         .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .Operatore = OpName, .OperatoreID = OpID}
                     })
                 db.SaveChanges()
+                Dim listaArticoli = db.ArticoliPerOC.Where(Function(x) x.OC = OC.OC).ToList
+                For Each l In listaArticoli
+                    Dim listaPercorsi = RicercaDisegniTot(l.Cod_Art)
+                    If Not IsNothing(listaPercorsi) Then
+                        For Each la In listaPercorsi.Keys
+                            If db.DocumentiPerOC.Where(Function(x) x.OC = OC.OC And x.Nome_File = listaPercorsi.Item(la).ToString).Count = 0 Then
+                                db.DocumentiPerOC.Add(New DocumentiPerOC With {
+                                      .OC = OC.OC,
+                                      .DataCreazioneFile = DateTime.Now,
+                                      .Nome_File = la,
+                                      .Operatore_Id = OpID,
+                                      .Operatore_Nome = OpName,
+                                      .Percorso_File = listaPercorsi.Item(la)
+                                  })
+                                db.SaveChanges()
+                            End If
+                        Next
+                    End If
+                Next
                 db.Audit.Add(New Audit With {
                                              .Livello = TipoAuditLivello.Info,
                                              .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
@@ -1398,7 +1767,7 @@ Namespace Controllers
                 db.Log.Add(New Log With {
                                                   .Livello = TipoLogLivello.Errors,
                                                   .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
-                                                  .Messaggio = "Errore: " + ex.Message + " - Id OC: " + id,
+                                                  .Messaggio = "Errore: " + ex.Message + " - Id OC: " + id.ToString,
                                                   .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.SendToUT = "errore"}),
                                                  .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
                                     })
@@ -1828,7 +2197,48 @@ Namespace Controllers
             End Try
 
         End Function
+        Public Function RicercaDisegniTot(ByVal id As String) As Dictionary(Of String, String)
+            Everything_SetSearchW(id)
+            Everything_SetRequestFlags(EVERYTHING_REQUEST_FILE_NAME Or EVERYTHING_REQUEST_PATH Or EVERYTHING_REQUEST_SIZE Or EVERYTHING_REQUEST_DATE_MODIFIED)
+            Everything_QueryW(1)
+            Try
+                Dim NumResults As UInt32
+                Dim i As UInt32
+                Dim filename As New System.Text.StringBuilder(260)
+                Dim size As UInt64
+                Dim ftdm As UInt64
+                Dim DateModified As System.DateTime
+                Dim DictFilesFound As New Dictionary(Of String, String)
+                NumResults = Everything_GetNumResults()
+                If NumResults > 0 Then
+                    If NumResults > 50 Then
+                        Return DictFilesFound
+                    End If
+                    For i = 0 To NumResults - 1
+                        Try
+                            Dim path = Everything_GetResultFullPathNameW(i, filename, filename.Capacity)
+                            Everything_GetResultSize(i, size)
+                            Everything_GetResultDateModified(i, ftdm)
+                            DateModified = System.DateTime.FromFileTime(ftdm)
+                            DictFilesFound.Add(System.Runtime.InteropServices.Marshal.PtrToStringUni(Everything_GetResultFileNameW(i)), filename.ToString)
+                        Catch ex As System.Exception
 
+                        End Try
+                    Next
+                    Dim listDisegni = db.Disegni_MPA.Where(Function(x) x.Code_Disegno.Contains(id)).ToList
+                    If listDisegni.Count > 50 Then
+                        Return DictFilesFound
+                    End If
+                    For Each l In listDisegni
+                        DictFilesFound.Add(l.Code_Disegno, l.Path_File)
+                    Next
+                    Return DictFilesFound
+                End If
+            Catch ex As System.Exception
+
+            End Try
+
+        End Function
         Public Shared Function Decrypter(ByVal Text As String) As String
             Try
                 Dim bytesBuff As Byte() = Convert.FromBase64String(Text)

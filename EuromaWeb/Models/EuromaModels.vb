@@ -66,6 +66,7 @@ Public Class EuromaModels
     Public Overridable Property Macchine() As DbSet(Of Macchine)
     Public Overridable Property Computer() As DbSet(Of Computer)
     Public Overridable Property StoricoGrezzi() As DbSet(Of StoricoGrezzi)
+    Public Overridable Property ArticoliErrati() As DbSet(Of ArticoliErrati)
 End Class
 Public Class Disegno_Server_ViewModel
     Public Property Id As Integer
@@ -96,6 +97,25 @@ Public Class GestioneMagazzinoViewModel
     Public Property CodMag As Integer
     Public Property DescMag As String
     Public Property ListaScaffali As New List(Of GestioneScaffaliViewModel)
+End Class
+Public Class MesiFatturatoViewModel
+    Public Property Fatturato_Gennaio As Double
+    Public Property Fatturato_Febbraio As Double
+    Public Property Fatturato_Marzo As Double
+    Public Property Fatturato_Aprile As Double
+    Public Property Fatturato_Maggio As Double
+    Public Property Fatturato_Giugno As Double
+    Public Property Fatturato_Luglio As Double
+    Public Property Fatturato_Agosto As Double
+    Public Property Fatturato_Settembre As Double
+    Public Property Fatturato_Ottobre As Double
+    Public Property Fatturato_Novembre As Double
+    Public Property Fatturato_Dicembre As Double
+End Class
+Public Class FatturatoFornitoriViewModel
+    Public Property Fornitore As String
+    Public Property TypeFornitore As Char
+    Public Property Fatturato As MesiFatturatoViewModel
 End Class
 Public Class GestioneScaffaliViewModel
     Public Property NumScaffale As String
@@ -184,6 +204,15 @@ Public Class ProgettiUT_Operatore
     Public Property Flag_4 As StatoCheck
     Public Property DataRetroattiva As DateTime
 End Class
+Public Class ScadenzaViewModel
+    Public Property OC As String
+    Public Property Titolo As String
+    Public Property Descrizione As String
+    Public Property data As DateTime
+    Public Giorno As String
+    Public MeseAnno As String
+    Public Property AttualeUfficio As TipoUfficio
+End Class
 Public Class LicenzaViewModel
     Public Property Id As Integer
     Public Property Nome_Licenza As String
@@ -230,8 +259,10 @@ Public Class LottiViewModel
     Public Property LottoMin As Integer
     Public Property Scorta As Integer
     Public Property AnnoPrec As Integer
+    Public Property AnnoPrec2 As Integer
     Public Property AnnoCurrent As Integer
     Public Property ConsumoAnnoPrec As Integer
+    Public Property ConsumoAnnoPrec2 As Integer
     Public Property ConsumoAnnoCurrent As Integer
     Public Property AnnoCurrentInAttesa As Integer
     Public Property CurrentGiacenza As Integer
@@ -314,6 +345,49 @@ Public Class Fattura
     Public Property Mese As String
     Public Property VE As String
 End Class
+<ComplexType>
+Public Class CostiPN
+    Public Property Dare As Decimal
+    Public Property Avere As Decimal
+End Class
+Public Class SpeseMensili
+    Public Property Mese As Integer
+    Public Property Bonifici As CostiPN
+    Public Property SBF As CostiPN
+    Public Property AF As CostiPN
+    Public Property Finanziamento As CostiPN
+    Public Property Affitto As CostiPN
+    Public Property Assicurazioni As CostiPN
+    Public Property CartaCredito As CostiPN
+    Public Property Finanziamenti As CostiPN
+    Public Property Fornitori As CostiPN
+    Public Property Insoluti As CostiPN
+    Public Property INAIL As CostiPN
+    Public Property INPS As CostiPN
+    Public Property IRPEF As CostiPN
+    Public Property IVA As CostiPN
+    Public Property Leasing As CostiPN
+    Public Property RA As CostiPN
+    Public Property Stipendi As CostiPN
+    Public Property EntiDIP As CostiPN
+    Public Property Varie As CostiPN
+    Public Property Tasse As CostiPN
+    Public Property IntPass As CostiPN
+    Public Property EntiDipendenti As CostiPN
+    Public Property OneriBanc As CostiPN
+End Class
+Public Class PrimeNote
+    Public Property Anno As String
+    Public Property CodPN As String
+    Public Property NumPN As String
+    Public Property DataCompetenza As DateTime
+    Public Property Importo As Decimal
+    Public Property Conto As String
+    Public Property Causale As String
+    Public Property Segno As Char
+    Public Property FlagCF As String
+    Public Property CodCLIFOR As String
+End Class
 Public Class OrdineOrdinato
     Public Property Anno As String
     Public Property codOrd As String
@@ -326,6 +400,7 @@ Public Class OrdineOrdinato
     Public Property Div As String
     Public Property Mese As String
     Public Property Cliente As String
+    Public Property Agente As String
 End Class
 Public Class SpeseSecondarieViewModel
     Public Property Anno As String
@@ -341,6 +416,19 @@ Public Class OCPrioritaViewModel
     Public Property DataRichConsegna As String
     Public Property DataInserimento As String
     Public Property Cliente As String
+End Class
+Public Class RichiesteViewModel
+    Public Property Id As Integer
+    Public Property Cod_OP As String
+    Public Property Fase_OP As String
+    Public Property Cod_OC As String
+    Public Property Articolo As String
+    Public Property Note_Produzione As String
+    Public Property Note_UT As String
+    Public Property RichiestaCompletata As Boolean
+    Public Property OperatoreCompletamento As String
+    <Display(Name:="Ultima Modifica")>
+    Public Property UltimaModifica As TipoUltimaModifica
 End Class
 Public Class ProgettiUTViewModel
     Public Property Id As Integer
@@ -675,6 +763,21 @@ Public Class Tempo_Macchina
     Public Property T_Tot As Decimal
     Public Property T_Start As DateTime
     Public Property T_End As DateTime
+End Class
+<Table("ArticoliErrati")>
+Public Class ArticoliErrati
+    <Key>
+    Public Property Id As Integer
+    Public Property Cod_OP As String
+    Public Property Fase_OP As String
+    Public Property Cod_OC As String
+    Public Property Articolo As String
+    Public Property Note_Produzione As String
+    Public Property Note_UT As String
+    Public Property RichiestaCompletata As Boolean
+    Public Property OperatoreCompletamento As String
+    <Display(Name:="Ultima Modifica")>
+    Public Property UltimaModifica As TipoUltimaModifica
 End Class
 <Table("StoricoGrezzi")>
 Public Class StoricoGrezzi

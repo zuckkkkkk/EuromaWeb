@@ -17,7 +17,7 @@ End Code
             display: none !important;
         }
 
-        #mainDataTableProgettiEsterniInAttesa_filter {
+        #mainDataTableProgettiEsterniInAttesa_filter, #mainDataTableRichieste_filter {
             position: fixed;
             z-index: 1000;
             background-color: white;
@@ -25,9 +25,10 @@ End Code
             width: 100vw;
             left: 0;
             padding: 8px;
+            padding-bottom:16px!important;
         }
 
-        #pills-esterni-in-attesa, #pills-esterni {
+        #pills-esterni-in-attesa, #pills-esterni, #pills-richieste {
             overflow-x: scroll;
         }
     }
@@ -79,296 +80,434 @@ End Code
             <Button Class="nav-link" id="pills-esterni-tab" data-bs-toggle="pill" data-bs-target="#pills-esterni" type="button" role="tab" aria-controls="pills-esterni" aria-selected="false">Esterni Completati</Button>
         </li>
     End If
+    @If User.IsInRole("Tecnico") Or User.IsInRole("Produzione") Or User.IsInRole("Admin") Then
+        If User.IsInRole("Produzione") Then
+            @<li Class="nav-item" role="presentation">
+                <Button Class="nav-link active" id="pills-richieste-tab" data-bs-toggle="pill" data-bs-target="#pills-richieste" type="button" role="tab" aria-controls="pills-richieste" aria-selected="true">Richieste Modifica</Button>
+            </li>
+        Else
+            @<li Class="nav-item" role="presentation">
+                <Button Class="nav-link" id="pills-richieste-tab" data-bs-toggle="pill" data-bs-target="#pills-richieste" type="button" role="tab" aria-controls="pills-richieste" aria-selected="false">Richieste Modifica</Button>
+            </li>
+        End If
+
+    End If
 </ul>
 <div Class="tab-content" id="pills-tabContent">
-@If User.IsInRole("TecnicoVisualizzazione") Or User.IsInRole("Tecnico") Or User.IsInRole("TecnicoAdmin") Or User.IsInRole("TecnicoRevisione") Or User.IsInRole("Admin") Then
-@<div Class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
-    <Table id="mainDataTableProgetti" Class="stripe">
-        <thead>
-            <tr>
-                <th>
+    @If User.IsInRole("TecnicoVisualizzazione") Or User.IsInRole("Tecnico") Or User.IsInRole("TecnicoAdmin") Or User.IsInRole("TecnicoRevisione") Or User.IsInRole("Admin") Then
+        @<div Class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+            <Table id="mainDataTableProgetti" Class="stripe">
+                <thead>
+                    <tr>
+                        <th>
 
-                </th>
-                <th>
-                    Priorita
-                </th>
-                <th>
-                    Data Ins.
-                </th>
-                <th>
-                    Data Rich. Cons.
-                </th>
-                <th>
-                    Commessa
-                </th>
-                <th>
-                    @Html.DisplayNameFor(Function(model) model.Operatore)
-                </th>
-                <th>
-                    Stato progetto
-                </th>
-                @*<th>
-            Richiesta Materiali
-        </th>*@
+                        </th>
+                        <th>
+                            Priorita
+                        </th>
+                        <th>
+                            Data Ins.
+                        </th>
+                        <th>
+                            Data Rich. Cons.
+                        </th>
+                        <th>
+                            Commessa
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(Function(model) model.Operatore)
+                        </th>
+                        <th>
+                            Stato progetto
+                        </th>
+                        @*<th>
+                                Richiesta Materiali
+                            </th>*@
 
-            </tr>
-        </thead>
-        <tbody>
-            @For Each item In Model
-            @<tr>
-                <td>
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.Priorita)
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
-                </td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @For Each item In Model
+                        @<tr>
+                            <td>
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.Priorita)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
+                            </td>
 
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.Operatore)
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.Operatore)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
 
-                </td>
-                @*<td>
-                        @Html.DisplayFor(Function(modelItem) item.Flag_Invio_Materiali, New With {.htmlAttributes = New With {.style = "width: 30px; height: 30px;"}})
-                    </td>*@
+                            </td>
+                            @*<td>
+                                    @Html.DisplayFor(Function(modelItem) item.Flag_Invio_Materiali, New With {.htmlAttributes = New With {.style = "width: 30px; height: 30px;"}})
+                                </td>*@
 
-            </tr>
-                                Next
-        </tbody>
-    </Table>
+                        </tr>
+                    Next
+                </tbody>
+            </Table>
 
-</div>
-@<div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
-    <table id="mainDataTableProgettiCompletati" class="stripe" style="width:100%!important;">
-        <thead>
-            <tr>
-                <th>
+        </div>
+        @<div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+            <table id="mainDataTableProgettiCompletati" class="stripe" style="width:100%!important;">
+                <thead>
+                    <tr>
+                        <th>
 
-                </th>
-                <th>
-                    Priorita
-                </th>
-                <th>
-                    Data Ins.
-                </th>
-                <th>
-                    Data Rich. Cons.
-                </th>
-                <th>
-                    Commessa
-                </th>
-                <th>
-                    @Html.DisplayNameFor(Function(model) model.Operatore)
-                </th>
-                <th>
-                    Stato progetto
-                </th>
-            </tr>
-        </thead>
+                        </th>
+                        <th>
+                            Priorita
+                        </th>
+                        <th>
+                            Data Ins.
+                        </th>
+                        <th>
+                            Data Rich. Cons.
+                        </th>
+                        <th>
+                            Commessa
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(Function(model) model.Operatore)
+                        </th>
+                        <th>
+                            Stato progetto
+                        </th>
+                    </tr>
+                </thead>
 
-        <tbody>
-            @For Each item In Model
-            @<tr>
-                <td>
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.Priorita)
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
-                </td>
+                <tbody>
+                    @For Each item In Model
+                        @<tr>
+                            <td>
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.Priorita)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
+                            </td>
 
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.Operatore)
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.Operatore)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
 
-                </td>
-               
+                            </td>
 
-            </tr>
-                                Next
-        </tbody>
-    </table>
-</div>
-End If
-@If User.IsInRole("ProgrammazioneEsterno") Or User.IsInRole("ProgrammazioneInterno") Then
-@<div Class="tab-pane fade show active" id="pills-esterni-in-attesa" role="tabpanel" aria-labelledby="pills-esterni-in-attesa-tab" style="overflow-x:scroll;">
-    <Table id="mainDataTableProgettiEsterniInAttesa" Class="stripe" style="width:100%!important;">
-        <thead>
-            <tr>
-                <th>
 
-                </th>
-                <th>
-                    Priorita
-                </th>
+                        </tr>
+                    Next
+                </tbody>
+            </table>
+        </div>
+    End If
+    @If User.IsInRole("ProgrammazioneEsterno") Or User.IsInRole("ProgrammazioneInterno") Then
+        @<div Class="tab-pane fade show active" id="pills-esterni-in-attesa" role="tabpanel" aria-labelledby="pills-esterni-in-attesa-tab" style="overflow-x:scroll;">
+            <Table id="mainDataTableProgettiEsterniInAttesa" Class="stripe" style="width:100%!important;">
+                <thead>
+                    <tr>
+                        <th>
 
-                <th>
-                    Data Rich. Cons.
-                </th>
-                <th>
-                    Commessa
-                </th>
-                <th>
-                    @Html.DisplayNameFor(Function(model) model.Operatore)
-                </th>
-                <th>
-                    Stato progetto
-                </th>
+                        </th>
+                        <th>
+                            Priorita
+                        </th>
 
-            </tr>
-        </thead>
+                        <th>
+                            Data Rich. Cons.
+                        </th>
+                        <th>
+                            Commessa
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(Function(model) model.Operatore)
+                        </th>
+                        <th>
+                            Stato progetto
+                        </th>
 
-        <tbody>
-            @For Each item In Model
-            @<tr>
-                <td>
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.Priorita)
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
-                </td>
+                    </tr>
+                </thead>
 
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.Operatore)
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
+                <tbody>
+                    @For Each item In Model
+                        @<tr>
+                            <td>
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.Priorita)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
+                            </td>
 
-                </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.Operatore)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
 
-            </tr>
-                                Next
-        </tbody>
-    </Table>
-</div>
-ElseIf User.IsInRole("Tecnico") Or User.IsInRole("TecnicoAdmin") Or User.IsInRole("TecnicoRevisione") Or User.IsInRole("Admin") Then
-@<div Class="tab-pane fade" id="pills-esterni-in-attesa" role="tabpanel" aria-labelledby="pills-esterni-in-attesa-tab">
-    <Table id="mainDataTableProgettiEsterniInAttesa" Class="stripe" style="width:100%!important;">
-        <thead>
-            <tr>
-                <th>
+                            </td>
 
-                </th>
-                <th>
-                    Priorita
-                </th>
-                <th>
-                    Data Rich. Cons.
-                </th>
-                <th>
-                    Commessa
-                </th>
-                <th>
-                    @Html.DisplayNameFor(Function(model) model.Operatore)
-                </th>
-                <th>
-                    Stato progetto
-                </th>
+                        </tr>
+                    Next
+                </tbody>
+            </Table>
+        </div>
+    ElseIf User.IsInRole("Tecnico") Or User.IsInRole("TecnicoAdmin") Or User.IsInRole("TecnicoRevisione") Or User.IsInRole("Admin") Then
+        @<div Class="tab-pane fade" id="pills-esterni-in-attesa" role="tabpanel" aria-labelledby="pills-esterni-in-attesa-tab">
+            <Table id="mainDataTableProgettiEsterniInAttesa" Class="stripe" style="width:100%!important;">
+                <thead>
+                    <tr>
+                        <th>
 
-            </tr>
-        </thead>
+                        </th>
+                        <th>
+                            Priorita
+                        </th>
+                        <th>
+                            Data Rich. Cons.
+                        </th>
+                        <th>
+                            Commessa
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(Function(model) model.Operatore)
+                        </th>
+                        <th>
+                            Stato progetto
+                        </th>
 
-        <tbody>
-            @For Each item In Model
-            @<tr>
-                <td>
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.Priorita)
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
-                </td>
+                    </tr>
+                </thead>
 
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.Operatore)
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
+                <tbody>
+                    @For Each item In Model
+                        @<tr>
+                            <td>
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.Priorita)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
+                            </td>
 
-                </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.Operatore)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
 
-            </tr>
-                                Next
-        </tbody>
-    </Table>
-</div>
-End If
-@If User.IsInRole("ProgrammazioneEsterno") Or User.IsInRole("ProgrammazioneInterno") Or User.IsInRole("Tecnico") Or User.IsInRole("TecnicoAdmin") Or User.IsInRole("TecnicoRevisione") Or User.IsInRole("Admin") Then
-@<div Class="tab-pane fade" id="pills-esterni" role="tabpanel" aria-labelledby="pills-esterni-tab">
-    <Table id="mainDataTableProgettiEsterniCompletati" Class="stripe" style="width:100%!important;">
-        <thead>
-            <tr>
-                <th>
+                            </td>
 
-                </th>
-                <th>
-                    Priorita
-                </th>
-                <th>
-                    Data Rich. Cons.
-                </th>
-                <th>
-                    Commessa
-                </th>
-                <th>
-                    @Html.DisplayNameFor(Function(model) model.Operatore)
-                </th>
-                <th>
-                    Stato progetto
-                </th>
+                        </tr>
+                    Next
+                </tbody>
+            </Table>
+        </div>
+    End If
+    @If User.IsInRole("ProgrammazioneEsterno") Or User.IsInRole("ProgrammazioneInterno") Or User.IsInRole("Tecnico") Or User.IsInRole("TecnicoAdmin") Or User.IsInRole("TecnicoRevisione") Or User.IsInRole("Admin") Then
+        @<div Class="tab-pane fade" id="pills-esterni" role="tabpanel" aria-labelledby="pills-esterni-tab">
+            <Table id="mainDataTableProgettiEsterniCompletati" Class="stripe" style="width:100%!important;">
+                <thead>
+                    <tr>
+                        <th>
 
-            </tr>
-        </thead>
+                        </th>
+                        <th>
+                            Priorita
+                        </th>
+                        <th>
+                            Data Rich. Cons.
+                        </th>
+                        <th>
+                            Commessa
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(Function(model) model.Operatore)
+                        </th>
+                        <th>
+                            Stato progetto
+                        </th>
 
-        <tbody>
-            @For Each item In Model
-            @<tr>
-                <td>
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.Priorita)
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
-                </td>
+                    </tr>
+                </thead>
 
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.Operatore)
-                </td>
-                <td>
-                    @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
+                <tbody>
+                    @For Each item In Model
+                        @<tr>
+                            <td>
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.Priorita)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
+                            </td>
 
-                </td>
-            </tr>
-                                Next
-        </tbody>
-    </Table>
-</div>
-End If
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.Operatore)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
 
+                            </td>
+                        </tr>
+                    Next
+                </tbody>
+            </Table>
+        </div>
+    End If
+    @If User.IsInRole("Tecnico") Or User.IsInRole("Produzione") Or User.IsInRole("Admin") Then
+        @If User.IsInRole("Produzione") Then
+            @<div Class="tab-pane fade show active" id="pills-richieste" role="tabpanel" aria-labelledby="pills-richieste-tab">
+                <Table id="mainDataTableRichieste" Class="stripe" style="width:100%!important;">
+                    <thead>
+                        <tr>
+                            <th>
+
+                            </th>
+                            <th>
+                                Data Inserimento
+                            </th>
+                            <th>
+                                Codice OC
+                            </th>
+                            <th>
+                                Codice OP
+                            </th>
+                            <th>
+                                Articolo
+                            </th>
+                            <th>
+                                Completata
+                            </th>
+
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @For Each item In Model
+                            @<tr>
+                                <td>
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(Function(modelItem) item.Priorita)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
+                                </td>
+
+                                <td>
+                                    @Html.DisplayFor(Function(modelItem) item.Operatore)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
+
+                                </td>
+                            </tr>
+                        Next
+                    </tbody>
+                </Table>
+                <div class="row text-center">
+                    <div class="col">
+                        <button type="button" data-type="add_ric" id="add_ric" class="btn btn-primary w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                            Aggiungi richiesta
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        Else
+            @<div Class="tab-pane fade" id="pills-richieste" role="tabpanel" aria-labelledby="pills-richieste-tab">
+                <Table id="mainDataTableRichieste" Class="stripe" style="width:100%!important;">
+                    <thead>
+                        <tr>
+                            <th>
+
+                            </th>
+                            <th>
+                                Data Inserimento
+                            </th>
+                            <th>
+                                Codice OC
+                            </th>
+                            <th>
+                                Codice OP
+                            </th>
+                            <th>
+                                Articolo
+                            </th>
+                            <th>
+                                Completata
+                            </th>
+
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @For Each item In Model
+                            @<tr>
+                                <td>
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(Function(modelItem) item.Priorita)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
+                                </td>
+
+                                <td>
+                                    @Html.DisplayFor(Function(modelItem) item.Operatore)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
+
+                                </td>
+                            </tr>
+                        Next
+                    </tbody>
+                </Table>
+                <div class="row text-center">
+                    <div class="col">
+                        <button type="button" data-type="add_ric" id="add_ric" class="btn btn-primary w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                            Aggiungi richiesta
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        End If
+    End If
 </div>

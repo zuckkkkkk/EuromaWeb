@@ -36,6 +36,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css" integrity="sha512-57KPd8WI3U+HC1LxsxWPL2NKbW82g0BH+0PuktNNSgY1E50mnIc0F0cmWxdnvrWx09l8+PU2Kj+Vz33I+0WApw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <style>
+    *{
+        prefers-color-scheme: dark;
+    }
     ::-webkit-scrollbar {
         display: none;
     }
@@ -183,6 +186,9 @@
         text-align: center;
         margin-top: 30px;
         margin: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .overlay .closebtn {
@@ -211,7 +217,7 @@
         font-size: 17px;
         border: none;
         float: left;
-        width: 80%;
+        width: 35%;
         background: white;
         height: 64px;
         border-radius: 16px 0px 0px 16px;
@@ -227,7 +233,7 @@
 
     .overlay button {
         float: left;
-        width: 20%;
+        width: 10%;
         padding: 15px;
         background: #0d6efd;
         font-size: 17px;
@@ -385,7 +391,7 @@
                             </li>
                         End If
                         <!-- Ufficio Tecnico -->
-                        @If User.IsInRole("TecnicoVisualizzazione") Or User.IsInRole("Admin") Or User.IsInRole("TecnicoAdmin") Or User.IsInRole("Tecnico") Or User.IsInRole("ProgrammazioneEsterno") Or User.IsInRole("ProgrammazioneInterno") Then
+                        @If User.IsInRole("TecnicoVisualizzazione") Or User.IsInRole("Admin") Or User.IsInRole("TecnicoAdmin") Or User.IsInRole("Tecnico") Or User.IsInRole("ProgrammazioneEsterno") Or User.IsInRole("ProgrammazioneInterno") Or User.IsInRole("ProduzioneController") Or User.IsInRole("Produzione") Then
                             @<li Class="nav-item">
                                 <a Class="nav-link" href="@Url.Action("Index", "ProgettiUT", New With {.id = 1})"> Tecnico</a>
                             </li>
@@ -430,6 +436,11 @@
                                         ElseIf User.IsInRole("GestioneLicenze") Or User.IsInRole("Admin") Then
                                             @<a href="@Url.Action("GestioneUtenti", "Manage")" Class="dropdown-item">Utenti</a>
                                         End If
+                                        @If User.Identity.Name = "Sebastiano" Then
+                                            @<button data-type="downloadFatturatoFornitori" Class="btn  w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
+                                                Fatt. Fornitori
+                                            </button>
+                                        End If
                                     </li>
                                     <li>
                                         @If User.IsInRole("Admin") Then
@@ -441,8 +452,17 @@
                                             @<button data-type="downloadOrdinato" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
                                                 Ordinato
                                             </button>
+                                            @<button data-type="downloadOfferto" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
+                                                Offerto
+                                            </button>
+                                            @<button data-type="downloadPrimeNote" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
+                                                Prime Note
+                                            </button>
+                                            @<button data-type="downloadFatturatoFornitori" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
+                                                Fatt. Fornitori
+                                            </button>
                                             @<button data-type="downloadCompOrdinato" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
-                                                Prev. Ordinato
+                                                Prev. Consegnato
                                             </button>
                                         End If
                                     </li>
@@ -458,11 +478,14 @@
                                             @<button data-type="downloadOrdinato" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
                                                 Ordinato
                                             </button>
+                                            @<button data-type="downloadOfferto" Class="btn  w-auto " data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
+                                                Offerto
+                                            </button>
                                             @<button data-type="downloadPriorita" Class="btn  w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
                                                 OC Priorita
                                             </button>
                                             @<button data-type="downloadCompOrdinato" Class="btn  w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal" style="box-shadow:none!important;">
-                                                Prev. Ordinato
+                                                Prev. Consegnato
                                             </button>
                                             @<a href="@Url.Action("Index", "ChangeLog")" Class="dropdown-item">Changelog</a>
                                         End If
@@ -500,9 +523,7 @@
                             <Button id="btnRicercaOC" Class="btn btn-outline-success" type="submit">Cerca</Button>
                         </div>
                     End If
-
                     <Span Class="navbar-text">
-
                         @Html.Partial("_LoginPartial")
                     </Span>
                 </div>
@@ -544,7 +565,8 @@
     <script src="~/Scripts/Cleave.js"></script>
 
     @RenderSection("scripts", required:=False)
-    <script defer>
+<script defer>
+
     $('body').on('click', function (e) {
         if ($(".notifiche").length > 0) {
             $(".notifiche").remove();
@@ -591,11 +613,34 @@
                 },
                 error: function (error_data) {
                     console.log("Endpoint GET request error");
-                    window.location.href = "http://192.168.100.50:83/";
+                    $.notify({ message: "Attenzione, ci sono problemi di rete. Il portale potrebbe essere offline" }, { type: 'danger' });
+                    //window.location.href = "http://192.168.100.50:83/";
                 }
             });
         }
+    function LeggiTutteNot() {
+        Swal.fire({
+            icon: 'warning',
+            title: "Leggi tutto",
+            text: "Sei sicuro di voler leggere tutte le notifiche non ancora lette?",
+            confirmButtonText: 'Si!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    method: "GET",
+                    url: "/Home/LeggiTutto/",
+                    success: function (data) {
+                        if (data.ok) {
 
+                        };
+                    },
+                    error: function (error_data) {
+                        console.log("Endpoint request error");
+                    }
+                });
+            }
+        })
+    }
     function ToggleNavbar() {
         $(".navbar").toggle();
         $("#ToggleEye").toggleClass("fa-eye fa-eye-slash")
@@ -700,6 +745,9 @@
         var endpoint = '/Pezzi/Fatturato?datetime=';
         var endpointComplessivoOrdinato = '/Pezzi/ComplessivoOrdinatoCalcolo?datetime=';
         var endpointOrdinato = '/Pezzi/Ordinato?datetime=';
+        var endpointOfferto = '/Pezzi/OFferto?datetime=';
+        var endpointPrimaNota = '/Pezzi/PrimaNota?datetime=';
+        var endpointFatturatoFornitori = '/Pezzi/FatturatoFornitori?datetime=';
         var endpointGleason= '/Pezzi/Gleason?';
         var endpointCommessa = '/Pezzi/Commessa?OP=';
         var endpointPriorita = '/Pezzi/OrdiniPerImportanza?datetime=';
@@ -836,7 +884,7 @@
                         console.log(result);
                         Swal.fire({
                             title: 'Articolo ' + result.data.Art + "(" + result.data.TipoParte + " - " + result.data.Descr+")",
-                            html: "L'articolo ha un <b>lotto minimo di " + result.data.LottoMin + " pezzi </b>e una <b>scorta di sicurezza di " + result.data.Scorta + " pezzi</b>.  Ne sono stati <b>consumati " + result.data.ConsumoAnnoPrec + " pezzi lo scorso </b>anno e <b>" + result.data.ConsumoAnnoCurrent + " quest'anno</b>. Ha una <b>giacenza attuale di " + result.data.CurrentGiacenza + " e " + result.data.AnnoCurrentInAttesa +" in attesa</b> di essere prodotti.",
+                            html: "L'articolo ha un <b>lotto minimo di " + result.data.LottoMin + " pezzi </b>e una <b>scorta di sicurezza di " + result.data.Scorta + " pezzi</b>.  Ne sono stati <b>consumati " + result.data.ConsumoAnnoPrec2 + " pezzi nel 2021</b>, invece i consumi del <b>2022 sono di " + result.data.ConsumoAnnoPrec + " </b>pezzi e <b>" + result.data.ConsumoAnnoCurrent + " quest'anno (2023)</b>. Ha una <b>giacenza attuale di " + result.data.CurrentGiacenza + " e " + result.data.AnnoCurrentInAttesa +" in attesa</b> di essere prodotti.",
                             icon: 'info',
                             showCancelButton: false,
                             showDenyButton: false,
@@ -864,7 +912,6 @@
         }
     });
     $('#btnRicercaOC').on('click', function (e) {
-        console.log("active");
         var d = $('#RicercaOC').val();
         var formData = new FormData();
         formData.append("id", d);
@@ -877,7 +924,7 @@
             async: false,
             success: function (result) {
                 if (result.ok) {
-                    window.location = '/Overviews/Ordine/' + d.toString();
+                    CreateODP(d.toString());
                 }
                 else {
                     if (result.type == 1) {
@@ -1099,7 +1146,76 @@
                      }
                 },
 
+    });
+            var TableRichieste = $('#mainDataTableRichieste').DataTable({
+            stateSave: true,
+            "ordering": true,
+                processing: true,
+                serverSide: true,
+                ajax: { url: '@Url.Content("~/ProgettiUT/ServerProcessingRichieste")', type: 'POST' },
+               "deferRender": true,
+                dom: '<"row  align-items-center"<"col col-auto"f><"col"i><"col col-auto"B>>rt<"row align-items-center"<"col"p><"col col-auto"l>>',
+                 buttons: [
+                    {
+                        extend: 'excel',
+                        text:'<i class="fas fa-download"></i>',
+                        filename: 'Lista Richieste •  @DateTime.Now • EuromaGroup',
+                        sheetName: '@DateTime.Now'
+                     },
+                     {
+                         extend: 'print',
+                         text: '<i class="fas fa-print"></i>'
+                     }],
+                columns: [
+                    { data: null, orderable: true, class: "details-control", defaultContent: '<i class="fas fa-plus-circle"></i>' },
+                    { data: "DataInserimento", orderable: true },
+                    { data: "OC", orderable: true },
+                    { data: "OP", orderable: true},
+                    { data: "Articolo", orderable: true },
+                    { data: "Stato", orderable: true}
+               ],
+               "columnDefs": [
+                   {
+                       "targets": [0,3],
+                       "searchable": true
+                   }
+            ],
+               select: {
+                   targets: 0,
+                   data: null,
+                   defaultContent: '',
+                   orderable: true,
+                   className: 'select-checkbox'
+                },
+                lengthMenu: [[5, 10, 15, 20, 30, 50, 75, 100, -1], [5, 10, 15, 20, 30, 50, 75, 100, "Tutti"]],
+                 pageLength: 10,
+                 language: {
+                     "decimal": ",",
+                     "emptyTable": "Nessun Dato Disponibile",
+                     "info": "Visualizzazione da _START_ a _END_ di _TOTAL_ Progetti",
+                     "infoEmpty": "Visualizzazione da 0 a 0 di 0 Richieste",
+                     "infoFiltered": "(Filtrati su _MAX_ Richieste Totali)",
+                     "infoPostFix": "",
+                     "thousands": ".",
+                     "lengthMenu": "Mostra _MENU_",
+                     "loadingRecords": "Caricamento...",
+                     "processing": '<i class="fa fa-circle-notch fa-spin fa-3x fa-fw" style="color: red;"></i><span class="sr-only">Caricamento...</span> ',
+                     "search": "<i class='fas fa-search'></i>",
+                     "zeroRecords": "Nessuna Richiesta",
+                     "paginate": {
+                         "first": "Prima",
+                         "last": "Ultima",
+                         "next": "Prossima",
+                         "previous": "Precedente"
+                     },
+                     "aria": {
+                         "sortAscending": ": ordina in modo ascendente A-Z",
+                         "sortDescending": ": ordina in modo discendente Z-A"
+                     }
+                },
+
         });
+
         var TableProgettiEsterniInAttesa = $('#mainDataTableProgettiEsterniInAttesa').DataTable({
             stateSave: true,
             "ordering": true,
@@ -1578,7 +1694,16 @@
                     $(this).find('.SaveClose').hide();
                     $(this).find('.modal-body').html('').load('/Pezzi/PrioritaPage/');
                     break;
-                    
+                case 'add_ric':
+                    $(this).find('.modal-title').removeClass('text-danger').html('Aggiungi richiesta');
+                    $(this).data('reload', false);
+                    $(this).find('.Send').hide();
+                    $(this).find('.Add').show();
+                    $(this).find('.Delete').hide();
+                    $(this).find('.Save').hide();
+                    $(this).find('.SaveClose').hide();
+                    $(this).find('.modal-body').html('').load('/ProgettiUT/CreaRichiesta/');
+                    break;
                 case 'analisiGleason':
                     $(this).find('.modal-title').removeClass('text-danger').html('Analisi Gleason');
                     $(this).data('reload', false);
@@ -1599,8 +1724,39 @@
                     $(this).find('.SaveClose').hide();
                     $(this).find('.modal-body').html('').load('/Pezzi/OrdinatoPage/');
                     break;
+                case 'downloadOfferto':
+                    $(this).find('.modal-title').removeClass('text-danger').html('Scarica Offerto');
+                    $(this).data('reload', false);
+                    $(this).find('.Send').hide();
+                    $(this).find('.Add').hide();
+                    $(this).find('.Delete').hide();
+                    $(this).find('.Save').hide();
+                    $(this).find('.SaveClose').hide();
+                    $(this).find('.modal-body').html('').load('/Pezzi/OffertoPage/');
+                    break;
+                case 'downloadPrimeNote':
+                    $(this).find('.modal-title').removeClass('text-danger').html('Scarica costi');
+                    $(this).data('reload', false);
+                    $(this).find('.Send').hide();
+                    $(this).find('.Add').hide();
+                    $(this).find('.Delete').hide();
+                    $(this).find('.Save').hide();
+                    $(this).find('.SaveClose').hide();
+                    $(this).find('.modal-body').html('').load('/Pezzi/PrimaNotaPage/');
+                    break;
+                case 'downloadFatturatoFornitori':
+                    $(this).find('.modal-title').removeClass('text-danger').html('Scarica Fatturato Fornitori');
+                    $(this).data('reload', false);
+                    $(this).find('.Send').hide();
+                    $(this).find('.Add').hide();
+                    $(this).find('.Delete').hide();
+                    $(this).find('.Save').hide();
+                    $(this).find('.SaveClose').hide();
+                    $(this).find('.modal-body').html('').load('/Pezzi/FatturatoFornitoriPage/');
+                    break;
+
                 case 'downloadCompOrdinato':
-                    $(this).find('.modal-title').removeClass('text-danger').html('Previsione Ordinato');
+                    $(this).find('.modal-title').removeClass('text-danger').html('Previsione Consegnato');
                     $(this).data('reload', false);
                     $(this).find('.Send').hide();
                     $(this).find('.Add').hide();
@@ -1706,6 +1862,17 @@
                     $(this).find('.Save').show();
                     $(this).find('.SaveClose').hide();
                     $(this).find('.modal-body').html('').load('/ProgettiUT/EditAdmin/' + recipient, function () {
+                    });
+                    break;
+                case 'edit_tecnico_richiesta':
+                    $(this).find('.modal-title').removeClass('text-danger').html('Modifica Progetto');
+                    $(this).data('reload', true);
+                    $(this).find('.Add').hide();
+                    $(this).find('.Send').hide();
+                    $(this).find('.Delete').hide();
+                    $(this).find('.Save').show();
+                    $(this).find('.SaveClose').hide();
+                    $(this).find('.modal-body').html('').load('/ProgettiUT/EditRichiesta/' + recipient, function () {
                     });
                     break;
                 case 'edit_tecnico_operatore':
@@ -2013,6 +2180,25 @@
                 isChildOpen = true;
             }
     });
+    $('#mainDataTableRichieste').on('click', 'td.details-control', function () {
+        var tr = $(this).closest('tr');
+        var row = $('#mainDataTableRichieste').DataTable().row(tr);
+        var id = $(this).parent().data('value');
+        if (row.child.isShown()) {
+            // This row is already open - close it
+            row.child.hide();
+            tr.removeClass('shown');
+            $(this).html('<i class="fas fa-plus-circle"></i>');
+            isChildOpen = false;
+        }
+        else {
+            // Open this row
+            row.child(getdetails(id, '/ProgettiUT/DetailsRichiesta/' + id, $('body[name = "__RequestVerificationToken"]').val())).show();
+            tr.addClass('shown');
+            $(this).html('<i class="fas fa-minus-circle"></i>');
+            isChildOpen = true;
+        }
+    });
     $('#mainDataTableProgettiEsterniInAttesa').on('click', 'td.details-control', function () {
         var tr = $(this).closest('tr');
         var row = $('#mainDataTableProgettiEsterniInAttesa').DataTable().row(tr);
@@ -2209,13 +2395,83 @@
                                 }
             });
     $(document).ready(function () {
-     
+
             /* Plugin API method to determine is a column is sortable */
             $.fn.dataTable.Api.register('column().searchable()', function () {
                 var ctx = this.context[0];
                 return ctx.aoColumns[this[0]].bSearchable;
             });
+        var TableAccettazioneInAttesa = $('#mainDataTableAccettazioneInAttesa').DataTable({
+            stateSave: true,
+            "ordering": false,
+                processing: true,
+                serverSide: true,
+                ajax: { url: '@Url.Content("~/AccettazioneUC/ServerProcessing")', type: 'POST' },
+               "deferRender": true,
+            dom: '<"row  align-items-center"<"col col-auto"f><"col"i><"col col-auto"B>>rt<"row align-items-center"<"col"p><"col col-auto"l>>',
+                 buttons: [
+                    {
+                        extend: 'excel',
+                        text:'<i class="fas fa-download"></i>',
+                        filename: 'Lista Accettazioni •  @DateTime.Now • EuromaGroup',
+                        sheetName: '@DateTime.Now'
+                     },
+                     {
+                         extend: 'print',
+                         text: '<i class="fas fa-print"></i>'
+                     }],
+                   columns: [
+                   { data: null, orderable: false, class: "details-control", defaultContent: '<i class="fas fa-plus-circle"></i>' },
+                    { data: "Accettato", orderable: false,},
+                    { data: "OC", searchable: false},
+                    { data: "Cartella", searchable: false},
+                    { data: "OperatoreInsert", searchable: false},
+                    { data: "DataCreazione", searchable: false},
+               ],
+               "columnDefs": [
+                   {
+                       "targets": [0,4],
+                       "searchable": false
+                   }
+            ],
+               select: {
+                   targets: 0,
+                   data: null,
+                   defaultContent: '',
+                   orderable: false,
+                   className: 'select-checkbox'
+            },
+            initComplete: function () {
+                createDropdowns(this.api());
+            },
+                lengthMenu: [[5, 10, 15, 20, 30, 50, 75, 100, -1], [5, 10, 15, 20, 30, 50, 75, 100, "Tutti"]],
+                 pageLength: 10,
+                 language: {
+                     "decimal": ",",
+                     "emptyTable": "Nessun Dato Disponibile",
+                     "info": "Visualizzazione da _START_ a _END_ di _TOTAL_ Accettazioni",
+                     "infoEmpty": "Visualizzazione da 0 a 0 di 0 Accettazion1",
+                     "infoFiltered": "(Filtrati su _MAX_ Accettazioni Totali)",
+                     "infoPostFix": "",
+                     "thousands": ".",
+                     "lengthMenu": "Mostra _MENU_",
+                     "loadingRecords": "Caricamento...",
+                     "processing": '<i class="fa fa-circle-notch fa-spin fa-3x fa-fw" style="color: red;"></i><span class="sr-only">Caricamento...</span> ',
+                     "search": "<i class='fas fa-search'></i>",
+                     "zeroRecords": "Nessuna Accettazione",
+                     "paginate": {
+                         "first": "Prima",
+                         "last": "Ultima",
+                         "next": "Prossima",
+                         "previous": "Precedente"
+                     },
+                     "aria": {
+                         "sortAscending": ": ordina in modo ascendente A-Z",
+                         "sortDescending": ": ordina in modo discendente Z-A"
+                     }
+                },
 
+        });
         var TableAccettazione = $('#mainDataTableAccettazione').DataTable({
             stateSave: true,
             "ordering": false,
@@ -2235,7 +2491,7 @@
                          extend: 'print',
                          text: '<i class="fas fa-print"></i>'
                      }],
-                columns: [
+                   columns: [
                    { data: null, orderable: false, class: "details-control", defaultContent: '<i class="fas fa-plus-circle"></i>' },
                     { data: "Accettato", orderable: false,},
                     { data: "OC", searchable: false},
@@ -2587,7 +2843,7 @@
         });
             if (window.location.href.indexOf("/AccettazioneUC/Index") != -1)
             {
-            var interval = setInterval(reloadTable, 10000);
+            var interval = setInterval(reloadTable, 30000);
             }
             if (window.location.href.indexOf("Accettazione") != -1) {
                 var interval = setInterval(reloadTable, 10000);
@@ -3095,10 +3351,46 @@
             var end = $("#EndDate")[0].value;
             var agente = $('#agenti :selected').val();
             var cliente = $('#clienti :selected').val();
-            window.open(endpointOrdinato + start + "-" + end + '&agente=' + agente + '&cliente=' + cliente, '_blank').focus();
+            window.open(endpointOrdinato + start + "-" + end + '&agente=' + agente + '&cliente=' + cliente + '&downloadClienti=' + false, '_blank').focus();
             $(".loader").hide();
 
     });
+    $('body').on('click', '#SearchOfferto', function (e) {
+        $(".loader").show();
+        var start = $("#StartDate")[0].value;
+        var end = $("#EndDate")[0].value;
+        var agente = $('#agenti :selected').val();
+        var cliente = $('#clienti :selected').val();
+        window.open(endpointOfferto + start + "-" + end + '&agente=' + agente + '&cliente=' + cliente + '&downloadClienti=' + false, '_blank').focus();
+        $(".loader").hide();
+
+    });
+        $('body').on('click', '#SearchPrimaNota', function (e) {
+            $(".loader").show();
+            var start = $("#StartDate")[0].value;
+            var end = $("#EndDate")[0].value;
+            window.open(endpointPrimaNota + start + "-" + end, '_blank').focus();
+            $(".loader").hide();
+
+        });
+    $('body').on('click', '#SearchFatturatoFornitori', function (e) {
+        $(".loader").show();
+        var start = $("#StartDate")[0].value;
+        var end = $("#EndDate")[0].value;
+        window.open(endpointFatturatoFornitori + start + "-" + end, '_blank').focus();
+        $(".loader").hide();
+
+    });
+        $('body').on('click', '#SearchClienti', function (e) {
+            $(".loader").show();
+            var start = $("#StartDate")[0].value;
+            var end = $("#EndDate")[0].value;
+            var agente = $('#agenti :selected').val();
+            var cliente = $('#clienti :selected').val();
+            window.open(endpointOrdinato + start + "-" + end + '&agente=' + agente + '&cliente=' + cliente + '&downloadClienti=' + true, '_blank').focus();
+            $(".loader").hide();
+
+        });
         $('body').on('click', '#CalcolaGleason', function (e) {
             $(".loader").show();
             var Angolo = $("#Angolo")[0].value;
@@ -3452,7 +3744,7 @@
             }
         });
         }
-        
+
         async function SearchArticoloTablet() {
             const { value: text } = await Swal.fire({
                 input: 'text',
@@ -4042,7 +4334,7 @@
         });
     }
 
-    </script>
+</script>
 </body>
 
 </html>

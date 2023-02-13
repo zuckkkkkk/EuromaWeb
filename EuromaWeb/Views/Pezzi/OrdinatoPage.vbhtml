@@ -27,8 +27,11 @@
     </div>
     <div class="row mt-5">
         <div class="col-md-3">
-            <button class="btn btn-primary" id="SearchOrdinato">Scarica dati</button>
+            <button class="btn btn-primary" style="width:90%;" id="SearchOrdinato">Scarica dati</button>
         </div>
+        @*<div class="col-md-3">
+            <button class="btn btn-primary" style="width:90%;" id="SearchClienti">Scarica Clienti</button>
+        </div>*@
     </div>
 </div>
 
@@ -145,7 +148,7 @@
 
             input.value = arr[3] + "" + arr[1] + "" + arr[2]
         },
-        startDay: 1,
+        startDay: 31,
         customDays: ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'],
         customMonths: ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
     });

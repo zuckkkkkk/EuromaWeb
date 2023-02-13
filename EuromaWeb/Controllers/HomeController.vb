@@ -4,9 +4,37 @@ Imports NPOI.SS.UserModel
 Imports NPOI.XSSF.UserModel
 Imports System.IO.Directory
 Imports Microsoft.AspNet.Identity
+Imports Newtonsoft.Json
 
 Public Class HomeController
     Inherits System.Web.Mvc.Controller
+    Public Declare Unicode Function Everything_SetSearchW Lib "..\Content\dll\Everything32.dll" (ByVal search As String) As UInt32
+    Public Declare Unicode Function Everything_SetRequestFlags Lib "..\Content\dll\Everything32.dll" (ByVal dwRequestFlags As UInt32) As UInt32
+    Public Declare Unicode Function Everything_QueryW Lib "..\Content\dll\Everything32.dll" (ByVal bWait As Integer) As Integer
+    Public Declare Unicode Function Everything_GetNumResults Lib "..\Content\dll\Everything32.dll" () As UInt32
+    Public Declare Unicode Function Everything_GetResultFileNameW Lib "..\Content\dll\Everything32.dll" (ByVal index As UInt32) As IntPtr
+    Public Declare Unicode Function Everything_GetLastError Lib "..\Content\dll\Everything32.dll" () As UInt32
+    Public Declare Unicode Function Everything_GetResultFullPathNameW Lib "..\Content\dll\Everything32.dll" (ByVal index As UInt32, ByVal buf As System.Text.StringBuilder, ByVal size As UInt32) As UInt32
+    Public Declare Unicode Function Everything_GetResultSize Lib "..\Content\dll\Everything32.dll" (ByVal index As UInt32, ByRef size As UInt64) As Integer
+    Public Declare Unicode Function Everything_GetResultDateModified Lib "..\Content\dll\Everything32.dll" (ByVal index As UInt32, ByRef ft As UInt64) As Integer
+
+    Public Const EVERYTHING_REQUEST_FILE_NAME = &H1
+    Public Const EVERYTHING_REQUEST_PATH = &H2
+    Public Const EVERYTHING_REQUEST_FULL_PATH_AND_FILE_NAME = &H4
+    Public Const EVERYTHING_REQUEST_EXTENSION = &H8
+    Public Const EVERYTHING_REQUEST_SIZE = &H10
+    Public Const EVERYTHING_REQUEST_DATE_CREATED = &H20
+    Public Const EVERYTHING_REQUEST_DATE_MODIFIED = &H40
+    Public Const EVERYTHING_REQUEST_DATE_ACCESSED = &H80
+    Public Const EVERYTHING_REQUEST_ATTRIBUTES = &H100
+    Public Const EVERYTHING_REQUEST_FILE_LIST_FILE_NAME = &H200
+    Public Const EVERYTHING_REQUEST_RUN_COUNT = &H400
+    Public Const EVERYTHING_REQUEST_DATE_RUN = &H800
+    Public Const EVERYTHING_REQUEST_DATE_RECENTLY_CHANGED = &H1000
+    Public Const EVERYTHING_REQUEST_HIGHLIGHTED_FILE_NAME = &H2000
+    Public Const EVERYTHING_REQUEST_HIGHLIGHTED_PATH = &H4000
+    Public Const EVERYTHING_REQUEST_HIGHLIGHTED_FULL_PATH_AND_FILE_NAME = &H8000
+
     Private Const ConnectionString As String = "Persist Security Info=True;Password=ALNUSAD;User ID=ALNUSAD;Initial Catalog=ALNEUMA;Data Source=192.168.100.50"
     Private Const ConnectionStringLocal As String = "Persist Security Info=True;Initial Catalog=Prova;Data Source=(localdb)\MSSQLLocalDB"
     Private myConn As SqlConnection
@@ -72,7 +100,54 @@ Public Class HomeController
             Case Else
                 ViewBag.RandomIcon2 = "fa-solid fa-biohazard"
         End Select
-        Return View()
+
+        'Gestione scadenze
+
+        Dim scadUT = db.ProgettiUT.Where(Function(x) x.StatoProgetto < Stato_UT.Completato And x.DataRichiestaConsegna < DateTime.Now).ToList
+        Dim scadProd = db.ProgettiProd.Where(Function(x) x.StatoProgetto < Stato_Prod.Completato And x.DataRichiestaConsegna < DateTime.Now).ToList
+        Dim dateNext = DateTime.Now.AddDays(14)
+        Dim scadUTInScad = db.ProgettiUT.Where(Function(x) x.StatoProgetto < Stato_UT.Completato And x.DataRichiestaConsegna < dateNext And x.DataRichiestaConsegna > DateTime.Now).ToList
+        Dim scadProdInScad = db.ProgettiProd.Where(Function(x) x.StatoProgetto < Stato_Prod.Completato And x.DataRichiestaConsegna < dateNext And x.DataRichiestaConsegna > DateTime.Now).ToList
+
+        Dim listaScad As New List(Of ScadenzaViewModel)
+
+        For Each scad In scadUT
+            listaScad.Add(New ScadenzaViewModel With {
+                .AttualeUfficio = TipoUfficio.UfficioTecnico,
+                .data = scad.DataRichiestaConsegna,
+                .Descrizione = scad.StatoProgetto,
+                .OC = scad.OC_Riferimento,
+                .Titolo = "OC (" + scad.OC_Riferimento + ") scaduta"
+            })
+        Next
+        For Each scad In scadProd
+            listaScad.Add(New ScadenzaViewModel With {
+                .AttualeUfficio = TipoUfficio.Produzione,
+                .data = scad.DataRichiestaConsegna,
+                .Descrizione = scad.StatoProgetto,
+                .OC = scad.OC_Riferimento,
+                .Titolo = "OC (" + scad.OC_Riferimento + ") scaduta"
+            })
+        Next
+        For Each scad In scadUTInScad
+            listaScad.Add(New ScadenzaViewModel With {
+                .AttualeUfficio = TipoUfficio.UfficioTecnico,
+                .data = scad.DataRichiestaConsegna,
+                .Descrizione = scad.StatoProgetto,
+                .OC = scad.OC_Riferimento,
+                .Titolo = "OC (" + scad.OC_Riferimento + ") in scadenza"
+            })
+        Next
+        For Each scad In scadProdInScad
+            listaScad.Add(New ScadenzaViewModel With {
+                .AttualeUfficio = TipoUfficio.Produzione,
+                .data = scad.DataRichiestaConsegna,
+                .Descrizione = scad.StatoProgetto,
+                .OC = scad.OC_Riferimento,
+                .Titolo = "OC (" + scad.OC_Riferimento + ") in scadenza"
+            })
+        Next
+        Return View(listaScad)
     End Function
     Function Notifiche() As ActionResult
         Dim OpID As String = vbNullString
@@ -90,7 +165,7 @@ Public Class HomeController
                         Dim tempo = ""
                         If (CurrentDate - n.Data_Nota).Days > 0 Then
                             tempo = (CurrentDate - n.Data_Nota).Days.ToString + " giorno/i fa"
-                        ElseIf (CurrentDate - n.Data_Nota).hours > 0 Then
+                        ElseIf (CurrentDate - n.Data_Nota).Hours > 0 Then
                             tempo = (CurrentDate - n.Data_Nota).Hours.ToString + " ora/e fa"
                         Else
                             tempo = (CurrentDate - n.Data_Nota).Minutes.ToString + " minuto/i fa"
@@ -370,7 +445,7 @@ Public Class HomeController
         Dim OpName As String = vbNullString
         Dim CurrentDate As DateTime = Now
         OpName = User.Identity.Name
-
+        OpID = User.Identity.GetUserId()
         Dim lotto As New LottiViewModel
         'Ricerca Articoli per condominio
         Try
@@ -403,7 +478,7 @@ Public Class HomeController
         Try
             myConn = New SqlConnection(ConnectionString)
             myCmd = myConn.CreateCommand
-            myCmd.CommandText = "select DISTINCT ODLALP, CAST(SUM(ODLQTP) as INTEGER) from ODLTES00 where ODLALP = '" + stringa + "' AND ODLDIUREV > '20220101' AND ODLDIUREV < '20221231' AND ODLSTS = '080' group by ODLALP"
+            myCmd.CommandText = "select DISTINCT ODLALP, CAST(SUM(ODLQTP) as INTEGER) from ODLTES00 where ODLALP = '" + stringa + "' AND ODLDIUREV > '20230101' AND ODLDIUREV < '20231231' AND ODLSTS = '080' group by ODLALP"
             myConn.Open()
         Catch ex As Exception
 
@@ -424,7 +499,7 @@ Public Class HomeController
         Try
             myConn = New SqlConnection(ConnectionString)
             myCmd = myConn.CreateCommand
-            myCmd.CommandText = "select DISTINCT ODLALP, CAST(SUM(ODLQTP) as INTEGER) from ODLTES00 where ODLALP = '" + stringa + "' AND ODLDIUREV > '20220101' AND ODLDIUREV < '20221231' AND ODLSTS < '080' group by ODLALP"
+            myCmd.CommandText = "select DISTINCT ODLALP, CAST(SUM(ODLQTP) as INTEGER) from ODLTES00 where ODLALP = '" + stringa + "' AND ODLDIUREV > '20230101' AND ODLDIUREV < '20231231' AND ODLSTS < '080' group by ODLALP"
             myConn.Open()
         Catch ex As Exception
 
@@ -445,7 +520,7 @@ Public Class HomeController
         Try
             myConn = New SqlConnection(ConnectionString)
             myCmd = myConn.CreateCommand
-            myCmd.CommandText = "select DISTINCT ARTCOD, CAST(SUM(MVMCVT) as INTEGER)  from MVMDET00 where ARTCOD = '" + stringa + "' AND MVMDREREV > '20210101' AND MVMDREREV < '20211231' AND (MVMCAU = 'UP1' OR MVMCAU = 'UC1' OR MVMCAU = 'UC6') GROUP BY ARTCOD"
+            myCmd.CommandText = "select DISTINCT ARTCOD, CAST(SUM(MVMCVT) as INTEGER)  from MVMDET00 where ARTCOD = '" + stringa + "' AND MVMDREREV > '20220101' AND MVMDREREV < '20221231' AND (MVMCAU = 'UP1' OR MVMCAU = 'UC1' OR MVMCAU = 'UC6') GROUP BY ARTCOD"
             myConn.Open()
         Catch ex As Exception
 
@@ -464,7 +539,26 @@ Public Class HomeController
         Try
             myConn = New SqlConnection(ConnectionString)
             myCmd = myConn.CreateCommand
-            myCmd.CommandText = "select DISTINCT ARTCOD, CAST(SUM(MVMCVT) as INTEGER) from MVMDET00 where ARTCOD='" + stringa + "' AND MVMDREREV > '20220101' AND MVMDREREV < '20221231' AND (MVMCAU = 'UP1' OR MVMCAU = 'UC1' OR MVMCAU = 'UC6') GROUP BY ARTCOD"
+            myCmd.CommandText = "select DISTINCT ARTCOD, CAST(SUM(MVMCVT) as INTEGER)  from MVMDET00 where ARTCOD = '" + stringa + "' AND MVMDREREV > '20210101' AND MVMDREREV < '20211231' AND (MVMCAU = 'UP1' OR MVMCAU = 'UC1' OR MVMCAU = 'UC6') GROUP BY ARTCOD"
+            myConn.Open()
+        Catch ex As Exception
+
+        End Try
+        'Parse dei dati da SQL
+        Try
+            myReader = myCmd.ExecuteReader
+            Do While myReader.Read()
+                lotto.ConsumoAnnoPrec2 = myReader.GetInt32(1)
+            Loop
+            myConn.Close()
+
+        Catch ex As Exception
+
+        End Try
+        Try
+            myConn = New SqlConnection(ConnectionString)
+            myCmd = myConn.CreateCommand
+            myCmd.CommandText = "select DISTINCT ARTCOD, CAST(SUM(MVMCVT) as INTEGER) from MVMDET00 where ARTCOD='" + stringa + "' AND MVMDREREV > '20230101' AND MVMDREREV < '20231231' AND (MVMCAU = 'UP1' OR MVMCAU = 'UC1' OR MVMCAU = 'UC6') GROUP BY ARTCOD"
             myConn.Open()
         Catch ex As Exception
 
@@ -474,6 +568,27 @@ Public Class HomeController
             myReader = myCmd.ExecuteReader
             Do While myReader.Read()
                 lotto.ConsumoAnnoCurrent = myReader.GetInt32(1)
+            Loop
+            myConn.Close()
+
+        Catch ex As Exception
+
+        End Try
+        Try
+            myConn = New SqlConnection(ConnectionString)
+            myCmd = myConn.CreateCommand
+            myCmd.CommandText = "select DISTINCT ODLALP, CAST(SUM(ODLQTP) as INTEGER) from ODLTES00 where ODLALP = '" + stringa + "' AND ODLDIUREV > '20220101' AND ODLDIUREV < '20221231' group by ODLALP"
+            myConn.Open()
+        Catch ex As Exception
+
+        End Try
+        'Parse dei dati da SQL
+        Try
+            myReader = myCmd.ExecuteReader
+            Do While myReader.Read()
+                If Not IsDBNull(myReader.GetValue(1)) Then
+                    lotto.AnnoPrec = myReader.GetInt32(1)
+                End If
             Loop
             myConn.Close()
 
@@ -493,7 +608,7 @@ Public Class HomeController
             myReader = myCmd.ExecuteReader
             Do While myReader.Read()
                 If Not IsDBNull(myReader.GetValue(1)) Then
-                    lotto.AnnoPrec = myReader.GetInt32(1)
+                    lotto.AnnoPrec2 = myReader.GetInt32(1)
                 End If
             Loop
             myConn.Close()
@@ -509,96 +624,6 @@ Public Class HomeController
                                         .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = CurrentDate}
                            })
         db.SaveChanges()
-        'Apertura file
-        'Dim fs As New FileStream(Server.MapPath("\Content\Template\Lotti_template.xlsx"), FileMode.Open, FileAccess.Read)
-        'Dim workbook As XSSFWorkbook = New XSSFWorkbook(fs)
-        'Dim ws As XSSFSheet = workbook.GetSheetAt(0)
-        ''Start Pop
-        'Dim i As Integer = 1
-        'Dim baserow As IRow = ws.GetRow(0)
-        ''Dim baserow As IRow = ws.GetRow(2)
-        'Dim ms As New MemoryStream
-        'Dim ms1 As New MemoryStream
-        ''Riga Intestazione
-        'Try
-        '    Try
-        '        For Each l In ListLotti
-
-        '            Dim r As IRow = ws.CreateRow(i)
-        '            For j = 0 To 8
-        '                r.CreateCell(j).CellStyle = baserow.GetCell(j).CellStyle
-        '            Next
-
-        '            Try
-        '                r.GetCell(0).SetCellValue(l.Art)
-        '            Catch ex As Exception
-
-        '            End Try
-        '            Try
-        '                r.GetCell(1).SetCellValue(l.Descr)
-        '            Catch ex As Exception
-
-        '            End Try
-        '            Try
-        '                r.GetCell(2).SetCellValue(l.LottoMin)
-        '            Catch ex As Exception
-
-        '            End Try
-        '            Try
-        '                r.GetCell(3).SetCellValue(l.Scorta)
-        '            Catch ex As Exception
-
-        '            End Try
-        '            Try
-        '                r.GetCell(4).SetCellValue(l.TipoParte)
-        '            Catch ex As Exception
-
-        '            End Try
-        '            'Try
-        '            '    r.GetCell(4).SetCellValue(l.AnnoPrec)
-        '            'Catch ex As Exception
-
-        '            'End Try
-        '            Try
-        '                r.GetCell(5).SetCellValue(l.ConsumoAnnoPrec)
-        '            Catch ex As Exception
-
-        '            End Try
-        '            'Try
-        '            '    r.GetCell(6).SetCellValue(l.AnnoCurrent)
-        '            'Catch ex As Exception
-
-        '            'End Try
-        '            Try
-        '                r.GetCell(6).SetCellValue(l.ConsumoAnnoCurrent)
-        '            Catch ex As Exception
-
-        '            End Try
-        '            Try
-        '                r.GetCell(7).SetCellValue(l.AnnoCurrentInAttesa)
-        '            Catch ex As Exception
-
-        '            End Try
-        '            Try
-        '                r.GetCell(8).SetCellValue(l.CurrentGiacenza)
-        '            Catch ex As Exception
-
-        '            End Try
-        '            i = i + 1
-        '        Next
-        '    Catch ex As Exception
-
-        '    End Try
-        '    'Intestazione
-
-        '    'Dati rilevati
-
-        '    workbook.Write(ms)
-        '    Return File(ms.ToArray, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", Now.Year & "_" & Now.Month & "_" & Now.Day & " - LISTA LOTTI.xlsx")
-        'Catch ex As Exception
-
-        'End Try
-
         Return Json(New With {.ok = True, .data = lotto}, JsonRequestBehavior.AllowGet)
     End Function
     <Authorize>
@@ -614,8 +639,7 @@ Public Class HomeController
             myConn = New SqlConnection(ConnectionStringLocal)
             myCmd = myConn.CreateCommand
             myCmd.CommandText =
-                "
-                SELECT [COD_ART]
+                "SELECT [COD_ART]
                       ,[COD_GIA]
                 FROM [Prova].[dbo].[Tab_Gia_Final]
                  "
@@ -647,8 +671,7 @@ Public Class HomeController
             myConn = New SqlConnection(ConnectionStringLocal)
             myCmd = myConn.CreateCommand
             myCmd.CommandText =
-                "
-                SELECT [COD_ART]
+                "SELECT [COD_ART]
                       ,[COD_GIA]
                 FROM [Prova].[dbo].[Tab_Gia_Final]
 				where cod_gia > 0 
@@ -767,10 +790,10 @@ Public Class HomeController
 
                         Catch ex As Exception
                             Dim r As IRow = ws2.CreateRow(a)
-                                r.GetCell(0).SetCellValue(" NULL ")
-                                r.GetCell(1).SetCellValue(" 0.00 ")
-                                a = a + 1
-                            End Try
+                            r.GetCell(0).SetCellValue(" NULL ")
+                            r.GetCell(1).SetCellValue(" 0.00 ")
+                            a = a + 1
+                        End Try
                     Next
                 End With
             Catch ex As Exception
@@ -1264,6 +1287,48 @@ Public Class HomeController
         db.SaveChanges()
         Return Json(New With {.ok = True, .message = PartialToString("DettagliMPA", DisegnoVM)})
     End Function
+    Public Function RicercaDisegniTot(ByVal id As String) As JsonResult
+        Everything_SetSearchW(id)
+        Everything_SetRequestFlags(EVERYTHING_REQUEST_FILE_NAME Or EVERYTHING_REQUEST_PATH Or EVERYTHING_REQUEST_SIZE Or EVERYTHING_REQUEST_DATE_MODIFIED)
+        Everything_QueryW(1)
+        Try
+            Dim NumResults As UInt32
+            Dim i As UInt32
+            Dim filename As New System.Text.StringBuilder(260)
+            Dim size As UInt64
+            Dim ftdm As UInt64
+            Dim DateModified As System.DateTime
+            Dim DictFilesFound As New Dictionary(Of String, String)
+            NumResults = Everything_GetNumResults()
+            If NumResults > 0 Then
+                If NumResults > 50 Then
+                    Return Json(New With {.ok = False, .message = "Troppi risultati. Prova ad affinare la ricerca."}, JsonRequestBehavior.AllowGet)
+                End If
+                For i = 0 To NumResults - 1
+                    Try
+                        Dim path = Everything_GetResultFullPathNameW(i, filename, filename.Capacity)
+                        Everything_GetResultSize(i, size)
+                        Everything_GetResultDateModified(i, ftdm)
+                        DateModified = System.DateTime.FromFileTime(ftdm)
+                        DictFilesFound.Add(System.Runtime.InteropServices.Marshal.PtrToStringUni(Everything_GetResultFileNameW(i)), filename.ToString)
+                    Catch ex As Exception
+
+                    End Try
+                Next
+                Dim listDisegni = db.Disegni_MPA.Where(Function(x) x.Code_Disegno.Contains(id)).ToList
+                If listDisegni.Count > 50 Then
+                    Return Json(New With {.ok = False, .message = "Troppi risultati. Prova ad affinare la ricerca."}, JsonRequestBehavior.AllowGet)
+                End If
+                For Each l In listDisegni
+                    DictFilesFound.Add(l.Code_Disegno, l.Path_File)
+                Next
+                Return Json(New With {.ok = True, .list = DictFilesFound, .message = "File trovati"}, JsonRequestBehavior.AllowGet)
+            End If
+        Catch ex As Exception
+
+        End Try
+
+    End Function
     Function RicercaDisegni(ByVal id As String) As ActionResult
         Dim OpID As String = vbNullString
         Dim OpName As String = vbNullString
@@ -1465,7 +1530,7 @@ Public Class HomeController
                     ElseIf Not file.Name.Substring(file.Name.Length - 3, 3).Contains(".") Then
                         name = file.Name + ".mi"
                     End If
-       
+
                     Response.AddHeader("Content-Disposition", String.Format("attachment; filename={0}", name))
                     Response.AddHeader("Content-Length", file.Length.ToString)
                     Response.ContentType = "application/x-download"
@@ -1492,8 +1557,8 @@ Public Class HomeController
                                                 .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.Disegno = id}),
                                                .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = CurrentDate}
                                   })
-                db.SaveChanges()
-            End Try
+            db.SaveChanges()
+        End Try
 
 
     End Function
@@ -2038,6 +2103,87 @@ Public Class HomeController
                            x.Triple_Code.Contains(Search) Or
                            x.Path_File.Contains(Search) Or
                            x.Desc_Alnus.Contains(Search)
+
+    End Function
+    Function Leggitutto() As JsonResult
+        Dim OpID As String = vbNullString
+        Dim OpName As String = vbNullString
+        Dim CurrentDate As DateTime = Now
+        Try
+            OpID = User.Identity.GetUserId()
+            OpName = User.Identity.GetUserName()
+            Dim countNote = db.NotePerOC.Where(Function(x) x.OC.Contains("OC") And x.Operatore_Id <> OpID And x.Data_Nota > "2022/10/17").ToList
+            Dim countFile = db.DocumentiPerOC.Where(Function(x) x.OC.Contains("OC") And x.Operatore_Id <> OpID And x.DataCreazioneFile > "2022/10/17").ToList
+            For Each c In countNote
+                If db.VisualizzazioneFileNota.Where(Function(x) x.id_filenota = c.Id And x.User = OpID And x.type = TipoVisualizzazione.Nota).Count = 0 Then
+                    Try
+                        db.VisualizzazioneFileNota.Add(New VisualizzazioneFileNota With {
+                        .id_filenota = c.Id,
+                        .type = 2,
+                        .ReaedingDate = DateTime.Now,
+                        .User = OpID
+                    })
+                        db.SaveChanges()
+                        db.Audit.Add(New Audit With {
+                                              .Livello = TipoAuditLivello.Info,
+                                              .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                              .Messaggio = "Notifica skippata visualizzata",
+                                              .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = c.Id}),
+                                             .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = CurrentDate}
+                                })
+                        db.SaveChanges()
+                    Catch ex As Exception
+                        db.Log.Add(New Log With {
+                                       .Livello = TipoAuditLivello.Info,
+                                       .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                       .Messaggio = "Errore aggiunta skip Notifica",
+                                       .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.OpID = OpID}),
+                                      .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = CurrentDate}
+                         })
+                        db.SaveChanges()
+                    End Try
+                End If
+            Next
+            For Each c In countFile
+                Try
+                    db.VisualizzazioneFileNota.Add(New VisualizzazioneFileNota With {
+                    .id_filenota = c.Id,
+                    .type = 1,
+                    .ReaedingDate = DateTime.Now,
+                    .User = OpID
+                })
+                    db.SaveChanges()
+                    db.Audit.Add(New Audit With {
+                                          .Livello = TipoAuditLivello.Info,
+                                          .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                          .Messaggio = "Notifica skippata visualizzata",
+                                          .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = c.Id}),
+                                         .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = CurrentDate}
+                            })
+                    db.SaveChanges()
+                Catch ex As Exception
+                    db.Log.Add(New Log With {
+                                    .Livello = TipoAuditLivello.Info,
+                                    .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                    .Messaggio = "Errore aggiunta skip Notifica",
+                                    .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.OpID = OpID}),
+                                   .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = CurrentDate}
+                      })
+                    db.SaveChanges()
+                End Try
+
+            Next
+            Return Json(New With {.ok = True, .message = ""})
+        Catch ex As Exception
+            db.Log.Add(New Log With {
+                                       .Livello = TipoAuditLivello.Info,
+                                       .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                       .Messaggio = "Errore generico autolettura notifiche",
+                                       .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = OpID}),
+                                      .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = CurrentDate}
+                         })
+            db.SaveChanges()
+        End Try
 
     End Function
     Private Function MakeOrderExpression(Column As Integer) As Expressions.Expression(Of Func(Of Disegni_MPA, String))
