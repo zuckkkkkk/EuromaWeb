@@ -24,23 +24,8 @@
                 <i class="fa-solid fa-file-arrow-down"></i>
             </button>
         End If
-        @*@If User.IsInRole("Commerciale_Utente") Or User.IsInRole("Admin") Then
-            @<button type="button" data-type="edit" data-value="@Model.Id" Class="btn btn-success w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                Modifica
-                <i class="fa-solid fa-file-pen"></i>
-            </button>
-        End If
-        @If User.IsInRole("Commerciale_Admin") Or User.IsInRole("Admin") Then
-            @<button type="button" data-type="editAcc" data-value="@Model.Id" Class="btn btn-info w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                Modifica
-                <i class="fa-solid fa-file-pen"></i>
-            </button>
-        End If*@
         @If (User.IsInRole("Commerciale_Admin") Or User.IsInRole("Commerciale_Utente") Or User.IsInRole("Admin")) Then 'And (Model.Accettato = Stato_UC.Accettato Or Model.Accettato = Stato_UC.Inviato)
-            '<button onclick="DownloadEMail(@Model.Id);" type="button" data-type="email" data-value="@Model.Id" Class="btn btn-primary w-auto" data-bs-toggle="modal" data-bs-target="#exampleModal">
-            '    Email
-            '    <i class="fa-solid fa-envelope"></i>
-            '</button>
+
             @If not Model.SenttoUC Then
                 @<button onclick="SendToUTPrompt(@Model.Id);" type="button" data-value="@Model.Id" Class="btn btn-primary w-auto">
                     Invia
@@ -124,10 +109,8 @@
                         </div>
                         <div class="row">
                             <div class="col-md-6">
-
                                 Priorita :
                                 @Html.EditorFor(Function(model) model.Priorita, New With {.htmlAttributes = New With {.class = "form-control", .readonly = "readonly"}})
-
                             </div>
                             <div class="col-md-6">
                                 Data richiesta consegna:

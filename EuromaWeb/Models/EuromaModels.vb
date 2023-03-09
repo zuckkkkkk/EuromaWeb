@@ -67,6 +67,8 @@ Public Class EuromaModels
     Public Overridable Property Computer() As DbSet(Of Computer)
     Public Overridable Property StoricoGrezzi() As DbSet(Of StoricoGrezzi)
     Public Overridable Property ArticoliErrati() As DbSet(Of ArticoliErrati)
+
+    Public Overridable Property OC_LOG() As DbSet(Of OC_LOG)
 End Class
 Public Class Disegno_Server_ViewModel
     Public Property Id As Integer
@@ -203,6 +205,9 @@ Public Class ProgettiUT_Operatore
     Public Property Flag_3 As Boolean
     Public Property Flag_4 As StatoCheck
     Public Property DataRetroattiva As DateTime
+    Public Property DataInizioAttivita As String
+    Public Property DataFineAttivita As String
+    Public Property TempoTotale As Integer
 End Class
 Public Class ScadenzaViewModel
     Public Property OC As String
@@ -585,6 +590,25 @@ Public Class Macchine
     Public Property Descrizione_Macchina As String
     Public Property Path_3d As String
 End Class
+<Table("OC_LOG")>
+Public Class OC_LOG
+    <Key>
+    Public Property id As Integer
+    Public Property ESECOD As String
+    Public Property ORCTSZ As String
+    Public Property ORCTNR As String
+    Public Property ORCMOV As String
+    Public Property DVSCOD As String
+    Public Property ORCCLI As String
+    Public Property ORCIND As String
+    Public Property ORCCLS As String
+    Public Property ORCINS As String
+    Public Property PAGCOD As String
+    Public Property ORCDCOREV As String
+    Public Property ORCTSSREV As String
+    Public Property ORCST5 As String
+    Public Property CORCOD As String
+End Class
 <Table("DatiMacchina")>
 Public Class DatiMacchina
     Public Property id As Integer
@@ -942,6 +966,9 @@ Public Class ProgettiUT
     Public Property Flag_4 As StatoCheck
     Public Property Priorita As Stato_Priorita
     Public Property DataRichiestaConsegna As Nullable(Of DateTime)
+    Public Property DataPrevistaInizio As Nullable(Of DateTime)
+    Public Property DataPrevistaFine As Nullable(Of DateTime)
+    Public Property TempoTotale As Integer
     Public Property Data As Nullable(Of DateTime)
 End Class
 <Table("ProgettiProd")>

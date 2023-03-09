@@ -14,6 +14,7 @@ Imports Microsoft.AspNet.Identity.EntityFramework
 Imports System.IO
 Imports System.Data.SqlClient
 Imports System.Net.Mail
+Imports Newtonsoft.Json
 
 Namespace Controllers
     Public Class ProgettiUTController
@@ -1658,7 +1659,10 @@ Namespace Controllers
                 .OperatoreId = progettiUT.OperatoreId,
                 .OperatoreSmistamento = progettiUT.OperatoreSmistamento,
                 .OperatoreSmistamentoId = progettiUT.OperatoreSmistamentoId,
-                .StatoProgetto = progettiUT.StatoProgetto
+                .StatoProgetto = progettiUT.StatoProgetto,
+                .TempoTotale = progettiUT.TempoTotale,
+                .DataInizioAttivita = If(Not IsNothing(progettiUT.DataPrevistaInizio), Convert.ToDateTime(progettiUT.DataPrevistaInizio).ToString("yyyy-MM-dd HH:mm"), DateTime.Now.ToString("yyyy-MM-dd HH:mm")),
+                .DataFineAttivita = If(Not IsNothing(progettiUT.DataPrevistaFine), Convert.ToDateTime(progettiUT.DataPrevistaFine).ToString("yyyy-MM-dd HH:mm"), DateTime.Now.ToString("yyyy-MM-dd HH:mm"))
             }
             If IsNothing(ProgettiUTOperatore) Then
                 Return HttpNotFound()
@@ -1728,13 +1732,34 @@ Namespace Controllers
                                                 .Livello = TipoAuditLivello.Info,
                                                 .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
                                                 .Messaggio = "Inserita richiesta per UT correttamente.",
-                                                .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.OP = Art.Cod_OP}),
+                                                .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.OP = Art.Articolo}),
                                                .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
                                   })
                         db.SaveChanges()
-                        Return Json(New With {.ok = True, .messaggio = "Richiesta inviata correttamente"}, JsonRequestBehavior.AllowGet)
+                        Return Json(New With {.ok = True, .message = "Richiesta inviata correttamente"}, JsonRequestBehavior.AllowGet)
                     Else
-                        Return Json(New With {.ok = False, .messaggio = "Richiesta per OC già esistente"}, JsonRequestBehavior.AllowGet)
+                        db.ArticoliErrati.Add(New ArticoliErrati With {
+                        .Articolo = Art.Articolo,
+                        .Cod_OC = Art.Cod_OC,
+                        .Cod_OP = Art.Cod_OP,
+                        .Fase_OP = "",
+                        .Note_Produzione = Art.Note_Produzione,
+                        .UltimaModifica = New TipoUltimaModifica With {
+                        .Data = DateTime.Now,
+                        .Operatore = OpName,
+                        .OperatoreID = OpID
+                    }
+                    })
+                        db.SaveChanges()
+                        db.Audit.Add(New Audit With {
+                                                .Livello = TipoAuditLivello.Info,
+                                                .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                                .Messaggio = "Inserita richiesta per UT correttamente di articolo già esistente",
+                                                .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.OP = Art.Articolo}),
+                                               .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                                  })
+                        db.SaveChanges()
+                        Return Json(New With {.ok = True, .message = "Richiesta di articolo già presente inviata correttamente"}, JsonRequestBehavior.AllowGet)
                     End If
 
                 Catch ex As Exception
@@ -1746,6 +1771,7 @@ Namespace Controllers
                                                     .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
                                        })
                     db.SaveChanges()
+                    Return Json(New With {.ok = False, .message = "Errore generico"}, JsonRequestBehavior.AllowGet)
                 End Try
             End If
         End Function
@@ -1754,7 +1780,7 @@ Namespace Controllers
         'Per altri dettagli, vedere https://go.microsoft.com/fwlink/?LinkId=317598.
         <HttpPost()>
         <ValidateAntiForgeryToken()>
-        Function EditOperatore(<Bind(Include:="Id,OC_Riferimento,Note,Operatore,StatoProgetto,Flag_1,Flag_2,Flag_3,Flag_4,DataRetroattiva")> ByVal ProgettiUTOperatore As ProgettiUT_Operatore, file As HttpPostedFileBase) As JsonResult
+        Function EditOperatore(<Bind(Include:="Id,OC_Riferimento,Note,Operatore,StatoProgetto,Flag_1,Flag_2,Flag_3,Flag_4,DataRetroattiva,DataInizioAttivita,DataFineAttivita,TempoTotale")> ByVal ProgettiUTOperatore As ProgettiUT_Operatore, file As HttpPostedFileBase) As JsonResult
             Dim OpID As String = vbNullString
             Dim OpName As String = vbNullString
             Dim fileSalvati As New List(Of String)
@@ -1879,6 +1905,9 @@ Namespace Controllers
                     If ProgettiUTOperatore.Flag_1 And ProgettiUTOperatore.Flag_2 > StatoCheck.Selezione And ProgettiUTOperatore.Flag_3 And ProgettiUTOperatore.Flag_4 > StatoCheck.Selezione Then
                         prog.Note = ProgettiUTOperatore.Note
                         prog.StatoProgetto = ProgettiUTOperatore.StatoProgetto
+                        prog.DataPrevistaInizio = ProgettiUTOperatore.DataInizioAttivita
+                        prog.DataPrevistaFine = ProgettiUTOperatore.DataFineAttivita
+                        prog.TempoTotale = ProgettiUTOperatore.TempoTotale
                         Dim datacomp = DateTime.Now
                         If ProgettiUTOperatore.DataRetroattiva <> "1/1/0001 12:00:00 AM" Then
                             datacomp = ProgettiUTOperatore.DataRetroattiva
@@ -1912,9 +1941,11 @@ Namespace Controllers
                         Catch ex As Exception
 
                         End Try
-
-                        myMailT.To.Add("t.marchioni@euromagroup.com")
-                        'myMailT.To.Add("m.zucchini@euromagroup.com")
+                        If Request.IsLocal Then
+                            myMailT.To.Add("m.zucchini@euromagroup.com")
+                        Else
+                            myMailT.To.Add("t.marchioni@euromagroup.com")
+                        End If
                         myMailT.Subject = "Completato - " + ProgettiUTOperatore.OC_Riferimento.ToString + " - " + Cliente.Cliente.ToString
                         Dim StrContentT = ""
                         Using reader = New StreamReader(AppDomain.CurrentDomain.BaseDirectory + "Views/Shared/Email_Euroma_Amm.vbhtml")
@@ -1941,6 +1972,9 @@ Namespace Controllers
                 Else
                     prog.Note = ProgettiUTOperatore.Note
                     prog.StatoProgetto = ProgettiUTOperatore.StatoProgetto
+                    prog.DataPrevistaInizio = ProgettiUTOperatore.DataInizioAttivita
+                    prog.DataPrevistaFine = ProgettiUTOperatore.DataFineAttivita
+                    prog.TempoTotale = ProgettiUTOperatore.TempoTotale
                     Dim datacomp = DateTime.Now
                     If ProgettiUTOperatore.DataRetroattiva <> "1/1/0001 12:00:00 AM" Then
                         datacomp = ProgettiUTOperatore.DataRetroattiva
@@ -1955,8 +1989,8 @@ Namespace Controllers
                            .UltimaModifica = New TipoUltimaModifica With {.Data = datacomp, .Operatore = OpName, .OperatoreID = OpID}
                        })
                     db.SaveChanges()
-                    End If
-                    Return Json(New With {.ok = True, .message = "Progetto correttamente aggiornato."})
+                End If
+                Return Json(New With {.ok = True, .message = "Progetto correttamente aggiornato."})
             End If
             Return Json(New With {.ok = False, .message = "Errore nell'aggiornamento del progetto."})
         End Function
@@ -2093,7 +2127,28 @@ Namespace Controllers
                     If db.OrdiniDiProduzione.Where(Function(X) X.OP = id).Count > 0 Then
                         Return Json(New With {.ok = False, .message = "ODP esterno già esistente."}, JsonRequestBehavior.AllowGet)
                     End If
-
+                    Dim Art = ""
+                    Dim splittedOP = id.Split("-")
+                    myConn = New SqlConnection(ConnectionString)
+                    myCmd = myConn.CreateCommand
+                    myCmd.CommandText = "select ODLALP from ODLTES00 where ODLANN = '" + splittedOP(0) + "' AND ODLSEZ = 'OP' AND ODLNMR = '" + splittedOP(2) + "'"
+                    myConn.Open()
+                    Try
+                        myReader = myCmd.ExecuteReader
+                        Do While myReader.Read()
+                            Art = myReader.GetString(0)
+                        Loop
+                        myConn.Close()
+                    Catch ex As SystemException
+                        db.Log.Add(New Log With {
+                                                 .Livello = TipoLogLivello.Errors,
+                                                 .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                                 .Messaggio = "Errore: " + ex.Message,
+                                                 .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.SendToUT = "errore"}),
+                                                .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                                   })
+                        db.SaveChanges()
+                    End Try
                     Dim ODPEst As New OrdiniDiProduzione With {
                         .Accettato = 0,
                         .Cartella = "",
@@ -2106,7 +2161,7 @@ Namespace Controllers
                         .note_presenti = False,
                         .tre_dim_Presente = False,
                         .OP = id,
-                        .Articolo = OC_Codice.Articolo
+                        .Articolo = Art
                     }
                     db.OrdiniDiProduzione.Add(ODPEst)
                     db.SaveChanges()
@@ -2486,7 +2541,55 @@ Namespace Controllers
             End Try
             Return Json(New With {.ok = False, .message = "Errore nell'aggiornamento del file."})
         End Function
+        Function Calendario() As ActionResult
+            Dim OpID = vbNullString
+            Dim OpName = vbNullString
+            Dim result As New List(Of Object)
 
+            Try
+                OpID = User.Identity.GetUserId
+                OpName = User.Identity.GetUserName()
+
+                For Each u In db.ProgettiUT.Where(Function(x) x.StatoProgetto < Stato_UT_Operatore.Completato).ToList
+                    Dim di = Convert.ToDateTime(u.DataPrevistaInizio).ToString("yyyy-MM-dd").ToString
+                    Dim df = Convert.ToDateTime(u.DataPrevistaFine).ToString("yyyy-MM-dd").ToString
+                    Dim color = ""
+                    Select Case u.Operatore
+                        Case "Andrea"
+                            color = "#FFAD38"
+                        Case "Franco"
+                            color = "#9CFF45"
+                        Case "Michele"
+                            color = "#12A0FF"
+                        Case "Claudio"
+                            color = "#FF6B2B"
+                        Case "Antonio"
+                            color = "#FF201F"
+                        Case "Simone"
+                            color = "#3933FF"
+                    End Select
+                    result.Add(New With {
+                               .title = u.Operatore + " - " + u.OC_Riferimento.ToString + " - " + u.StatoProgetto.ToString,
+                               .start = di,
+                               .end = df,
+                               .backgroundColor = color,
+                               .borderColor = color
+                          })
+                Next
+                ViewBag.result = JsonConvert.SerializeObject(result)
+                Return View()
+            Catch ex As Exception
+                db.Log.Add(New Log With {
+                                              .Livello = TipoLogLivello.Errors,
+                                              .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                              .Messaggio = "Errore: " + ex.Message,
+                                              .Dati = "",
+                                             .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                                })
+                db.SaveChanges()
+            End Try
+
+        End Function
         ' GET: ProgettiUT/Delete/5
         Function Delete(ByVal id As Integer?) As ActionResult
             If IsNothing(id) Then

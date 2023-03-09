@@ -82,6 +82,8 @@ Public Enum Stato_UC As Byte
     Inviato_UT = 6
     <Display(Name:="Ritorno da UT")>
     Ritorno_da_UT = 7
+    <Display(Name:="In attesa documento")>
+    In_attesa_documento = 90
     <Display(Name:="Chiuso")>
     Chiuso = 99
 End Enum

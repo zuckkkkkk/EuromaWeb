@@ -553,7 +553,8 @@
     <!-- include summernote css/js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.6.0/umd/popper.min.js" integrity="sha512-BmM0/BQlqh02wuK5Gz9yrbe7VyIVwOzD1o40yi1IsTjriX/NGF37NyXHfmFzIlMmoSIBXgqDiG1VNU6kB5dBbA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-bs5.min.css" integrity="sha512-ngQ4IGzHQ3s/Hh8kMyG4FC74wzitukRMIcTOoKT3EyzFZCILOPF0twiXOQn75eDINUfKBYmzYn2AA8DkAk8veQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-bs5.min.js" integrity="sha512-6F1RVfnxCprKJmfulcxxym1Dar5FsT/V2jiEUvABiaEiFWoQ8yHvqRM/Slf0qJKiwin6IDQucjXuolCfCKnaJQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>    @Scripts.Render("~/bundles/notify")
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-bs5.min.js" integrity="sha512-6F1RVfnxCprKJmfulcxxym1Dar5FsT/V2jiEUvABiaEiFWoQ8yHvqRM/Slf0qJKiwin6IDQucjXuolCfCKnaJQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>    
+    @Scripts.Render("~/bundles/notify")
     <script src="~/Scripts/guides.min.js"></script>
     <script src="~/Scripts/Tagify/tagify.min.js"></script>
     <script src="~/Scripts/Tagify/tagify.polyfills.min.js"></script>
@@ -573,7 +574,7 @@
         }
     });
     updateNots();
-        setInterval(updateNots, 5000);
+        /*setInterval(updateNots, 5000);*/
         function updateNots() {
             $.ajax({
                 method: "GET",
@@ -2160,6 +2161,26 @@
             isChildOpen = true;
         }
     });
+     $('#mainDataTableAccettazioneInAttesa').on('click', 'td.details-control', function () {
+        var tr = $(this).closest('tr');
+         var row = $('#mainDataTableAccettazioneInAttesa').DataTable().row(tr);
+        var id = $(this).parent().data('value');
+        if (row.child.isShown()) {
+            // This row is already open - close it
+            row.child.hide();
+            tr.removeClass('shown');
+            $(this).html('<i class="fas fa-plus-circle"></i>');
+            isChildOpen = false;
+        }
+        else {
+            // Open this row
+            //alert($(this).parent().data('value'));
+            row.child(getdetails(id, '/AccettazioneUC/Details/' + id, $('body[name = "__RequestVerificationToken"]').val())).show();
+            tr.addClass('shown');
+            $(this).html('<i class="fas fa-minus-circle"></i>');
+            isChildOpen = true;
+        }
+    });
     $('#mainDataTableProgetti').on('click', 'td.details-control', function () {
             var tr = $(this).closest('tr');
             var row = $('#mainDataTableProgetti').DataTable().row(tr);
@@ -2406,9 +2427,9 @@
             "ordering": false,
                 processing: true,
                 serverSide: true,
-                ajax: { url: '@Url.Content("~/AccettazioneUC/ServerProcessing")', type: 'POST' },
+                ajax: { url: '@Url.Content("~/AccettazioneUC/ServerProcessingInAttesa")', type: 'POST' },
                "deferRender": true,
-            dom: '<"row  align-items-center"<"col col-auto"f><"col"i><"col col-auto"B>>rt<"row align-items-center"<"col"p><"col col-auto"l>>',
+             dom: '<"row  align-items-center"<"col col-auto"f><"col"i><"col col-auto"B>>rt<"row align-items-center"<"col"p><"col col-auto"l>>',
                  buttons: [
                     {
                         extend: 'excel',
@@ -3532,7 +3553,6 @@
             });
         };
     function DownloadFirmaFileRaw(id) {
-            console.log(id);
             $.ajax({
                 url: "/AccettazioneUC/ScaricaFileRaw/"+id,
                 success: function (data) {
@@ -3541,12 +3561,6 @@
                     link = link.replace("-1", d);
                     window.location = link;
                     $.notify({ icon: ' fa-solid fa-check', message: "Operazione correttamente eseguita!" }, { type: 'success' });
-                    //$.ajax({
-                    //    url: "/AccettazioneUC/CreaEmail/" + id,
-                    //    success: function (data) {
-
-                    //    }
-                    //});
                 }
             });
         };

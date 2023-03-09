@@ -2,8 +2,17 @@
 @Code
     ViewData("Title") = "View"
 End Code
-
-<table id="mainDataTable" class="stripe w-100" >
+@If Model.Count = 0 Then
+    @<div class="text-center">
+    <a href="http://192.168.100.12:120/?search=@ViewBag.CodeDisegno" class="btn btn-primary">
+        <i class="fa fa-download" aria-hidden="true"></i> Download MPA
+    </a>
+    <a href="http://192.168.100.50:120/?search=@ViewBag.CodeDisegno" class="btn btn-primary">
+        <i class="fa fa-download" aria-hidden="true"></i> Download EUROMA
+    </a>
+</div>
+End If
+<table id = "mainDataTable" Class="stripe w-100" >
     <thead>
         <tr>
             <th></th>
@@ -32,9 +41,16 @@ End Code
                     @Html.DisplayFor(Function(modelItem) item.Path_File)
                 </td>
                 <td>
-                    <a href="@Url.Action("DownloadMPA", "Home", New With {.id = item.Id})">
-                        <i class="fa fa-download" aria-hidden="true"></i>
-                    </a>
+                    @If item.Path_File.Contains("E:\Dati") Then
+                        @<a href="http://192.168.100.12:120/?search=@item.Code_Disegno">
+                            <i class="fa fa-download" aria-hidden="true"></i>
+                        </a>
+                    Else
+                        @<a href="http://192.168.100.50:120/?search=@item.Code_Disegno">
+                            <i class="fa fa-download" aria-hidden="true"></i>
+                        </a>
+                    End If
+
                 </td>
                
             </tr>

@@ -116,9 +116,9 @@ Namespace Controllers
                             Stato_Accettazione = 0
                     End Select
 
-                    data = db.AccettazioneUC.Where(Function(y) y.Accettato = Stato_Accettazione).OrderBy(Function(x) x.DataCreazione)
+                    data = db.AccettazioneUC.Where(Function(y) y.Accettato = Stato_Accettazione).OrderByDescending(Function(x) x.DataCreazione)
                 Else
-                    data = db.AccettazioneUC.OrderBy(Function(x) x.DataCreazione)
+                    data = db.AccettazioneUC.OrderByDescending(Function(x) x.DataCreazione)
                 End If
                 'ricerca
                 Try
@@ -333,6 +333,8 @@ Namespace Controllers
                             Case 7
                                 Stato_Accettazione = "<Span Class='badge bg-warning text-dark'><i class='fa-solid fa-clock'></i>Ritorno da UT</span>"
 
+                            Case 90
+                                Stato_Accettazione = "<Span Class='badge bg-info text-dark'><i class='fa-solid fa-file'></i>In Attesa doc.</span>"
                         End Select
                         Dim countNote = db.NotePerOC.Where(Function(x) x.OC = Acc.OC).Count
                         Dim countFile = db.DocumentiPerOC.Where(Function(x) x.OC = Acc.OC).Count
@@ -400,7 +402,7 @@ Namespace Controllers
 
                 Dim result As New List(Of Object)
                 Dim data As IQueryable(Of AccettazioneUC)
-                data = db.AccettazioneUC.Where(Function(y) y.Accettato = Stato_UC.In_attesa).OrderBy(Function(x) x.DataCreazione)
+                data = db.AccettazioneUC.Where(Function(y) y.Accettato = Stato_UC.In_attesa Or y.Accettato = Stato_UC.In_attesa_documento).OrderBy(Function(x) x.Accettato)
                 'ricerca
                 Try
                     If Not IsNothing(PostedData.search.value) Then
@@ -614,6 +616,8 @@ Namespace Controllers
                             Case 7
                                 Stato_Accettazione = "<Span Class='badge bg-warning text-dark'><i class='fa-solid fa-clock'></i>Ritorno da UT</span>"
 
+                            Case 90
+                                Stato_Accettazione = "<Span Class='badge bg-info text-dark'><i class='fa-solid fa-file'></i>In Attesa doc.</span>"
                         End Select
                         Dim countNote = db.NotePerOC.Where(Function(x) x.OC = Acc.OC).Count
                         Dim countFile = db.DocumentiPerOC.Where(Function(x) x.OC = Acc.OC).Count
@@ -683,6 +687,29 @@ Namespace Controllers
             Dim listArticoli = db.ArticoliPerOC.Where(Function(x) x.OC = accettazioneUC.OC).ToList
             Dim listNote = db.NotePerOC.Where(Function(x) x.OC = accettazioneUC.OC).ToList
             Dim listDocumenti = db.DocumentiPerOC.Where(Function(x) x.OC = accettazioneUC.OC).ToList
+            Dim SentToUC = False
+            Select Case accettazioneUC.Accettato
+                Case Stato_UC.Accettato
+                    SentToUC = True
+                Case Stato_UC.Non_Accettato
+                    SentToUC = True
+                Case Stato_UC.Non_Accettato
+                    SentToUC = True
+                Case Stato_UC.Inviato
+                    SentToUC = True
+                Case Stato_UC.Inviato_UC
+                    SentToUC = True
+                Case Stato_UC.Inviato_Prod
+                    SentToUC = True
+                Case Stato_UC.Inviato_UT
+                    SentToUC = True
+                Case Stato_UC.Ritorno_da_UT
+                    SentToUC = True
+                Case Stato_UC.In_attesa_documento
+                    SentToUC = True
+                Case Stato_UC.In_attesa
+                    SentToUC = False
+            End Select
             Dim fAccettazioneUC As New AccettazioneUCViewModel With {
                 .Accettato = accettazioneUC.Accettato,
                 .Cartella = accettazioneUC.Cartella,
@@ -696,7 +723,7 @@ Namespace Controllers
                 .OC = accettazioneUC.OC,
                 .OperatoreAccettazione = accettazioneUC.OperatoreAccettazione,
                 .OperatoreInsert = accettazioneUC.OperatoreInsert,
-                .SenttoUC = IIf(conteggioInPROD + conteggioInUT > 0 And Not accettazioneUC.Accettato = Stato_UC.Ritorno_da_UT, True, False),
+                .SenttoUC = SentToUC,
                 .ListaArt = listArticoli,
                 .ListOfNote = listNote,
                 .ListOfDocumenti = listDocumenti,
@@ -802,21 +829,50 @@ Namespace Controllers
                                 End If
                             End If
                         Else
+                            'TODO Inserire che quando viene selezionato un documento che si chiama OrdineCliente_NrXXXX_OC_XXX.pdf c'è da inserirlo come documento principale per quanto riguarda l'OC
                             Dim UploadedFile As HttpPostedFileBase = File
                             If UploadedFile IsNot Nothing AndAlso UploadedFile.ContentLength > 0 Then
-                                Dim pathTMP = Path.Combine(Server.MapPath("~/Content/upload_utenti"), UploadedFile.FileName.ToString.Replace(" ", String.Empty))
-                                UploadedFile.SaveAs(pathTMP)
-                                db.DocumentiPerOC.Add(New DocumentiPerOC With {
-                                    .DataCreazioneFile = DateTime.Now,
-                                    .Nome_File = UploadedFile.FileName,
-                                    .OC = id_file,
-                                    .Operatore_Id = OpID,
-                                    .Operatore_Nome = OpName,
-                                    .Percorso_File = pathTMP
-                                })
-                                db.SaveChanges()
+                                If UploadedFile.FileName.Contains("OrdineCliente_Nr") Then
+                                    Dim edit = db.AccettazioneUC.Where(Function(X) X.OC = id_file).First
+                                    If Not edit.File <> "" Then
+                                        Dim pathTMP = Path.Combine(Server.MapPath("~/Content/upload_UC"), UploadedFile.FileName.ToString.Replace(" ", String.Empty))
+                                        UploadedFile.SaveAs(pathTMP)
+                                        edit.File = pathTMP
+                                        edit.Accettato = Stato_UC.In_attesa
+                                        db.SaveChanges()
+                                    Else
+                                        Dim pathTMP = Path.Combine(Server.MapPath("~/Content/upload_UC"), UploadedFile.FileName.ToString.Replace(" ", String.Empty))
+                                        Dim pathTMPOld = Path.Combine(Server.MapPath("~/Content/upload_UC"), DateTime.Now.Ticks.ToString + "_OLD_REV_" + UploadedFile.FileName.ToString.Replace(" ", String.Empty))
+                                        IO.File.Copy(pathTMP, pathTMPOld)
+                                        db.DocumentiPerOC.Add(New DocumentiPerOC With {
+                                           .DataCreazioneFile = DateTime.Now,
+                                           .Nome_File = DateTime.Now.Ticks.ToString + "_OLD_REV_" + UploadedFile.FileName.ToString.Replace(" ", String.Empty),
+                                           .OC = id_file,
+                                           .Operatore_Id = OpID,
+                                           .Operatore_Nome = OpName,
+                                           .Percorso_File = pathTMPOld
+                                       })
+                                        db.SaveChanges()
+                                        UploadedFile.SaveAs(pathTMP)
+                                        edit.File = pathTMP
+                                        db.SaveChanges()
+                                    End If
+                                Else
+                                    Dim pathTMP = Path.Combine(Server.MapPath("~/Content/upload_utenti"), UploadedFile.FileName.ToString.Replace(" ", String.Empty))
+                                    UploadedFile.SaveAs(pathTMP)
+                                    db.DocumentiPerOC.Add(New DocumentiPerOC With {
+                                        .DataCreazioneFile = DateTime.Now,
+                                        .Nome_File = UploadedFile.FileName,
+                                        .OC = id_file,
+                                        .Operatore_Id = OpID,
+                                        .Operatore_Nome = OpName,
+                                        .Percorso_File = pathTMP
+                                    })
+                                    db.SaveChanges()
+                                End If
                             End If
-                        End If
+
+                            End If
 
                     End If
                 Catch ex As SystemException
@@ -875,8 +931,8 @@ Namespace Controllers
         Function Create(ByVal file As HttpPostedFileBase, ByVal checkCosto As Boolean, ByVal ListOT As String) As JsonResult
             Dim OpID As String = vbNullString
             Dim OpName As String = vbNullString
-            Dim pathTMP = Path.Combine(Server.MapPath("~/Content/upload_UC"), file.FileName.ToString.Replace(" ", String.Empty))
-            Dim pathTMPOldREV = Path.Combine(Server.MapPath("~/Content/upload_UC"), DateTime.Now.Ticks.ToString + "_OLD_REV_" + file.FileName.ToString.Replace(" ", String.Empty))
+            Dim pathTMP = ""
+            Dim pathTMPOldREV = ""
             Dim em = ""
             Dim text = ""
             Dim filename()
@@ -889,118 +945,121 @@ Namespace Controllers
             Try
                 OpID = User.Identity.GetUserId()
                 OpName = User.Identity.GetUserName()
-                If IO.File.Exists(pathTMP) Then
-                    IO.File.Copy(pathTMP, pathTMPOldREV)
-                    IO.File.Delete(pathTMP)
+                Dim filenameF = file.FileName.ToString.Replace(file.FileName.ToString.Substring(file.FileName.ToString.LastIndexOf("_") + 1, file.FileName.Length - file.FileName.ToString.LastIndexOf("_") - 5), System.Text.RegularExpressions.Regex.Replace(file.FileName.ToString.Substring(file.FileName.ToString.LastIndexOf("_") + 1, file.FileName.Length - file.FileName.ToString.LastIndexOf("_") - 5), "[^\d]", ""))
+                pathTMP = Path.Combine(Server.MapPath("~/Content/upload_UC"), filenameF)
+                pathTMPOldREV = Path.Combine(Server.MapPath("~/Content/upload_UC"), DateTime.Now.Ticks.ToString + "_OLD_REV_" + file.FileName.ToString.Replace(" ", String.Empty))
+                IO.File.Copy(pathTMP, pathTMPOldREV)
+                IO.File.Delete(pathTMP)
                     Dim f = db.AccettazioneUC.Where(Function(x) x.File = pathTMP).FirstOrDefault
-                    file.SaveAs(pathTMP)
-                    Try
-                        db.DocumentiPerOC.Add(New DocumentiPerOC With {
-                        .OC = f.OC,
-                        .DataCreazioneFile = DateTime.Now,
-                        .Nome_File = f.OC + "OLD_REV.pdf",
-                        .Operatore_Id = OpID,
-                        .Operatore_Nome = OpName,
-                        .Percorso_File = pathTMPOldREV
-                    })
+                    If Not IsNothing(f) Then
+                        file.SaveAs(pathTMP)
+                        Try
+                            db.DocumentiPerOC.Add(New DocumentiPerOC With {
+                            .OC = f.OC,
+                            .DataCreazioneFile = DateTime.Now,
+                            .Nome_File = f.OC + "OLD_REV.pdf",
+                            .Operatore_Id = OpID,
+                            .Operatore_Nome = OpName,
+                            .Percorso_File = pathTMPOldREV
+                        })
+                            db.SaveChanges()
+                            db.Audit.Add(New Audit With {
+                                                 .Livello = TipoAuditLivello.Info,
+                                                 .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                                 .Messaggio = "Aggiunta nuova revisione all'OC",
+                                                 .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = f.Id}),
+                                                .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                                   })
+                            db.StoricoOC.Add(New StoricoOC With {
+                            .Descrizione = "Aggiunto nuova rev all'OC",
+                            .OC = OC,
+                            .Titolo = "Aggiunta nuova rev all'OC",
+                            .Ufficio = TipoUfficio.UfficioCommerciale,
+                            .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                        })
+                            db.SaveChanges()
+                            text = New TextExtractor().Extract(pathTMP).Text
+                            Dim tempString = text.Split(ControlChars.CrLf.ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+                            'For Each line In tempString.Where(Function(x) x.Contains("Nr "))
+                            For Each line In tempString
+                                If line.Contains("Nr ") Then
+                                    Dim subLine = line.Split({" "c}, 2)
+                                    Dim codeArticolo = subLine(0)
+                                    Dim descrizione = subLine(1).Split("Nr")(0)
+                                    Dim filenameTMP = file.FileName.ToString.Split("_")
+                                    Dim OCName = filenameTMP(2).ToString + "-" + filenameTMP(3).ToString + "-" + filenameTMP(4).ToString.Split(".")(0)
+                                    Dim conteggio = db.ArticoliPerOC.Where(Function(x) x.Cod_Art = codeArticolo And x.Descrizione = descrizione And x.OC = OCName).Count
+                                    If Not conteggio > 0 Then
+                                        myConn = New SqlConnection(ConnectionString)
+                                        myCmd = myConn.CreateCommand
+                                        myCmd.CommandText = "select count(*) from DIBDCO00 where ARTCOD = '" + codeArticolo + "'"
+                                        myConn.Open()
+                                        Try
+                                            myReader = myCmd.ExecuteReader
+                                            Dim countDB = 0
+                                            Do While myReader.Read()
+                                                countDB = myReader.GetInt32(0)
+                                            Loop
+                                            myConn.Close()
+                                            db.ArticoliPerOC.Add(New ArticoliPerOC With {
+                                               .Cod_Art = codeArticolo,
+                                               .Descrizione = descrizione,
+                                               .DistintaBase = IIf(countDB > 0, 1, 0),
+                                               .OC = OCName
+                                           })
+                                            Dim listaPercorsi = RicercaDisegniTot(codeArticolo)
+                                            For Each l In listaPercorsi.Keys
+                                                If db.DocumentiPerOC.Where(Function(x) x.OC = f.OC And x.Nome_File = listaPercorsi.Item(l).ToString).Count = 0 Then
+                                                    db.DocumentiPerOC.Add(New DocumentiPerOC With {
+                                                      .OC = f.OC,
+                                                      .DataCreazioneFile = DateTime.Now,
+                                                      .Nome_File = l,
+                                                      .Operatore_Id = OpID,
+                                                      .Operatore_Nome = OpName,
+                                                      .Percorso_File = listaPercorsi.Item(l)
+                                                  })
+                                                    db.SaveChanges()
+                                                End If
+                                            Next
+                                            db.SaveChanges()
+
+                                        Catch ex As SystemException
+
+                                        End Try
+
+                                    End If
+                                End If
+                            Next
+                            'Ricerca priorita e data consegna prevista
+                            If text.ToUpper.Contains("REVISIONE") Then
+                                f.IsRevisione = True
+                            Else
+                                f.IsRevisione = False
+                            End If
+                        Catch ex As SystemException
+                            db.Log.Add(New Log With {
+                              .Livello = TipoLogLivello.Warning,
+                              .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                              .Messaggio = "Errore inserimento aggiornamento: " & vbNewLine & ex.Message,
+                              .Dati = "",
+                              .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}})
+                            db.SaveChanges()
+
+                            Return Json(New With {.ok = False, .message = "Errore: " + ex.Message})
+                        End Try
+                        f.EmailInviata = 0
                         db.SaveChanges()
                         db.Audit.Add(New Audit With {
-                                             .Livello = TipoAuditLivello.Info,
-                                             .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
-                                             .Messaggio = "Aggiunta nuova revisione all'OC",
-                                             .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = f.Id}),
-                                            .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
-                               })
-                        db.StoricoOC.Add(New StoricoOC With {
-                        .Descrizione = "Aggiunto nuova rev all'OC",
-                        .OC = OC,
-                        .Titolo = "Aggiunta nuova rev all'OC",
-                        .Ufficio = TipoUfficio.UfficioCommerciale,
-                        .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
-                    })
+                                                 .Livello = TipoAuditLivello.Info,
+                                                 .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
+                                                 .Messaggio = "Aggiornata accettazione",
+                                                 .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = f.Id}),
+                                                .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
+                                   })
                         db.SaveChanges()
-                        text = New TextExtractor().Extract(pathTMP).Text
-                        Dim tempString = text.Split(ControlChars.CrLf.ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
-                        'For Each line In tempString.Where(Function(x) x.Contains("Nr "))
-                        For Each line In tempString
-                            If line.Contains("Nr ") Then
-                                Dim subLine = line.Split({" "c}, 2)
-                                Dim codeArticolo = subLine(0)
-                                Dim descrizione = subLine(1).Split("Nr")(0)
-                                Dim filenameTMP = file.FileName.ToString.Split("_")
-                                Dim OCName = filenameTMP(2).ToString + "-" + filenameTMP(3).ToString + "-" + filenameTMP(4).ToString.Split(".")(0)
-                                Dim conteggio = db.ArticoliPerOC.Where(Function(x) x.Cod_Art = codeArticolo And x.Descrizione = descrizione And x.OC = OCName).Count
-                                If Not conteggio > 0 Then
-                                    myConn = New SqlConnection(ConnectionString)
-                                    myCmd = myConn.CreateCommand
-                                    myCmd.CommandText = "select count(*) from DIBDCO00 where ARTCOD = '" + codeArticolo + "'"
-                                    myConn.Open()
-                                    Try
-                                        myReader = myCmd.ExecuteReader
-                                        Dim countDB = 0
-                                        Do While myReader.Read()
-                                            countDB = myReader.GetInt32(0)
-                                        Loop
-                                        myConn.Close()
-                                        db.ArticoliPerOC.Add(New ArticoliPerOC With {
-                                           .Cod_Art = codeArticolo,
-                                           .Descrizione = descrizione,
-                                           .DistintaBase = IIf(countDB > 0, 1, 0),
-                                           .OC = OCName
-                                       })
-                                        Dim listaPercorsi = RicercaDisegniTot(codeArticolo)
-                                        For Each l In listaPercorsi.Keys
-                                            If db.DocumentiPerOC.Where(Function(x) x.OC = f.OC And x.Nome_File = listaPercorsi.Item(l).ToString).Count = 0 Then
-                                                db.DocumentiPerOC.Add(New DocumentiPerOC With {
-                                                  .OC = f.OC,
-                                                  .DataCreazioneFile = DateTime.Now,
-                                                  .Nome_File = l,
-                                                  .Operatore_Id = OpID,
-                                                  .Operatore_Nome = OpName,
-                                                  .Percorso_File = listaPercorsi.Item(l)
-                                              })
-                                                db.SaveChanges()
-                                            End If
-                                        Next
-                                        db.SaveChanges()
-
-                                    Catch ex As SystemException
-
-                                    End Try
-
-                                End If
-                            End If
-                        Next
-                        'Ricerca priorita e data consegna prevista
-                        If text.ToUpper.Contains("REVISIONE") Then
-                            f.IsRevisione = True
-                        Else
-                            f.IsRevisione = False
-                        End If
-                    Catch ex As SystemException
-                        db.Log.Add(New Log With {
-                          .Livello = TipoLogLivello.Warning,
-                          .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
-                          .Messaggio = "Errore inserimento aggiornamento: " & vbNewLine & ex.Message,
-                          .Dati = "",
-                          .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}})
-                        db.SaveChanges()
-
-                        Return Json(New With {.ok = False, .message = "Errore: " + ex.Message})
-                    End Try
-                    f.EmailInviata = 0
-                    db.SaveChanges()
-                    db.Audit.Add(New Audit With {
-                                             .Livello = TipoAuditLivello.Info,
-                                             .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
-                                             .Messaggio = "Aggiornata accettazione",
-                                             .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = f.Id}),
-                                            .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
-                               })
-                    db.SaveChanges()
-                    Return Json(New With {.ok = False, .message = "Aggiornamento accettazione."})
-                ElseIf Not IsNothing(ListOT) And ListOT <> "" Then
-                    If db.AccettazioneUC.Where(Function(x) x.OC = ListOT).Count < 0 Then
+                        Return Json(New With {.ok = False, .message = "Aggiornamento accettazione."})
+                    ElseIf Not IsNothing(ListOT) And ListOT <> "" Then
+                        If db.AccettazioneUC.Where(Function(x) x.OC = ListOT).Count < 0 Then
                         Return Json(New With {.ok = False, .message = "Impossibile trovare l'OT richiesta."})
                     End If
                     file.SaveAs(pathTMP)
@@ -1272,11 +1331,14 @@ Namespace Controllers
                     myMailT = New MailMessage()
                     myMailT.From = New MailAddress("no-reply@euromagroup.com")
                     myMailT.Attachments.Add(New System.Net.Mail.Attachment(pathTMP))
-                    myMailT.To.Add("m.zucchini@euromagroup.com")
-                    myMailT.To.Add("t.marchioni@euromagroup.com")
-                    myMailT.To.Add("s.botti@euromagroup.com")
-                    myMailT.To.Add("s.carboni@euromagroup.com")
-                    myMailT.Subject = "Inserito " + OC + " - " + cliente
+                    If Request.IsLocal Then
+                        myMailT.Subject = "DBG - Inserito " + OC + " - " + cliente
+                        myMailT.To.Add("m.zucchini@euromagroup.com")
+                    Else
+                        myMailT.To.Add("t.marchioni@euromagroup.com")
+                        myMailT.To.Add("s.botti@euromagroup.com")
+                        myMailT.To.Add("s.carboni@euromagroup.com")
+                    End If
                     Dim StrContentT = ""
                     Using reader = New StreamReader(AppDomain.CurrentDomain.BaseDirectory + "Views/Shared/Email_Euroma_Amm.vbhtml")
                         Dim readFile As String = reader.ReadToEnd()
@@ -1298,52 +1360,6 @@ Namespace Controllers
                     Dim role = appctx.Roles.SingleOrDefault(Function(m) m.Name = "Commerciale_Admin")
                     Dim usersInRole = appctx.Users.Where(Function(m) m.Roles.Any(Function(r) r.RoleId = role.Id))
 
-                    If db.AccettazioneUC.Where(Function(x) x.Accettato = Stato_UC.In_attesa).Count > 5 And usersInRole.Where(Function(x) x.Profile.NotificheViaMail = True).Count > 0 Then
-                        Try
-                            Dim mySmtp As New SmtpClient
-                            Dim myMail As New MailMessage()
-                            mySmtp.UseDefaultCredentials = False
-                            mySmtp.Credentials = New System.Net.NetworkCredential("no-reply@euromagroup.com", "yp@4d%p2AFa;")
-                            mySmtp.Host = "squirtle.dnshigh.com"
-                            myMail = New MailMessage()
-                            myMail.From = New MailAddress("no-reply@euromagroup.com")
-                            myMail.Attachments.Add(New System.Net.Mail.Attachment(pathTMP))
-                            For Each a In usersInRole.Where(Function(x) x.Profile.NotificheViaMail = True)
-                                If a.Profile.NotificheViaMail Then
-                                    myMail.To.Add(a.Email)
-                                End If
-                            Next
-                            myMail.Subject = "Inseriti nuovi file da accettare"
-                            Dim StrContent = ""
-                            Using reader = New StreamReader(AppDomain.CurrentDomain.BaseDirectory + "Views/Shared/Email_Euroma.vbhtml")
-                                Dim readFile As String = reader.ReadToEnd()
-                                StrContent = readFile
-                                StrContent = StrContent.Replace("[Username]", "Amministratori")
-                                StrContent = StrContent.Replace("[Motivo]", "Sono stati inseriti nuovi file da accettare all'interno del portale Web Euroma.")
-                            End Using
-                            myMail.Body = StrContent.ToString
-                            myMail.IsBodyHtml = True
-                            mySmtp.Send(myMail)
-                            db.Audit.Add(New Audit With {
-                                                            .Livello = TipoLogLivello.Info,
-                                                            .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
-                                                            .Messaggio = "Mail inviata",
-                                                            .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.Subject = myMail.Subject, .body = myMail.Body, .cc = myMail.CC, .to = myMail.To}),
-                                                           .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}
-                                              })
-
-
-                        Catch ex As SystemException
-                            db.Log.Add(New Log With {
-                                 .Livello = TipoLogLivello.Warning,
-                                 .Indirizzo = ControllerContext.RouteData.Values("controller") & "/" & ControllerContext.RouteData.Values("action"),
-                                 .Messaggio = "Errore inserimento OC: " & vbNewLine & ex.Message,
-                                 .Dati = "",
-                                 .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = DateTime.Now}})
-                            db.SaveChanges()
-                        End Try
-
-                    End If
                     Return Json(New With {.ok = True, .message = "Richiesta Inviata correttamente!"})
                 Catch ex As SystemException
                     db.Log.Add(New Log With {
@@ -1847,7 +1863,7 @@ Namespace Controllers
 
             Return Nothing
         End Function
-        Function ScaricaFileRaw(ByVal id As Integer) As FileResult
+        Function ScaricaFileRaw(ByVal id As Integer) As ActionResult
             Dim OpID As String = vbNullString
             Dim OpName As String = vbNullString
             Try

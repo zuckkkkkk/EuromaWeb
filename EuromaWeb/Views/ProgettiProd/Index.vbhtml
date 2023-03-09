@@ -64,24 +64,7 @@ End If
             </thead>
 
             <tbody>
-                @For Each item In Model
-                    @<tr>
-                        <td>
-                        </td>
-                        <td>
-                            @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
-                        </td>
-
-                        <td>
-                            @Html.DisplayFor(Function(modelItem) item.Operatore)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
-
-                        </td>
-
-                    </tr>
-                Next
+              
             </tbody>
 
         </Table>
@@ -107,24 +90,7 @@ End If
             </thead>
 
             <tbody>
-                @For Each item In Model
-                    @<tr>
-                        <td>
-                        </td>
-                        <td>
-                            @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
-                        </td>
-
-                        <td>
-                            @Html.DisplayFor(Function(modelItem) item.Operatore)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
-
-                        </td>
-
-                    </tr>
-                Next
+              
             </tbody>
 
         </table>
@@ -152,24 +118,7 @@ Else
             </thead>
 
             <tbody>
-                @For Each item In Model
-                    @<tr>
-                        <td>
-                        </td>
-                        <td>
-                            @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
-                        </td>
-
-                        <td>
-                            @Html.DisplayFor(Function(modelItem) item.Operatore)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
-
-                        </td>
-
-                    </tr>
-                Next
+            
             </tbody>
 
         </table>

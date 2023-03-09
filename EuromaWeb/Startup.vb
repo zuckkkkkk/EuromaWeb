@@ -18,6 +18,8 @@ Imports Microsoft.Ajax.Utilities
 Imports StackExchange.Profiling.MiniProfiler
 Imports Newtonsoft.Json
 Imports System.Xml
+Imports System.IO.Directory
+Imports System.IO
 
 <Assembly: OwinStartupAttribute(GetType(Startup))>
 
@@ -29,7 +31,7 @@ Partial Public Class Startup
     Private myReader As SqlDataReader
     Private results As String
     Private Iterator Function GetHangfireServers() As IEnumerable(Of IDisposable) '127.0.0.1 
-        GlobalConfiguration.Configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage("Server=(localdb)\MSSQLLocalDB; Database=HangFire; Integrated Security=True;", New SqlServerStorageOptions With { '127.0.0.1
+        GlobalConfiguration.Configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage("Server=(localdb)\MSSQLLocalDB;Database=HangFire;persist security info=True;", New SqlServerStorageOptions With { '; .\SQLEXPRESS;user id=ALNUSAD;password=ALNUSAD;
             .CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
             .SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
             .QueuePollInterval = TimeSpan.Zero,
@@ -44,16 +46,225 @@ Partial Public Class Startup
         app.UseHangfireAspNet(AddressOf GetHangfireServers)
         app.UseHangfireDashboard("/jobs") ', options)
         RecurringJob.AddOrUpdate(Sub() LoadOLFromAlnus(), Cron.Hourly)
-        RecurringJob.AddOrUpdate(Sub() LoadFasiOP(), Cron.MinuteInterval(4))
-        RecurringJob.AddOrUpdate(Sub() GetMacchina(), Cron.MinuteInterval(4))
         RecurringJob.AddOrUpdate(Sub() UpdateTempiOpera(), Cron.HourInterval(2))
         RecurringJob.AddOrUpdate(Sub() UpdateFasiEst(), Cron.HourInterval(2))
         RecurringJob.AddOrUpdate(Sub() UpdateFasiProgEst(), Cron.MinuteInterval(15))
-        RecurringJob.AddOrUpdate(Sub() CheckPCOff(), Cron.MinuteInterval(6))
-        RecurringJob.AddOrUpdate(Sub() CheckPCOn(), Cron.MinuteInterval(6))
         RecurringJob.AddOrUpdate(Sub() CheckMagGrezzi(), Cron.MinuteInterval(1))
         RecurringJob.AddOrUpdate(Sub() CheckOPModificati(), Cron.MinuteInterval(5))
+        RecurringJob.AddOrUpdate(Sub() CheckUpdateOrdine(), Cron.MinuteInterval(15))
+        RecurringJob.AddOrUpdate(Sub() CheckInserimentoNuoveOC(), Cron.MinuteInterval(15))
+        RecurringJob.AddOrUpdate(Sub() SearchForFiles(), Cron.MinuteInterval(15))
+        'RecurringJob.AddOrUpdate(Sub() LoadFasiOP(), Cron.MinuteInterval(4))
+        'RecurringJob.AddOrUpdate(Sub() GetMacchina(), Cron.MinuteInterval(4))
+        'RecurringJob.AddOrUpdate(Sub() CheckPCOff(), Cron.MinuteInterval(6))
+        'RecurringJob.AddOrUpdate(Sub() CheckPCOn(), Cron.MinuteInterval(6))
+        'RecurringJob.AddOrUpdate(Sub() CheckInserimentoNuoveOC(), Cron.MinuteInterval(15))
     End Sub
+    Public Function SearchForFiles()
+        Try
+            Dim Files = SearchForFiles("\\WIN-HHO0NQ7FHCE\ScambioDati", {"*.pdf"})
+            For Each f In Files
+                Try
+                    Dim OC = f.Substring(f.LastIndexOf("\") + 1, f.Length - 1 - f.LastIndexOf("\")).Replace("OrdineCliente_Nr_", "").Replace("_3.pdf", "").Replace("_2.pdf", "").Replace("_1.pdf", "").Replace(".pdf", "").Replace("_", "-")
+                    If f.Substring(f.LastIndexOf("\") + 1, f.Length - 1 - f.LastIndexOf("\")).Contains("OrdineCliente_Nr_") Then
+                        Dim accettazione = db.AccettazioneUC.Where(Function(x) x.OC = OC).FirstOrDefault
+                        If Not IsNothing(accettazione) Then
+                            If accettazione.File = "" Then
+                                Dim pathTMP = Path.Combine(HttpRuntime.AppDomainAppPath, "Content\upload_UC", f.Substring(f.LastIndexOf("\") + 1, f.Length - 1 - f.LastIndexOf("\")))
+                                File.Copy(f, pathTMP)
+                                accettazione.File = pathTMP
+                                db.SaveChanges()
+                                db.StoricoOC.Add(New StoricoOC With {
+                                   .Descrizione = "Caricamento automatico su portale",
+                                   .OC = OC,
+                                   .Titolo = "Caricato automaticamente documento su Portale",
+                                   .Ufficio = TipoUfficio.UfficioCommerciale,
+                                   .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = "", .Operatore = "Sistema", .Data = DateTime.Now}
+                               })
+                                db.SaveChanges()
+                                accettazione.Accettato = Stato_UC.In_attesa
+                                db.SaveChanges()
+                                File.Delete(f)
+                            Else
+                                Dim pathTMP = Path.Combine(HttpRuntime.AppDomainAppPath, "Content\upload_UC", f.Substring(f.LastIndexOf("\") + 1, f.Length - 1 - f.LastIndexOf("\")))
+                                Dim fileOneStream = New FileStream(accettazione.File, FileMode.Open)
+                                Dim fileTwoStream = New FileStream(f, FileMode.Open)
+                                If fileOneStream.Length <> fileTwoStream.Length Then
+                                    File.Delete(pathTMP)
+                                    File.Copy(f, pathTMP)
+                                    accettazione.File = pathTMP
+                                    db.SaveChanges()
+                                    db.StoricoOC.Add(New StoricoOC With {
+                                  .Descrizione = "Aggiornato correttamente OC sul portale",
+                                  .OC = OC,
+                                  .Titolo = "Caricato aggiornamento documento su Portale",
+                                  .Ufficio = TipoUfficio.UfficioCommerciale,
+                                  .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = "", .Operatore = "Sistema", .Data = DateTime.Now}
+                              })
+                                    db.SaveChanges()
+                                End If
+                            End If
+                        Else
+                            File.Delete(f)
+                        End If
+                    ElseIf OC.Contains("Ordine-Order-N") Then
+                        OC = OC.Replace("Ordine-Order-N-", "")
+                        Dim accettazione = db.AccettazioneUC.Where(Function(x) x.OC = OC).FirstOrDefault
+                        If Not IsNothing(accettazione) Then
+                            Dim pathTMP = Path.Combine(HttpContext.Current.Server.MapPath("~/Content/upload_utenti"), f.Substring(0, f.LastIndexOf("/")))
+                            File.Copy(f, pathTMP)
+                            db.DocumentiPerOC.Add(New DocumentiPerOC With {
+                                .DataCreazioneFile = DateTime.Now,
+                                .Nome_File = f.Substring(0, f.LastIndexOf("\")),
+                                .OC = OC,
+                                .Operatore_Id = "",
+                                .Operatore_Nome = "Sistema",
+                                .Percorso_File = pathTMP
+                            })
+                            db.SaveChanges()
+                            db.StoricoOC.Add(New StoricoOC With {
+                              .Descrizione = "Aggiunto Ordine interno",
+                              .OC = OC,
+                              .Titolo = "Caricato documento interno sul portale",
+                              .Ufficio = TipoUfficio.Produzione,
+                              .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = "", .Operatore = "Sistema", .Data = DateTime.Now}
+                          })
+                            db.SaveChanges()
+                        Else
+                            File.Delete(f)
+                        End If
+                    End If
+                Catch ex As Exception
+
+                End Try
+            Next
+        Catch ex As Exception
+
+        End Try
+    End Function
+    Public Function CheckInserimentoNuoveOC()
+        Try
+            myConn = New SqlConnection(ConnectionString)
+            myCmd = myConn.CreateCommand
+            myCmd.CommandText = "select ESECOD+'-'+ORCTSZ+'-'+convert(nvarchar(MAX),ORCTNR), CLFNMG, ORCDCOREV, DVSCOD from ORCTES00,CLFANA where ESECOD >= '2022' and ORCTSZ = 'OC' and ORCSTC = '040' and CLFCO1 = ORCCLI and CLFTIP = 'C'"
+            myConn.Open()
+        Catch ex As Exception
+
+        End Try
+        'Parse dei dati da SQL
+        Try
+            myReader = myCmd.ExecuteReader
+            Do While myReader.Read()
+                Dim OC = myReader.GetString(0)
+                If db.AccettazioneUC.Where(Function(x) x.OC = OC).Count = 0 Then
+                    Dim brand = ""
+                    Select Case myReader.GetString(3)
+                        Case "01"
+                            brand = "Drillmatic"
+                        Case "02"
+                            brand = "CMT"
+                        Case "03"
+                            brand = "ISA"
+                        Case "04"
+                            brand = "Unistand"
+                        Case "05"
+                            brand = "MPA"
+                        Case "06"
+                            brand = "Euroma"
+                    End Select
+                    db.AccettazioneUC.Add(New AccettazioneUC With {
+                        .OC = OC,
+                        .Accettato = Stato_UC.In_attesa_documento,
+                        .Cliente = myReader.GetString(1),
+                        .DataCreazione = DateTime.Now,
+                        .OperatoreInsert = "Sistema",
+                        .DataRichiestaConsegna = Convert.ToDateTime(myReader.GetDecimal(2).ToString.Insert(6, "/").Insert(4, "/")),
+                        .Brand = brand,
+                        .EmailOperatoreInsert = ""
+                    })
+                    db.StoricoOC.Add(New StoricoOC With {
+                           .Descrizione = "OC esistente su Alnus",
+                           .OC = OC,
+                           .Titolo = "OC Creata su Alnus",
+                           .Ufficio = TipoUfficio.UfficioCommerciale,
+                           .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = "", .Operatore = "Sistema", .Data = DateTime.Now}
+                       })
+                    db.SaveChanges()
+                    db.Audit.Add(New Audit With {
+                                   .Livello = TipoAuditLivello.Info,
+                                   .Indirizzo = "Startup.vb",
+                                   .Messaggio = "Inserita OC Automaticamente",
+                                   .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.OC = OC}),
+                                   .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = "", .Operatore = "Sistema", .Data = DateTime.Now}
+                     })
+                    db.SaveChanges()
+                End If
+            Loop
+            myConn.Close()
+
+        Catch ex As Exception
+            db.Log.Add(New Log With {
+                   .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .OperatoreID = "", .Operatore = "Sistema"},
+                   .Livello = TipoLogLivello.Errors,
+                   .Indirizzo = "Startup.vb",
+                   .Messaggio = "Errore inserimento automatico OC -> " & ex.Message,
+                   .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = DateTime.Now.Ticks.ToString})
+                   })
+            db.SaveChanges()
+        End Try
+    End Function
+    Public Function CheckUpdateOrdine()
+        Dim listaOP = db.ProgettiProd.ToList
+        For Each l In listaOP
+            Try
+                Dim OC = l.OC_Riferimento.Split("-")
+                myConn = New SqlConnection(ConnectionString)
+                myCmd = myConn.CreateCommand
+                myCmd.CommandText = "select ORCSTC from ORCTES00 where ORCTSZ = 'OC' and ESECOD = '" + OC(0) + "' and ORCTNR = '" + OC(2) + "'"
+                myConn.Open()
+            Catch ex As Exception
+
+            End Try
+            'Parse dei dati da SQL
+            Try
+                myReader = myCmd.ExecuteReader
+                Do While myReader.Read()
+                    If myReader.GetString(0) = "040" Then
+                        Dim ToBeChangedOP = db.ProgettiProd.Where(Function(x) x.Id = l.Id).First
+                        ToBeChangedOP.StatoProgetto = Stato_Prod.Stato_Modificato
+                        db.SaveChanges()
+                        db.StoricoOC.Add(New StoricoOC With {
+                               .Descrizione = "Ritorno stato 040 " + ToBeChangedOP.OC_Riferimento,
+                               .OC = ToBeChangedOP.OC_Riferimento,
+                               .Titolo = "Ritorno stato 040",
+                               .Ufficio = TipoUfficio.Produzione,
+                               .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = "", .Operatore = "Sistema", .Data = DateTime.Now}
+                           })
+                        db.SaveChanges()
+                        db.Audit.Add(New Audit With {
+                                       .Livello = TipoAuditLivello.Info,
+                                       .Indirizzo = "Startup.vb",
+                                       .Messaggio = "OC in stato modificato",
+                                       .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = l.Id, .OC = l.OC_Riferimento}),
+                                       .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = "", .Operatore = "Sistema", .Data = DateTime.Now}
+                         })
+                        db.SaveChanges()
+                    End If
+                Loop
+                myConn.Close()
+
+            Catch ex As Exception
+                db.Log.Add(New Log With {
+                       .UltimaModifica = New TipoUltimaModifica With {.Data = DateTime.Now, .OperatoreID = "", .Operatore = "Sistema"},
+                       .Livello = TipoLogLivello.Errors,
+                       .Indirizzo = "Startup.vb",
+                       .Messaggio = "Errore Query ricerca OP modificati -> " & ex.Message,
+                       .Dati = Newtonsoft.Json.JsonConvert.SerializeObject(New With {.id = DateTime.Now.Ticks.ToString})
+                       })
+                db.SaveChanges()
+            End Try
+        Next
+    End Function
     Public Function CheckPCOff()
         For Each pc In db.Computer
             Dim hourNow = DateTime.Now.Hour
@@ -350,7 +561,7 @@ Partial Public Class Startup
                                     od.Accettato = Stato_Ordine_Di_Produzione_Esterno.Finito
                                 End If
                             End If
-                            End If
+                        End If
                     Loop
                     myConn.Close()
                     db.SaveChanges()
@@ -956,5 +1167,24 @@ Partial Public Class Startup
             Return False
         End Try
 
+    End Function
+
+    Function SearchForFiles(ByVal RootFolder As String, ByVal FileFilter() As String) As List(Of String)
+        Dim ReturnedData As New List(Of String)
+        Dim FolderStack As New Stack(Of String)
+        FolderStack.Push(RootFolder)
+        Do While FolderStack.Count > 0
+            Dim ThisFolder As String = FolderStack.Pop
+            Try
+                For Each SubFolder In GetDirectories(ThisFolder)
+                    FolderStack.Push(SubFolder)
+                Next
+                For Each FileExt In FileFilter
+                    ReturnedData.AddRange(GetFiles(ThisFolder, FileExt))
+                Next
+            Catch ex As Exception
+            End Try
+        Loop
+        Return ReturnedData
     End Function
 End Class

@@ -795,7 +795,9 @@ Namespace Controllers
                 myCmd.CommandText = "select 
                                         PNCOCF + ' - '+ CLFNMG as CodCliFor,
                                         SUM(IVIMBE) as Importo,
-										SUBSTRING(cast(PNDTDOREV as nvarchar), 5, 2)
+										SUBSTRING(cast(PNDTDOREV as nvarchar), 5, 2),
+										IVSEGN,
+                                        PNCCAU
                                         from CGMPNO00,
                                         CLFANA,
 										CGMIVA00
@@ -803,13 +805,14 @@ Namespace Controllers
                                         AND PNDTDOREV <= '" + datetimeCalc(1) + "'
                                         And PNSNUM = 'FP'
 										AND  PNCLFO = 'F'
-                                        AND (PNCCAU = 'FF1' or PNCCAU = 'FF2')
+                                        AND (PNCCAU = 'FF1' or (PNCCAU = 'FF2' and IVCDRI = 'AR') or PNCCAU = 'FF4'or PNCCAU = 'FF7'or (PNCCAU = 'FF9' and IVCDRI = 'AC') or PNCCAU = 'CF1'or PNCCAU = 'CF2'or PNCCAU = 'CF4'or PNCCAU = 'CF7'or PNCCAU = 'CF9')
 										AND CLFTIP = 'F'
 										AND CLFCO1 = PNCOCF
 										and IVESER = PNESEC
 										and IVSNUM = PNSNUM
 										AND IVNRRE = PNNRRE
-									group by PNCOCF, CLFNMG,SUBSTRING(cast(PNDTDOREV as nvarchar), 5, 2)
+									group by PNCOCF, CLFNMG,IVSEGN,SUBSTRING(cast(PNDTDOREV as nvarchar), 5, 2),PNCCAU
+
 "
                 myConn.Open()
             Catch ex As Exception
@@ -842,32 +845,80 @@ Namespace Controllers
                     })
                     End If
                     Dim f = ff.Where(Function(x) x.Fornitore = myReader.GetString(0)).First
-                        Select Case myReader.GetString(2)
-                            Case "01"
+                    Select Case myReader.GetString(2)
+                        Case "01"
+                            If myReader.GetString(3) = "D" Or myReader.GetString(4).Contains("CF") Then
                                 f.Fatturato.Fatturato_Gennaio = f.Fatturato.Fatturato_Gennaio + myReader.GetDecimal(1)
-                            Case "02"
+                            Else
+                                f.Fatturato.Fatturato_Gennaio = f.Fatturato.Fatturato_Gennaio - myReader.GetDecimal(1)
+                            End If
+                        Case "02"
+                            If myReader.GetString(3) = "D" Or myReader.GetString(4).Contains("CF") Then
                                 f.Fatturato.Fatturato_Febbraio = f.Fatturato.Fatturato_Febbraio + myReader.GetDecimal(1)
-                            Case "03"
+                            Else
+                                f.Fatturato.Fatturato_Febbraio = f.Fatturato.Fatturato_Febbraio - myReader.GetDecimal(1)
+                            End If
+                        Case "03"
+                            If myReader.GetString(3) = "D" Or myReader.GetString(4).Contains("CF") Then
                                 f.Fatturato.Fatturato_Marzo = f.Fatturato.Fatturato_Marzo + myReader.GetDecimal(1)
-                            Case "04"
+                            Else
+                                f.Fatturato.Fatturato_Marzo = f.Fatturato.Fatturato_Marzo - myReader.GetDecimal(1)
+                            End If
+                        Case "04"
+                            If myReader.GetString(3) = "D" Or myReader.GetString(4).Contains("CF") Then
                                 f.Fatturato.Fatturato_Aprile = f.Fatturato.Fatturato_Aprile + myReader.GetDecimal(1)
-                            Case "05"
+                            Else
+                                f.Fatturato.Fatturato_Aprile = f.Fatturato.Fatturato_Aprile - myReader.GetDecimal(1)
+                            End If
+                        Case "05"
+                            If myReader.GetString(3) = "D" Or myReader.GetString(4).Contains("CF") Then
                                 f.Fatturato.Fatturato_Maggio = f.Fatturato.Fatturato_Maggio + myReader.GetDecimal(1)
-                            Case "06"
+                            Else
+                                f.Fatturato.Fatturato_Maggio = f.Fatturato.Fatturato_Maggio - myReader.GetDecimal(1)
+                            End If
+                        Case "06"
+                            If myReader.GetString(3) = "D" Or myReader.GetString(4).Contains("CF") Then
                                 f.Fatturato.Fatturato_Giugno = f.Fatturato.Fatturato_Giugno + myReader.GetDecimal(1)
-                            Case "07"
+                            Else
+                                f.Fatturato.Fatturato_Giugno = f.Fatturato.Fatturato_Giugno - myReader.GetDecimal(1)
+                            End If
+                        Case "07"
+                            If myReader.GetString(3) = "D" Or myReader.GetString(4).Contains("CF") Then
                                 f.Fatturato.Fatturato_Luglio = f.Fatturato.Fatturato_Luglio + myReader.GetDecimal(1)
-                            Case "08"
+                            Else
+                                f.Fatturato.Fatturato_Luglio = f.Fatturato.Fatturato_Luglio - myReader.GetDecimal(1)
+                            End If
+                        Case "08"
+                            If myReader.GetString(3) = "D" Or myReader.GetString(4).Contains("CF") Then
                                 f.Fatturato.Fatturato_Agosto = f.Fatturato.Fatturato_Agosto + myReader.GetDecimal(1)
-                            Case "09"
+                            Else
+                                f.Fatturato.Fatturato_Agosto = f.Fatturato.Fatturato_Agosto - myReader.GetDecimal(1)
+                            End If
+                        Case "09"
+                            If myReader.GetString(3) = "D" Or myReader.GetString(4).Contains("CF") Then
                                 f.Fatturato.Fatturato_Settembre = f.Fatturato.Fatturato_Settembre + myReader.GetDecimal(1)
-                            Case "10"
+                            Else
+                                f.Fatturato.Fatturato_Settembre = f.Fatturato.Fatturato_Settembre - myReader.GetDecimal(1)
+                            End If
+                        Case "10"
+                            If myReader.GetString(3) = "D" Or myReader.GetString(4).Contains("CF") Then
                                 f.Fatturato.Fatturato_Ottobre = f.Fatturato.Fatturato_Ottobre + myReader.GetDecimal(1)
-                            Case "11"
+                            Else
+                                f.Fatturato.Fatturato_Ottobre = f.Fatturato.Fatturato_Ottobre - myReader.GetDecimal(1)
+                            End If
+                        Case "11"
+                            If myReader.GetString(3) = "D" Or myReader.GetString(4).Contains("CF") Then
                                 f.Fatturato.Fatturato_Novembre = f.Fatturato.Fatturato_Novembre + myReader.GetDecimal(1)
-                            Case "12"
+                            Else
+                                f.Fatturato.Fatturato_Novembre = f.Fatturato.Fatturato_Novembre - myReader.GetDecimal(1)
+                            End If
+                        Case "12"
+                            If myReader.GetString(3) = "D" Or myReader.GetString(4).Contains("CF") Then
                                 f.Fatturato.Fatturato_Dicembre = f.Fatturato.Fatturato_Dicembre + myReader.GetDecimal(1)
-                        End Select
+                            Else
+                                f.Fatturato.Fatturato_Dicembre = f.Fatturato.Fatturato_Dicembre - myReader.GetDecimal(1)
+                            End If
+                    End Select
 
                     '.DataCompetenza = Convert.ToDateTime(myReader.GetDecimal(3).ToString),
                 Loop
@@ -904,7 +955,7 @@ Namespace Controllers
                 wsCli.GetRow(2).GetCell(4).SetCellValue("02")
                 wsCli.GetRow(2).GetCell(5).SetCellValue("03")
                 wsCli.GetRow(2).GetCell(6).SetCellValue("04")
-                wsCli.GetRow(2).GetCell(6).SetCellValue("05")
+                wsCli.GetRow(2).GetCell(7).SetCellValue("05")
                 wsCli.GetRow(2).GetCell(8).SetCellValue("06")
                 wsCli.GetRow(2).GetCell(9).SetCellValue("07")
                 wsCli.GetRow(2).GetCell(10).SetCellValue("08")
@@ -1552,6 +1603,7 @@ Namespace Controllers
             For Each o In ListOrdini
                 Try
                     Select Case o.Div
+
                         Case "01"
                             If Not finalCosts.Drill.ContainsKey(o.Mese) Then
                                 finalCosts.Drill.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
@@ -1597,8 +1649,16 @@ Namespace Controllers
                             Else
                                 finalCosts.MPA(o.Mese).Estero_Nuovo = finalCosts.MPA(o.Mese).Estero_Nuovo + o.ImportoOrd
                             End If
+                        Case "06"
+                            If Not finalCosts.Drill.ContainsKey(o.Mese) Then
+                                finalCosts.Drill.Add(o.Mese, New DivisioneOrdinato With {.Italia_Nuovo = 0, .Estero_Nuovo = 0, .Italia_Ricambio = 0, .Estero_Ricambio = 0})
+                            End If
+                            If o.Zone.Contains("SM") Or o.Zone.Contains("IT") Then
+                                finalCosts.Drill(o.Mese).Italia_Nuovo = finalCosts.Drill(o.Mese).Italia_Nuovo + o.ImportoOrd
+                            Else
+                                finalCosts.Drill(o.Mese).Estero_Nuovo = finalCosts.Drill(o.Mese).Estero_Nuovo + o.ImportoOrd
+                            End If
                         Case Else
-                            ListOrdiniFallati.Add(o, "Divisione errata")
                     End Select
                     totalRevenue = totalRevenue + o.ImportoOrd
                     myConn.Close()
@@ -1957,7 +2017,7 @@ Namespace Controllers
                 myCmdBI = myConnBI.CreateCommand
                 myCmdBI.CommandText = ""
                 If agente = "" And cliente = "" Then
-                    myCmdBI.CommandText = "USE DWAlnus SELECT AL8.DWOESE, AL8.DWOSEZ, AL8.DWONUM, '', AL2.DWACR1, AL6.DWCCDC, AL1.DWCCNA, AL8.DWOTOT + AL8.DWORAS  + AL8.DWORST + AL8.DWORSB  , AL4.DWDMES, AL3.DWTCCM, AL1.DWCCLI, AL7.DWVCA1,AL1.DWCRSC,  AL7.DWVDA1 FROM DWAlnus.dbo.DWDCLI00 AL1, DWAlnus.dbo.DWDART00 AL2, DWAlnus.dbo.DWDTPI00 AL3, DWAlnus.dbo.DWDDAT00 AL4, DWAlnus.dbo.DWDJCO00 AL5, DWAlnus.dbo.DWDCLI00 AL6, DWAlnus.dbo.DWDFDV00 AL7, DWAlnus.dbo.DWFOC100 AL8 WHERE (AL1.DWCSOC=AL8.DWOSOC AND AL6.DWCSOC=AL8.DWOSOC AND AL3.DWTSOC=AL8.DWOSOC AND AL2.DWASOC=AL8.DWOSOC AND AL5.DWJSOC=AL8.DWOSOC AND AL7.DWVSOC=AL8.DWOSOC AND AL8.DWOAK0=AL2.DWAPK0 AND AL5.DWJPK0=AL8.DWOJK0 AND AL8.DWOVK0=AL7.DWVPK0 AND AL3.DWTPK0=AL8.DWOTK0 AND AL8.DWOCK1=AL6.DWCPK0 AND AL8.DWOCK0=AL1.DWCPK0 AND AL8.DWODTDREV=AL4.DWDDATREV) AND (((AL4.DWDDATREV BETWEEN 0 AND 0 OR AL4.DWDDATREV BETWEEN '" + datetimeCalc(0) + "' AND '" + datetimeCalc(1) + "') AND (NOT AL8.DWOSTA='A') AND AL3.DWTARC='2'))"
+                    myCmdBI.CommandText = "USE DWAlnus SELECT AL8.DWOESE, AL8.DWOSEZ, AL8.DWONUM, '', AL2.DWACR1, AL6.DWCCDC, AL1.DWCCNA, AL8.DWOTOT + AL8.DWORAS  + AL8.DWORST + AL8.DWORSB  , AL4.DWDMES, AL3.DWTCCM, AL1.DWCCLI, AL7.DWVCA1,AL1.DWCRSC,  AL7.DWVDA1 FROM DWAlnus.dbo.DWDCLI00 AL1, DWAlnus.dbo.DWDART00 AL2, DWAlnus.dbo.DWDTPI00 AL3, DWAlnus.dbo.DWDDAT00 AL4, DWAlnus.dbo.DWDJCO00 AL5, DWAlnus.dbo.DWDCLI00 AL6, DWAlnus.dbo.DWDFDV00 AL7, DWAlnus.dbo.DWFOC100 AL8 WHERE (AL1.DWCSOC=AL8.DWOSOC AND AL6.DWCSOC=AL8.DWOSOC AND AL3.DWTSOC=AL8.DWOSOC AND AL2.DWASOC=AL8.DWOSOC AND AL5.DWJSOC=AL8.DWOSOC AND AL7.DWVSOC=AL8.DWOSOC AND AL8.DWOAK0=AL2.DWAPK0 AND AL5.DWJPK0=AL8.DWOJK0 AND AL8.DWOVK0=AL7.DWVPK0 AND AL3.DWTPK0=AL8.DWOTK0 AND AL8.DWOCK1=AL6.DWCPK0 AND AL8.DWOCK0=AL1.DWCPK0 AND AL8.DWODTDREV=AL4.DWDDATREV) AND (((AL4.DWDDATREV BETWEEN 0 AND 0 OR AL4.DWDDATREV BETWEEN '" + datetimeCalc(0) + "' AND '" + datetimeCalc(1) + "')  AND (NOT AL8.DWOSTA='A') AND AL3.DWTARC='2'))"
                 Else
                     If agente = "" Then
                         myCmdBI.CommandText = "USE DWAlnus SELECT AL8.DWOESE, AL8.DWOSEZ, AL8.DWONUM, '', AL2.DWACR1, AL6.DWCCDC, AL1.DWCCNA, AL8.DWOTOT + AL8.DWORAS  + AL8.DWORST + AL8.DWORSB  , AL4.DWDMES, AL3.DWTCCM, AL1.DWCCLI, AL7.DWVCA1,AL1.DWCRSC,  AL7.DWVDA1 FROM DWAlnus.dbo.DWDCLI00 AL1, DWAlnus.dbo.DWDART00 AL2, DWAlnus.dbo.DWDTPI00 AL3, DWAlnus.dbo.DWDDAT00 AL4, DWAlnus.dbo.DWDJCO00 AL5, DWAlnus.dbo.DWDCLI00 AL6, DWAlnus.dbo.DWDFDV00 AL7, DWAlnus.dbo.DWFOC100 AL8 WHERE (AL1.DWCSOC=AL8.DWOSOC AND AL6.DWCSOC=AL8.DWOSOC AND AL3.DWTSOC=AL8.DWOSOC AND AL2.DWASOC=AL8.DWOSOC AND AL5.DWJSOC=AL8.DWOSOC AND AL7.DWVSOC=AL8.DWOSOC AND AL8.DWOAK0=AL2.DWAPK0 AND AL5.DWJPK0=AL8.DWOJK0 AND AL8.DWOVK0=AL7.DWVPK0 AND AL3.DWTPK0=AL8.DWOTK0 AND AL8.DWOCK1=AL6.DWCPK0 AND AL8.DWOCK0=AL1.DWCPK0 AND AL8.DWODTDREV=AL4.DWDDATREV) AND (((AL4.DWDDATREV BETWEEN 0 AND 0 OR AL4.DWDDATREV BETWEEN '" + datetimeCalc(0) + "' AND '" + datetimeCalc(1) + "')  AND (NOT AL8.DWOSTA='A') AND AL3.DWTARC='2')) AND (AL1.DWCCLI = '" + cliente + "')"

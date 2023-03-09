@@ -884,6 +884,14 @@
       <DependentUpon>202301181051254_ArticoliErrati2.vb</DependentUpon>
     </Compile>
     <Compile Include="EuromaMigrations\202301181051254_ArticoliErrati2.vb" />
+    <Compile Include="EuromaMigrations\202302211543485_LOG_OC.Designer.vb">
+      <DependentUpon>202302211543485_LOG_OC.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202302211543485_LOG_OC.vb" />
+    <Compile Include="EuromaMigrations\202303030814438_TempiUT.Designer.vb">
+      <DependentUpon>202303030814438_TempiUT.vb</DependentUpon>
+    </Compile>
+    <Compile Include="EuromaMigrations\202303030814438_TempiUT.vb" />
     <Compile Include="EuromaMigrations\Configuration.vb" />
     <Compile Include="Global.asax.vb">
       <DependentUpon>Global.asax</DependentUpon>
@@ -1262,6 +1270,12 @@
     <EmbeddedResource Include="EuromaMigrations\202301181051254_ArticoliErrati2.resx">
       <DependentUpon>202301181051254_ArticoliErrati2.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202302211543485_LOG_OC.resx">
+      <DependentUpon>202302211543485_LOG_OC.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EuromaMigrations\202303030814438_TempiUT.resx">
+      <DependentUpon>202303030814438_TempiUT.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="IdentityMigrations\202111161323354_Init.resx">
       <DependentUpon>202111161323354_Init.vb</DependentUpon>
       <SubType>Designer</SubType>
@@ -1550,6 +1564,7 @@
     <Content Include="Views\ProgettiUT\EditRichiesta.vbhtml" />
     <Content Include="Views\Pezzi\FatturatoFornitoriPage.vbhtml" />
     <Content Include="Views\Pezzi\OffertoPage.vbhtml" />
+    <Content Include="Views\ProgettiUT\Calendario.vbhtml" />
     <None Include="Views\Shared\Email_Euroma.vbhtml" />
     <Content Include="Views\Shared\Lockout.vbhtml" />
     <Content Include="Views\Shared\_LoginPartial.vbhtml" />
@@ -1656,6 +1671,34 @@
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+    <OutputPath>bin\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+    <OutputPath>bin\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\</OutputPath>
+    <DocumentationFile>EuromaWeb.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\</OutputPath>
+    <DocumentationFile>EuromaWeb.xml</DocumentationFile>
+    <Optimize>true</Optimize>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.VisualBasic.targets" />
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />

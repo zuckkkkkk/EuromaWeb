@@ -2,6 +2,7 @@
 @Code
     ViewData("Title") = "Ufficio Tecnico"
 End Code
+
 <style>
     input[type='checkbox'] {
         width: 37px !important;
@@ -25,7 +26,7 @@ End Code
             width: 100vw;
             left: 0;
             padding: 8px;
-            padding-bottom:16px!important;
+            padding-bottom: 16px !important;
         }
 
         #pills-esterni-in-attesa, #pills-esterni, #pills-richieste {
@@ -80,7 +81,7 @@ End Code
             <Button Class="nav-link" id="pills-esterni-tab" data-bs-toggle="pill" data-bs-target="#pills-esterni" type="button" role="tab" aria-controls="pills-esterni" aria-selected="false">Esterni Completati</Button>
         </li>
     End If
-    @If User.IsInRole("Tecnico") Or User.IsInRole("Produzione") Or User.IsInRole("Admin") Then
+    @If User.IsInRole("Tecnico") Or User.IsInRole("Produzione") Or User.IsInRole("Admin") Or User.IsInRole("TecnicoAdmin") Then
         If User.IsInRole("Produzione") Then
             @<li Class="nav-item" role="presentation">
                 <Button Class="nav-link active" id="pills-richieste-tab" data-bs-toggle="pill" data-bs-target="#pills-richieste" type="button" role="tab" aria-controls="pills-richieste" aria-selected="true">Richieste Modifica</Button>
@@ -127,33 +128,6 @@ End Code
                     </tr>
                 </thead>
                 <tbody>
-                    @For Each item In Model
-                        @<tr>
-                            <td>
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.Priorita)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
-                            </td>
-
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.Operatore)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
-
-                            </td>
-                            @*<td>
-                                    @Html.DisplayFor(Function(modelItem) item.Flag_Invio_Materiali, New With {.htmlAttributes = New With {.style = "width: 30px; height: 30px;"}})
-                                </td>*@
-
-                        </tr>
-                    Next
                 </tbody>
             </Table>
 
@@ -187,31 +161,6 @@ End Code
                 </thead>
 
                 <tbody>
-                    @For Each item In Model
-                        @<tr>
-                            <td>
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.Priorita)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
-                            </td>
-
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.Operatore)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
-
-                            </td>
-
-
-                        </tr>
-                    Next
                 </tbody>
             </table>
         </div>
@@ -245,30 +194,6 @@ End Code
                 </thead>
 
                 <tbody>
-                    @For Each item In Model
-                        @<tr>
-                            <td>
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.Priorita)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
-                            </td>
-
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.Operatore)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
-
-                            </td>
-
-                        </tr>
-                    Next
                 </tbody>
             </Table>
         </div>
@@ -300,30 +225,6 @@ End Code
                 </thead>
 
                 <tbody>
-                    @For Each item In Model
-                        @<tr>
-                            <td>
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.Priorita)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
-                            </td>
-
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.Operatore)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
-
-                            </td>
-
-                        </tr>
-                    Next
                 </tbody>
             </Table>
         </div>
@@ -356,34 +257,11 @@ End Code
                 </thead>
 
                 <tbody>
-                    @For Each item In Model
-                        @<tr>
-                            <td>
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.Priorita)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
-                            </td>
-
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.Operatore)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
-
-                            </td>
-                        </tr>
-                    Next
                 </tbody>
             </Table>
         </div>
     End If
-    @If User.IsInRole("Tecnico") Or User.IsInRole("Produzione") Or User.IsInRole("Admin") Then
+    @If User.IsInRole("Tecnico") Or User.IsInRole("Produzione") Or User.IsInRole("Admin") Or User.IsInRole("TecnicoAdmin") Then
         @If User.IsInRole("Produzione") Then
             @<div Class="tab-pane fade show active" id="pills-richieste" role="tabpanel" aria-labelledby="pills-richieste-tab">
                 <Table id="mainDataTableRichieste" Class="stripe" style="width:100%!important;">
@@ -412,29 +290,6 @@ End Code
                     </thead>
 
                     <tbody>
-                        @For Each item In Model
-                            @<tr>
-                                <td>
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(Function(modelItem) item.Priorita)
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
-                                </td>
-
-                                <td>
-                                    @Html.DisplayFor(Function(modelItem) item.Operatore)
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
-
-                                </td>
-                            </tr>
-                        Next
                     </tbody>
                 </Table>
                 <div class="row text-center">
@@ -474,29 +329,6 @@ End Code
                     </thead>
 
                     <tbody>
-                        @For Each item In Model
-                            @<tr>
-                                <td>
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(Function(modelItem) item.Priorita)
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(Function(modelItem) item.DataRichiestaConsegna)
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(Function(modelItem) item.OC_Riferimento)
-                                </td>
-
-                                <td>
-                                    @Html.DisplayFor(Function(modelItem) item.Operatore)
-                                </td>
-                                <td>
-                                    @Html.DisplayFor(Function(modelItem) item.StatoProgetto)
-
-                                </td>
-                            </tr>
-                        Next
                     </tbody>
                 </Table>
                 <div class="row text-center">

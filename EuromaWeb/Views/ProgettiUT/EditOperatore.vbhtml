@@ -30,6 +30,27 @@
         </div>
     </div>
     <div class="form-group">
+        <div class="row">
+            <div class="col-md-6">
+                <label for="DataInizioAttivita">Data Inizio Attività Prevista</label>
+                @Html.EditorFor(Function(model) model.DataInizioAttivita, New With {.htmlAttributes = New With {.class = "form-control", .id = "DataInizioAttivita", .style = "width: 100%;"}})
+                @Html.ValidationMessageFor(Function(model) model.DataInizioAttivita, "", New With {.class = "text-danger"})
+            </div>
+            <div class="col-md-6">
+                <label for="DataFineAttivita">Data Fine Attività Prevista</label>
+                @Html.EditorFor(Function(model) model.DataFineAttivita, New With {.htmlAttributes = New With {.class = "form-control", .id = "DataFineAttivita", .style = "width: 100%;"}})
+                @Html.ValidationMessageFor(Function(model) model.DataFineAttivita, "", New With {.class = "text-danger"})
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-12">
+            <label for="TempoTotale">Tempo Totale Attività (hr)</label>
+            @Html.EditorFor(Function(model) model.TempoTotale, New With {.htmlAttributes = New With {.class = "form-control", .id = "TempoTotale", .style = "width: 100%;"}})
+            @Html.ValidationMessageFor(Function(model) model.TempoTotale, "", New With {.class = "text-danger"})
+        </div>
+    </div>
+    <div class="form-group">
         <div class="col-md-12">
             @*@Html.LabelFor(Function(model) model.StatoProgetto, htmlAttributes:=New With {.class = "control-label col-md-2"})*@
             <label for="StatoProgetto">Stato Progetto</label>
@@ -174,8 +195,32 @@ End Using
     $('.dropzone').dropzone();
     $("#DateRetroattiva").flatpickr({
         enableTime: true,
+        allowInput: true,
         minTime: "09:00",
         maxTime: '18:00',
-        minDate: "2020-01"
+        minDate: "today",
+        "locale": {
+            "firstDayOfWeek": 1 // start week on Monday
+        }
+    });
+    $("#DataInizioAttivita").flatpickr({
+        allowInput: true,
+        enableTime: true,
+        minTime: "09:00",
+        maxTime: '18:00',
+        minDate: "today",
+        "locale": {
+            "firstDayOfWeek": 1 // start week on Monday
+        }
+    });
+    $("#DataFineAttivita").flatpickr({
+        enableTime: true,
+        allowInput: true,
+        minTime: "09:00",
+        maxTime: '18:00',
+        minDate: new Date().fp_incr(1),
+        "locale": {
+            "firstDayOfWeek": 1 // start week on Monday
+        }
     });
 </script>

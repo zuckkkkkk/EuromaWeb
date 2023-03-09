@@ -50,6 +50,10 @@ Public Class HomeController
         If Not User.Identity.IsAuthenticated Then
             Return RedirectToAction("Login", "Account")
         End If
+
+        Dim result As New List(Of Object)
+
+
         ViewBag.divPermessi_CMT = appctx.Users.Where(Function(x) x.UserName = User.Identity.Name).First.Profile.CMT
         ViewBag.divPermessi_ISA = appctx.Users.Where(Function(x) x.UserName = User.Identity.Name).First.Profile.ISA
         ViewBag.divPermessi_UNI = appctx.Users.Where(Function(x) x.UserName = User.Identity.Name).First.Profile.UNI
@@ -103,51 +107,36 @@ Public Class HomeController
 
         'Gestione scadenze
 
-        Dim scadUT = db.ProgettiUT.Where(Function(x) x.StatoProgetto < Stato_UT.Completato And x.DataRichiestaConsegna < DateTime.Now).ToList
-        Dim scadProd = db.ProgettiProd.Where(Function(x) x.StatoProgetto < Stato_Prod.Completato And x.DataRichiestaConsegna < DateTime.Now).ToList
-        Dim dateNext = DateTime.Now.AddDays(14)
-        Dim scadUTInScad = db.ProgettiUT.Where(Function(x) x.StatoProgetto < Stato_UT.Completato And x.DataRichiestaConsegna < dateNext And x.DataRichiestaConsegna > DateTime.Now).ToList
-        Dim scadProdInScad = db.ProgettiProd.Where(Function(x) x.StatoProgetto < Stato_Prod.Completato And x.DataRichiestaConsegna < dateNext And x.DataRichiestaConsegna > DateTime.Now).ToList
 
-        Dim listaScad As New List(Of ScadenzaViewModel)
-
-        For Each scad In scadUT
-            listaScad.Add(New ScadenzaViewModel With {
-                .AttualeUfficio = TipoUfficio.UfficioTecnico,
-                .data = scad.DataRichiestaConsegna,
-                .Descrizione = scad.StatoProgetto,
-                .OC = scad.OC_Riferimento,
-                .Titolo = "OC (" + scad.OC_Riferimento + ") scaduta"
-            })
+        For Each u In db.ProgettiUT.Where(Function(x) x.StatoProgetto < Stato_UT_Operatore.Completato).ToList
+            Dim di = Convert.ToDateTime(u.DataPrevistaInizio).ToString("yyyy-MM-dd").ToString
+            Dim df = Convert.ToDateTime(u.DataPrevistaFine).ToString("yyyy-MM-dd").ToString
+            Dim color = ""
+            Select Case u.Operatore
+                Case "Andrea"
+                    color = "#FFAD38"
+                Case "Franco"
+                    color = "#9CFF45"
+                Case "Michele"
+                    color = "#12A0FF"
+                Case "Claudio"
+                    color = "#FF6B2B"
+                Case "Antonio"
+                    color = "#FF201F"
+                Case "Simone"
+                    color = "#3933FF"
+            End Select
+            result.Add(New With {
+                               .title = u.Operatore + " - " + u.OC_Riferimento.ToString + " - " + u.StatoProgetto.ToString,
+                               .start = di,
+                               .end = df,
+                               .backgroundColor = color,
+                               .borderColor = color,
+                               .url = Url.Action("Ordine", "Overviews", New With {.id = u.OC_Riferimento})
+                          })
         Next
-        For Each scad In scadProd
-            listaScad.Add(New ScadenzaViewModel With {
-                .AttualeUfficio = TipoUfficio.Produzione,
-                .data = scad.DataRichiestaConsegna,
-                .Descrizione = scad.StatoProgetto,
-                .OC = scad.OC_Riferimento,
-                .Titolo = "OC (" + scad.OC_Riferimento + ") scaduta"
-            })
-        Next
-        For Each scad In scadUTInScad
-            listaScad.Add(New ScadenzaViewModel With {
-                .AttualeUfficio = TipoUfficio.UfficioTecnico,
-                .data = scad.DataRichiestaConsegna,
-                .Descrizione = scad.StatoProgetto,
-                .OC = scad.OC_Riferimento,
-                .Titolo = "OC (" + scad.OC_Riferimento + ") in scadenza"
-            })
-        Next
-        For Each scad In scadProdInScad
-            listaScad.Add(New ScadenzaViewModel With {
-                .AttualeUfficio = TipoUfficio.Produzione,
-                .data = scad.DataRichiestaConsegna,
-                .Descrizione = scad.StatoProgetto,
-                .OC = scad.OC_Riferimento,
-                .Titolo = "OC (" + scad.OC_Riferimento + ") in scadenza"
-            })
-        Next
-        Return View(listaScad)
+        ViewBag.result = JsonConvert.SerializeObject(Result)
+        Return View()
     End Function
     Function Notifiche() As ActionResult
         Dim OpID As String = vbNullString
@@ -172,7 +161,7 @@ Public Class HomeController
                         End If
                         retList.Add(New NotificheViewModel With {
                             .Descrizione = n.Operatore_Nome + " ha aggiunto una nuova nota all'" + n.OC,
-                            .TipologiaNotifica = "fa-comment",
+            .TipologiaNotifica = "fa-comment",
                             .Link = "/Home/NotificaLetta?id=" + n.Id.ToString + "&Type=2",
                             .ElapsedTime = tempo,
                             .DataAzione = n.Data_Nota
@@ -1383,7 +1372,6 @@ Public Class HomeController
         Catch ex As Exception
 
         End Try
-
         Dim l As New List(Of Disegno_Server_ViewModel)
         Dim acc = db.Disegni_MPA.Where(Function(x) x.Id = id).First
         Dim path = ""
@@ -1442,6 +1430,9 @@ Public Class HomeController
                                         .UltimaModifica = New TipoUltimaModifica With {.OperatoreID = OpID, .Operatore = OpName, .Data = CurrentDate}
                            })
         db.SaveChanges()
+        If l.Count = 0 Then
+            ViewBag.CodeDisegno = acc.Code_Disegno
+        End If
         Return PartialView(l)
     End Function
     Function DownloadMPA(ByVal id As Integer) As FileResult
@@ -1509,6 +1500,7 @@ Public Class HomeController
                 ElseIf path.Substring(path.Length - 3, 3).Contains(".") Then
                     path = path + ".mi"
                 End If
+                path = path.Replace("\\srvd01\ufftec\archivio", ".\Disegni")
                 Dim file = New FileInfo(path)
 
                 If (file.Exists) Then

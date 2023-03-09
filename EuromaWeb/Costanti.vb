@@ -1,9 +1,9 @@
 ﻿Public Module Costanti
 
     Public Const Debug As Boolean = False
-    Public Const WebAppVersion As String = "0.9.9t"
-    Public Const WebAppVersionDateBuild As Date = #02/09/2023#
-    Public Const WebAppVersionDateRelease As Date = #02/09/2023#
+    Public Const WebAppVersion As String = "1.0.0"
+    Public Const WebAppVersionDateBuild As Date = #03/09/2023#
+    Public Const WebAppVersionDateRelease As Date = #03/09/2023#
     ' DisplayFormat data annotations
     Public Const DisplayFormatDateStandard As String = "{0:dd/MM/yy HH:mm}"
     Public Const DisplayFormatDateOnly As String = "{0:dd/MM/yy}"

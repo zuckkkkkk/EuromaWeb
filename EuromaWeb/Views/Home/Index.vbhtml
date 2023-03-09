@@ -1,4 +1,5 @@
-﻿@ModelType List(Of EuromaWeb.ScadenzaViewModel)
+﻿<script src='@Html.Raw("https://cdn.jsdelivr.net/npm/fullcalendar@6.1.4/index.global.min.js")'></script>
+<script src=@Html.Raw("https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.4/locales/it.global.js")></script>
 <style>
     #Parent_Card_Menu {
         margin: 12px 0px;
@@ -87,6 +88,37 @@
         background-color: #0d6efd;
         border-color: #0d6efd;
     }
+
+    #calendar {
+        color: black !important;
+        text-decoration: none !important;
+    }
+
+    .mainContainerCalendar {
+        width: 100%;
+        display: flex;
+        justify-content: center !important;
+        align-items: center !important;
+        align-content: center !important;
+        box-shadow: rgb(0 0 0 / 18%) 0px 2px 4px;
+        padding-top: 16px;
+        padding-bottom: 16px;
+    }
+
+    .containerCalendario {
+        width:  600px;
+    }
+
+    a {
+        color: black;
+        text-decoration: none;
+    }
+    .NotForYou{
+        height:100%;
+        display:flex;
+        justify-content: center;
+        align-items: center;
+    }
 </style>
 
 <!-- Modal -->
@@ -124,209 +156,138 @@
         <a Class="btn btn-info" href="https://euroma.eu.ngrok.io">Ambiente di prova <i class="fa-solid fa-code-compare"></i></a>
     </div>
 End If
-
-<div Class="row">
-    <div Class="col-md-12">
+<div class="row">
+    <div class="col-md-12">
         <h2 style="margin-top: 1rem;"> Ciao, @User.Identity.Name</h2>
+    </div>
+</div>
+<div Class="row">
+    <div Class="col-md-6">
         <h5> Ricerca disegni</h5>
     </div>
+    <div class="col-md-6">
+        @If User.IsInRole("TecnicoAdmin") Or User.IsInRole("Admin") Or User.IsInRole("CommercialeAdmin") Then
+            @<h5> Calendario(Progetti UT)</h5>
+        End If
 
+    </div>
 </div>
 <div Class="">
-
-    @*<div Class="row mt-3">
-            <div Class="col-md-3">
-
-            </div>
-            <div Class="col-md-6">
-                @If ViewBag.divPermessi_MPA Then
-                    @<div Class="input-box"> <input type="text" class="form-control" id="NomeDisegno" placeholder="Cerca disegni..."></div>
-                Else
-                    @<div Class="input-box"> <input type="text" class="form-control" id="NomeDisegno" placeholder="Cerca disegni..." disabled></div>
-                End If
-            </div>
-            <div Class="col-md-3">
-
-            </div>
-        </div>*@
-
     <div Class="row mt-2">
         <div Class="col-md-3">
 
         </div>
         <div Class="col-md-6">
-            @*<div Class="row">
-                    @If ViewBag.divPermessi_MPA Then
-                        @<div Class="col">
-                            <Button data-value="06 - MPA" Class="btn btn-primary w-100" type="button" id="BtnDisegni"><p style="margin: 0!important" ;>Cerca disegni MPA</p></Button>
-                        </div>
-                        @<div class="col">
-                            <Button Class="btn btn-primary w-100" type="button" id="BtnDownloadDiretto"><p style="margin: 0!important" ;>Ricerca storico MPA</p></Button>
-                        </div>
-                    Else
-                        @<div Class="col">
-                            <Button data-value="06 - MPA" Class="btn btn-primary w-100" type="button" id="BtnDisegni" disabled><p style="margin: 0!important" ;>Cerca disegni MPA</p></Button>
-                        </div>
-                        @<div class="col">
-                            <Button Class="btn btn-primary w-100" type="button" id="BtnDownloadDiretto" disabled><p style="margin: 0!important" ;>Download Diretto</p></Button>
-                        </div>
-                    End If
-                    @If ViewBag.divPermessi_Drill Then
-                        @<div class="col">
-                            <button data-value="02 - Drill Matic" class="btn btn-primary w-100" type="button" id="BtnDisegni"><p style="margin: 0!important" ;>DRILL</p></button>
-                        </div>
-                    End If
-                    @If ViewBag.divPermessi_CMT Then
-                        @<div Class="col">
-                            <Button data-value="03 - CMT" Class="btn btn-primary w-100" type="button" id="BtnDisegni"><p style="margin: 0!important" ;>CMT</p></Button>
-                        </div>
-                    End If
-                    @If ViewBag.divPermessi_ISA Then
-                        @<div Class="col">
-                            <Button data-value="04 - ISA" Class="btn btn-primary w-100" type="button" id="BtnDisegni"><p style="margin: 0!important" ;>ISA</p></Button>
-                        </div>
-                    End If
-                    @If ViewBag.divPermessi_UNI Then
-                        @<div class="col">
-                            <button data-value="05 - Unistand" class="btn btn-primary w-100" type="button" id="BtnDisegni"><p style="margin: 0!important" ;>UNI</p></button>
-                        </div>
-                    End If
-                </div>*@
-            @*@If ViewBag.divPermessi_MPA Then
-                        @<div class="row mt-2">
-                            <div class="col-md-12">
-                                <Button Class="btn btn-success w-100" type="button" id="BtnDownloadDirettoEuroma"><p style="margin: 0!important" ;>Ricerca disegni Server Euroma</p></Button>
-                            </div>
-                        </div>
-                    End if
-                </div>
-                <div class="col-md-3">
 
-                </div>*@
-        </div>
-    </div><div class="row">
-    @*<div class="col-md-12">
-        <div class="row">
-            <div class="col-md-9">
-                <input type="text" name="Disegno" id="Disegno" class="Disegno"/>
-            </div>
-            <div class="col-md-3">
-                <btn class="btn btn-primary" id="SearchDraw">Cerca</btn>
-            </div>
-        </div>
-    </div>*@
-    <div class="col-md-6">
-        <div class="row">
-            <div class="col-md-12" id="Parent_Card_Menu">
-                <div class="card" id="Card_Menu">
-                    <p id="Nome_Menu">Storico MPA</p>
-                    <i id="Arrow" class="fa-solid fa-arrow-right-long fa-2x"></i>
-                    <btn class="btn btn-primary EditMenuBtn" onclick="helpIndex(1);"><i class="fas fa-info"></i></btn>
-                    <a href="http://192.168.100.12:120/" Target="_blank" class="stretched-link"></a>
-                </div>
-            </div>
-            <div class="col-md-12" id="Parent_Card_Menu">
-                <div class="card" id="Card_Menu">
-                    <p id="Nome_Menu">Storico EUROMA</p>
-                    <i id="Arrow" class="fa-solid fa-arrow-right-long fa-2x"></i>
-                    <btn class="btn btn-primary EditMenuBtn" onclick="helpIndex(2);"><i class="fas fa-info"></i></btn>
-                    <a href="http://192.168.100.50:120/" Target="_blank" class="stretched-link"></a>
-                </div>
-            </div>
-            <div class="col-md-12" id="Parent_Card_Menu">
-                <div class="card CardDettaglio" id="Card_Menu">
-                    <p id="Nome_Menu">Dettaglio MPA</p>
-                    <i id="Arrow" class="fa-solid fa-arrow-right-long fa-2x"> </i>
-                    <btn class="btn btn-primary EditMenuBtn" onclick="helpIndex(3);" style="z-index:1001!important;"><i class="fas fa-info"></i></btn>
-                </div>
-            </div>
         </div>
     </div>
-    <div class="col-md-6">
-        @If ViewBag.divPermessi_MPA Then
-            If Not User.IsInRole("Tecnico") Then
-                @<section id="counter" class="sec-padding" style="padding:0!important;">
-                    <div class="container" style="padding: 0 !important; margin: 12px !important;">
-                        <div class="row">
-                            <div class="col-md-12 ">
-                                <div class="count" style="margin: 12px !important;">
-                                    <i class="fa-solid fa-database fa-4x"></i>
-                                    <p class="number">@ViewBag.countDB1</p>
-                                    <h4> Disegni MPA DB 1</h4>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="count" style="margin: 12px !important;">
-                                    <i class="fa-solid fa-database fa-4x"></i>
-                                    <p class="number">@ViewBag.countDB2</p>
-                                    <h4> Disegni MPA DB 2</h4>
-                                </div>
-                            </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="row">
+                <div class="col-md-12" id="Parent_Card_Menu" style="margin-top:0px!important;">
+                    <div class="card" id="Card_Menu">
+                        <p id="Nome_Menu"> Storico MPA</p>
+                        <i id="Arrow" class="fa-solid fa-arrow-right-long fa-2x"></i>
+                        <btn class="btn btn-primary EditMenuBtn" onclick="helpIndex(1);"><i class="fas fa-info"></i></btn>
+                        <a href="http://192.168.100.12:120/" Target="_blank" class="stretched-link"></a>
+                    </div>
+                </div>
+                <div class="col-md-12" id="Parent_Card_Menu">
+                    <div class="card" id="Card_Menu">
+                        <p id="Nome_Menu"> Storico EUROMA</p>
+                        <i id="Arrow" class="fa-solid fa-arrow-right-long fa-2x"></i>
+                        <btn class="btn btn-primary EditMenuBtn" onclick="helpIndex(2);"><i class="fas fa-info"></i></btn>
+                        <a href="http://192.168.100.50:120/" Target="_blank" class="stretched-link"></a>
+                    </div>
+                </div>
+                <div class="col-md-12" id="Parent_Card_Menu">
+                    <div class="card CardDettaglio" id="Card_Menu">
+                        <p id="Nome_Menu"> Dettaglio MPA</p>
+                        <i id="Arrow" class="fa-solid fa-arrow-right-long fa-2x"> </i>
+                        <btn class="btn btn-primary EditMenuBtn" onclick="helpIndex(3);" style="z-index:1001!important;"><i class="fas fa-info"></i></btn>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            @If User.IsInRole("TecnicoAdmin") Or User.IsInRole("Admin") Or User.IsInRole("CommercialeAdmin") Then
+                @<div Class="Calendario">
+                    <div Class="mainContainerCalendar">
+                        <div Class="containerCalendario">
+                            <div id='calendar'></div>
                         </div>
                     </div>
-                </section>
+                </div>
             Else
-                @<section id="counter" class="sec-padding" style="padding:0!important;">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="count" style="margin: 12px !important;">
-                                    <i class="@ViewBag.RandomIcon1 fa-4x"></i>
-                                    <p class="number">@ViewBag.countDB1</p>
-                                    <h4> Disegni MPA DB 1</h4>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="count" style="margin: 12px !important;">
-                                    <i class="@ViewBag.RandomIcon2 fa-4x"></i>
-                                    <p class="number">@ViewBag.countDB2</p>
-                                    <h4> Disegni MPA DB 2</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
+                @<div class="NotForYou" style="height:100%">
+                     <div class="DivCenter">
+                         <div class="row">
+                             <div class="col-md-12"style="justify-content: center;display: flex;">
+                                 <i class="fa-solid fa-lock fa-3x"></i>
+                             </div>
+                         </div>
+                         <div class="row">
+                             <div class="col-md-12"style="display: flex;justify-content: center;">
+                                 <p style="width: 50%;text-align: center;">La sezione calendario è disponibile solo agli amministratori del sistema</p>
+                             </div>
+                         </div>
+                     </div>
+                </div>
             End If
+        </div>
 
-        End If
     </div>
-
-</div>
 </div>
 <script>
-    function helpIndex(num) {
-        switch(num) {
-            case 1:
-            Swal.fire(
-                'Storico MPA',
-                'Permette la ricerca di tutti i disegni presenti sul server MPA (SRVD01), perciò tutto lo storico fino a giugno 2021.',
-                'info'
-            )
-            break;
-            case 2:
-            Swal.fire(
-                'Storico Euroma',
-                'Permette la ricerca di tutti i disegni presenti sul server EUROMA (SRV2K16), perciò tutti i disegni di EUROMA (CMT - Drill - MPA nuovo - Unistand - ISA - ecc.).',
-                'info'
-            )
-            break;
-            case 3:
-            Swal.fire(
-                'Dettaglio MPA',
-                'Recupero del database dettagliato di Eurocad. Permette la ricerca per cliente, operatore e descrizione articolo nello storico MPA.',
-                'info'
-            )
-                break;
-                Default:
-                break;
-                // code block
-            }
-    };
-    $(".CardDettaglio").click(function (e) {
-        e.stopPropagation();
-        openSearch();
-    });
+                                                                            document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+             var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+aspectRatio: 2,
+                locale: 'it',
+headerToolbar: {
+                    left: 'prev,next today',
+center: 'title',
+right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                weekends: false,
+                 events: @Html.Raw(ViewBag.result)
+                        });
+                        calendar.setOption('aspectRatio', 1)
+                        calendar.render();
+                    });
+                    function helpIndex(num) {
+                        switch(num) {
+                            case 1 :
+                                                                                            Swal.fire(
+                                'Storico MPA',
+                                'Permette la ricerca di tutti i disegni presenti sul server MPA (SRVD01), perciò tutto lo storico fino a giugno 2021.',
+                                'info'
+                            )
+                            break;
+                            case 2 :
+                                                                                            Swal.fire(
+                                'Storico Euroma',
+                                'Permette la ricerca di tutti i disegni presenti sul server EUROMA (SRV2K16), perciò tutti i disegni di EUROMA (CMT - Drill - MPA nuovo - Unistand - ISA - ecc.).',
+                                'info'
+                            )
+                            break;
+                            case 3 :
+                                                                                            Swal.fire(
+                                'Dettaglio MPA',
+                                'Recupero del database dettagliato di Eurocad. Permette la ricerca per cliente, operatore e descrizione articolo nello storico MPA.',
+                                'info'
+                            )
+                                break;
+                                Default:
+                                                                                            break;
+                                // code block
+                            }
+                    };
+                    $(".CardDettaglio").click(function (e) {
+                        e.stopPropagation();
+                        openSearch();
+                    });
 </script>
 
 
